@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول - نظام الإدارة</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/auth.js"></script>
+</head>
+
+<body
+  style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: var(--bg-color); background-image: radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.15), transparent 70%); direction: rtl; font-family: 'Cairo', sans-serif; overflow: hidden; margin: 0;">
+  <div
+    style="background: var(--surface); padding: 3rem 2.5rem; border-radius: var(--radius-lg); width: 90%; max-width: 420px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.05); border-top: 1px solid rgba(255, 255, 255, 0.1); position: relative; z-index: 10;">
+    <div style="text-align: center; margin-bottom: 2.5rem;">
+      <h1
+        style="font-size: 1.75rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem; letter-spacing: -0.5px;">
+        تسجيل الدخول</h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">أهلاً بك في نظام الإدارة</p>
+    </div>
+    <div id="alert-container" style="margin-bottom: 1.5rem;"></div>
+    <form id="login-form">
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label for="email"
+          style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-main); font-size: 0.9rem;">البريد
+          الإلكتروني</label>
+        <input type="email" id="email" required placeholder="admin@company.com"
+          style="width: 100%; padding: 0.85rem 1rem; border: 1px solid rgba(255, 255, 255, 0.1); border-top: 1px solid rgba(0,0,0,0.5); border-radius: var(--radius); background: rgba(0, 0, 0, 0.25); color: var(--text-main); outline: none; transition: all 0.3s; font-family: inherit;">
+      </div>
+      <div class="form-group" style="margin-bottom: 2rem;">
+        <label for="password"
+          style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-main); font-size: 0.9rem;">كلمة
+          المرور</label>
+        <input type="password" id="password" required placeholder="••••••••"
+          style="width: 100%; padding: 0.85rem 1rem; border: 1px solid rgba(255, 255, 255, 0.1); border-top: 1px solid rgba(0,0,0,0.5); border-radius: var(--radius); background: rgba(0, 0, 0, 0.25); color: var(--text-main); outline: none; transition: all 0.3s; font-family: inherit;">
+      </div>
+      <button type="submit" class="btn btn-primary"
+        style="width: 100%; padding: 0.85rem; font-size: 1rem; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+        دخول للنظام
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+        </svg>
+      </button>
+    </form>
+  </div>
+
+  <div
+    style="position: absolute; top: -10%; left: -10%; width: 50vw; height: 50vw; background: radial-gradient(circle, rgba(56, 189, 248, 0.05) 0%, transparent 70%); border-radius: 50%; pointer-events: none;">
+  </div>
+  <div
+    style="position: absolute; bottom: -20%; right: -10%; width: 60vw; height: 60vw; background: radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%); border-radius: 50%; pointer-events: none;">
+  </div>
+
+  <script>
+    document.querySelectorAll('input').forEach(input => {
+      input.addEventListener('focus', () => {
+        input.style.borderColor = 'var(--primary)';
+        input.style.boxShadow = '0 0 0 3px rgba(56, 189, 248, 0.15)';
+      });
+      input.addEventListener('blur', () => {
+        input.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+        input.style.boxShadow = 'none';
+      });
+    });
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      const btn = e.target.querySelector('button');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = 'جاري التحقق...';
+      btn.style.opacity = '0.8';
+
+      try {
+        await login(email, password);
+      } finally {
+        btn.innerHTML = originalText;
+        btn.style.opacity = '1';
+      }
+    });
+  </script>
+</body>
+
+</html>

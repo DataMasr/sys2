@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>المستخدمين - نظام الإدارة</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/auth.js"></script>
+</head>
+
+<body>
+  <main class="main-content">
+    <div class="page-header">
+      <h1 style="display:flex; align-items:center; gap:0.6rem;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round"
+          stroke-linejoin="round" style="width:28px;height:28px;flex-shrink:0;">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+          <path d="M16 3.13a4 4 0 010 7.75" opacity="0.3" />
+        </svg>
+        إدارة المستخدمين
+      </h1>
+      <button class="btn btn-primary" onclick="openModal('create-user-modal')" style="gap:0.5rem;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round" style="width:18px;height:18px;">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        حساب جديد
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>قائمة المستخدمين</h2>
+      </div>
+      <div class="card-body">
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>الاسم / البريد</th>
+                <th>الدور</th>
+                <th>تاريخ الإنشاء</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="users-table-body">
+              <tr>
+                <td colspan="4" style="text-align:center;color:var(--text-muted)">جاري التحميل...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="create-user-modal" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>حساب جديد</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('create-user-modal')" style="padding:0.5rem">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="create-user-form">
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label for="new-user-name">الاسم الكامل *</label>
+              <input type="text" id="new-user-name" required placeholder="مثال: أحمد محمد">
+            </div>
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label for="new-user-email">البريد الإلكتروني *</label>
+              <input type="email" id="new-user-email" required placeholder="example@email.com">
+            </div>
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label for="new-user-password">كلمة المرور *</label>
+              <input type="password" id="new-user-password" required minlength="6" placeholder="على الأقل 6 أحرف">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <label for="new-user-role" style="display:block; margin-bottom:0.8rem; font-weight:800; color:var(--primary);">الرتبة :</label>
+              <select id="new-user-role" required style="width:100%; padding:0.8rem; border-radius:var(--radius); border:1px solid var(--border);">
+                <option value="purchasing_manager">مدير مشتريات</option>
+                <option value="inventory_manager">مدير التجهيزات</option>
+                <option value="production_engineer">مهندس إنتاج</option>
+                <option value="manager">مدير عام</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="submitCreateUser()">إنشاء الحساب</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('create-user-modal')">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="edit-permissions-modal" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 id="edit-perms-title">تعديل رتبة المستخدم</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('edit-permissions-modal')"
+            style="padding:0.5rem">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="edit-perms-form">
+            <input type="hidden" id="edit-user-id">
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <label for="edit-user-role" style="display:block; margin-bottom:0.8rem; font-weight:800; color:var(--primary);">الرتبة :</label>
+              <select id="edit-user-role" required style="width:100%; padding:0.8rem; border-radius:var(--radius); border:1px solid var(--border);">
+                <option value="purchasing_manager">مدير مشتريات</option>
+                <option value="inventory_manager">مدير التجهيزات</option>
+                <option value="production_engineer">مهندس إنتاج</option>
+                <option value="manager">مدير عام</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="submitUpdatePermissions()">حفظ التعديلات</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('edit-permissions-modal')">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SECTIONS = [
+        { id: 'orders', name: 'طلبيات العملاء', page: 'client_orders.html' },
+        { id: 'inventory', name: 'المخازن', page: 'inventory.html' },
+        { id: 'customers', name: 'العملاء', page: 'customers.html' },
+        { id: 'pricing', name: 'التسعير', page: 'pricing.html' },
+        { id: 'accounts', name: 'الحسابات', page: 'accounts.html' },
+        { id: 'profits', name: 'الأرباح', page: 'profits.html' },
+        { id: 'purchasing', name: 'المشتريات', page: 'purchasing.html' },
+        { id: 'users', name: 'المستخدمين', page: 'users.html' }
+      ];
+
+      function openModal(id) {
+        document.getElementById(id).classList.remove('hidden');
+      }
+
+      function closeModal(id) {
+        document.getElementById(id).classList.add('hidden');
+      }
+
+      async function openEditPermissionsModal(userId, fullName, currentRole) {
+        document.getElementById('edit-user-id').value = userId;
+        document.getElementById('edit-perms-title').textContent = `تعديل رتبة: ${fullName}`;
+        document.getElementById('edit-user-role').value = currentRole;
+        openModal('edit-permissions-modal');
+      }
+
+      async function submitUpdatePermissions() {
+        const userId = document.getElementById('edit-user-id').value;
+        const role = document.getElementById('edit-user-role').value;
+
+        try {
+          showAlert('جاري تحديث الرتبة...', 'pending');
+          const sb = getSupabase();
+          const { error } = await sb.from('profiles').update({ role }).eq('id', userId);
+          if (error) throw error;
+
+          showAlert('تم تحديث الرتبة بنجاح!', 'success');
+          closeModal('edit-permissions-modal');
+          await initUsersPage();
+        } catch (e) {
+          showAlert('فشل التحديث: ' + e.message, 'error');
+        }
+      }
+
+      async function submitCreateUser() {
+        const form = document.getElementById('create-user-form');
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+
+        const name = document.getElementById('new-user-name').value;
+        const email = document.getElementById('new-user-email').value;
+        const password = document.getElementById('new-user-password').value;
+        const role = document.getElementById('new-user-role').value;
+
+        try {
+          showAlert('جاري إنشاء الحساب...', 'pending');
+          const tempSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: { persistSession: false, autoRefreshToken: false }
+          });
+
+          const { data, error } = await tempSupabase.auth.signUp({
+            email, password,
+            options: { data: { full_name: name, role: role } }
+          });
+
+          if (error) throw error;
+
+          if (data.user) {
+            await new Promise(r => setTimeout(r, 1000));
+            const sb = getSupabase();
+            const { error: updateError } = await sb.from('profiles').update({
+              role, full_name: name, permissions: {}
+            }).eq('id', data.user.id);
+            if (updateError) throw updateError;
+          }
+
+          showAlert('تم إنشاء الحساب بنجاح!', 'success');
+          closeModal('create-user-modal');
+          form.reset();
+          await initUsersPage();
+        } catch (e) {
+          showAlert('فشل إنشاء الحساب: ' + e.message, 'error');
+        }
+      }
+
+      async function initUsersPage() {
+        await initAuth();
+        const profiles = await getProfiles();
+        const tbody = document.getElementById('users-table-body');
+
+        if (profiles.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">لا يوجد مستخدمين</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = '';
+        profiles.forEach(p => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>
+              <div style="font-weight:600">${p.full_name || '-'}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted)">${p.email}</div>
+            </td>
+            <td>
+              <span class="badge badge-${p.role === 'admin' ? 'completed' : 'in_progress'}">
+                ${getRoleLabel(p.role)}
+              </span>
+            </td>
+            <td>${new Date(p.created_at).toLocaleDateString('ar-EG')}</td>
+            <td>
+              <div style="display:flex; gap:0.5rem; justify-content:center;">
+                <button onclick="openEditPermissionsModal('${p.id}', '${p.full_name || p.email}', '${p.role}')" 
+                  class="btn btn-secondary btn-sm" style="background:var(--primary); color:white; border:none;">
+                  تعديل الرتبة
+                </button>
+                <button onclick="deleteUserAccount('${p.id}')" class="btn btn-sm" style="background:#fee2e2; color:#dc2626; border:none;">
+                  حذف
+                </button>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      async function deleteUserAccount(userId) {
+        if (!(await customConfirm('هل أنت متأكد من حذف هذا الحساب؟'))) return;
+        try {
+          const sb = getSupabase();
+          const { error } = await sb.from('profiles').delete().eq('id', userId);
+          if (error) throw error;
+          showAlert('تم حذف الحساب بنجاح', 'success');
+          await initUsersPage();
+        } catch (e) {
+          showAlert('فشل الحذف: ' + e.message, 'error');
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', initUsersPage);
+    </script>
+</body>
+
+</html>

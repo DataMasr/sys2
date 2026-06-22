@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>قسم الشراء - نظام الإدارة</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/auth.js"></script>
+  <style>
+    .order-purchase-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-right: 5px solid var(--primary);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+
+    .order-purchase-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .material-need-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 0.9rem;
+      background: #f8fafc;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      border: 1px solid var(--border-light);
+    }
+
+    .qty-badge {
+      background: #fee2e2;
+      color: #dc2626;
+      font-weight: 800;
+      font-size: 0.9rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 50px;
+      min-width: 50px;
+      text-align: center;
+    }
+
+    .aggregate-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 1rem;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 0.6rem;
+      transition: all 0.2s;
+    }
+
+    .aggregate-row:hover {
+      background: #f8fafc;
+      border-color: #c7d2fe;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-muted);
+    }
+
+    .empty-state .icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+      color: var(--text-main);
+      margin-bottom: 0.5rem;
+    }
+
+    .buy-btn {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      padding: 0.65rem 1.25rem;
+      font-weight: 700;
+      font-size: 0.875rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.25s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .buy-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(99, 102, 241, 0.4);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .section-title .line {
+      width: 5px;
+      height: 28px;
+      border-radius: 3px;
+      background: var(--primary);
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 1.15rem;
+      color: var(--text-main);
+    }
+
+    @media (max-width: 768px) {
+      .purchase-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
+    /* Checklist Modal Custom UI */
+    .purchase-item-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .purchase-item-card.checked {
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
+      background: #fff;
+    }
+
+    .supplier-split-row {
+      display: grid;
+      grid-template-columns: 1.2fr 2fr 1.3fr 1.3fr 1.3fr 2fr auto;
+      gap: 0.5rem;
+      align-items: flex-end;
+      margin-bottom: 0.5rem;
+      background: #f8fafc;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px dashed var(--border);
+    }
+
+    .extra-expense-row {
+      display: grid;
+      grid-template-columns: 3fr 1.5fr auto;
+      gap: 0.5rem;
+      align-items: flex-end;
+      margin-bottom: 0.5rem;
+      background: #fffcf8;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #fed7aa;
+    }
+
+    /* Summary Card Styling */
+    .summary-card {
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-top: 1.5rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      border: 1px solid #1e293b;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1rem;
+      text-align: center;
+    }
+
+    .summary-item h5 {
+      color: #94a3b8;
+      font-size: 0.78rem;
+      margin: 0 0 0.35rem 0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .summary-item .value {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+
+    .summary-item.highlight .value {
+      color: #38bdf8;
+    }
+
+    .summary-item.success-highlight .value {
+      color: #4ade80;
+    }
+
+    .summary-item.warning-highlight .value {
+      color: #fb923c;
+    }
+
+    @media (max-width: 800px) {
+      .supplier-split-row {
+        grid-template-columns: 1fr 1fr;
+      }
+      .supplier-split-row > button {
+        grid-column: span 2;
+      }
+      .summary-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .supplier-split-row, .extra-expense-row {
+        grid-template-columns: 1fr;
+      }
+      .supplier-split-row > button {
+        grid-column: span 1;
+      }
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="main-content">
+    <div id="alert-container"
+      style="position: fixed; top: 20px; left: 20px; z-index: 9999; max-width: 400px; width: 100%;"></div>
+
+
+    <div class="page-header">
+      <div style="display:flex; align-items:center; gap:0.75rem;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round"
+          stroke-linejoin="round" style="width:30px;height:30px;flex-shrink:0;">
+          <circle cx="9" cy="21" r="1.5" fill="var(--primary)" />
+          <circle cx="20" cy="21" r="1.5" fill="var(--primary)" />
+          <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
+        </svg>
+        <h1 style="font-size:1.65rem; font-weight:900; margin:0;">قسم الشراء</h1>
+      </div>
+      <p style="color:var(--text-muted); font-size:0.9rem; margin-top:0.25rem;">الطلبيات التي تحتاج شراء خامات ناقصة من
+        المورد</p>
+    </div>
+    <button class="btn btn-secondary" onclick="initPurchasingPage()" style="gap:0.5rem; margin-bottom:1.5rem;">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      تحديث
+    </button>
+
+
+    <div class="stats-grid" style="margin-bottom:2rem;">
+      <div class="stat-card" style="border-right:4px solid #ef4444;">
+        <h3>طلبيات متوقفة</h3>
+        <div class="value" id="stat-pending" style="color:#ef4444;">0</div>
+        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.4rem;">بانتظار شراء الخامات</p>
+      </div>
+      <div class="stat-card" style="border-right:4px solid var(--warning);">
+        <h3>أصناف ناقصة</h3>
+        <div class="value" id="stat-items" style="color:var(--warning);">0</div>
+        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.4rem;">صنف يحتاج شراء</p>
+      </div>
+    </div>
+
+    <div class="purchase-grid" style="display:grid; grid-template-columns: 360px 1fr; gap:1.75rem; align-items:start;">
+
+
+      <div>
+        <div class="section-title">
+          <div class="line"></div>
+          <h2
+            style="margin:0; font-size:1.15rem; color:var(--text-main); display:flex; align-items:center; gap:0.5rem;">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--primary)" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+              <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+            </svg>
+            خلاصة المشتريات
+          </h2>
+        </div>
+        <div
+          style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.25rem; box-shadow:var(--shadow-sm);">
+          <p
+            style="font-size:0.82rem; color:var(--text-muted); margin-bottom:1rem; padding-bottom:0.75rem; border-bottom:1px solid var(--border);">
+            📌 المجاميع التالية هي إجمالي الكميات المطلوب شراؤها:
+          </p>
+          <div id="aggregate-list">
+            <div style="text-align:center; padding:2rem; color:var(--text-muted);">جاري التحميل...</div>
+          </div>
+        </div>
+      </div>
+
+
+      <div>
+        <div class="section-title">
+          <div class="line" style="background:var(--success);"></div>
+          <h2
+            style="margin:0; font-size:1.15rem; color:var(--text-main); display:flex; align-items:center; gap:0.5rem;">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--success)" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line>
+              <path
+                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+              </path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+            تفاصيل كل طلبية
+          </h2>
+        </div>
+        <div id="orders-list">
+          <div style="text-align:center; padding:2rem; color:var(--text-muted);">جاري التحميل...</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Checklist Modal for Purchase -->
+  <div id="purchase-checklist-modal" class="modal-overlay hidden">
+    <div class="modal" style="max-width: 800px; width: 95%;">
+      <div class="modal-header">
+        <h3 id="checklist-modal-title">قائمة شراء الطلبية وتفاصيل الدفع</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('purchase-checklist-modal')"
+          style="padding:0.5rem; display:flex; align-items:center; justify-content:center;">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.25rem;">حدد الخامات التي اشتريتها وأدخل بيانات الموردين والمبالغ ليتم قيدها بالماليات:</p>
+        
+        <!-- Checklist items -->
+        <div id="checklist-items-container" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1.5rem;">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <hr style="border:0; border-top:1px solid var(--border); margin:1.5rem 0;">
+
+        <!-- Additional Expenses Section -->
+        <div>
+          <h4 style="font-size:0.95rem; font-weight:800; color:#b45309; display:flex; align-items:center; gap:0.4rem; margin-bottom:0.75rem;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+            مصاريف إضافية على الأوردر (مثال: مواصلات، شحن، عمالة...)
+          </h4>
+          <div id="additional-expenses-container" style="margin-bottom:0.75rem;">
+            <!-- Rendered dynamically -->
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="addExtraExpenseRow()" style="gap:0.4rem; background:#fffbf7; border:1px dashed #fed7aa; color:#b45309;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            إضافة مصروف إضافي
+          </button>
+        </div>
+
+        <hr style="border:0; border-top:1px solid var(--border); margin:1.5rem 0;">
+
+        <!-- Summary Card Section -->
+        <div class="summary-card">
+          <div class="summary-grid">
+            <div class="summary-item">
+              <h5>خامات الطلبية</h5>
+              <div class="value" id="summary-materials-total">0 ج.م</div>
+            </div>
+            <div class="summary-item">
+              <h5>مصاريف إضافية</h5>
+              <div class="value" id="summary-expenses-total">0 ج.م</div>
+            </div>
+            <div class="summary-item highlight">
+              <h5>الإجمالي الكلي</h5>
+              <div class="value" id="summary-grand-total">0 ج.م</div>
+            </div>
+            <div class="summary-item success-highlight">
+              <h5>المدفوع كاش</h5>
+              <div class="value" id="summary-paid-total">0 ج.م</div>
+            </div>
+            <div class="summary-item warning-highlight">
+              <h5>الديون (آجل)</h5>
+              <div class="value" id="summary-remaining-total">0 ج.م</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="btn-submit-purchase"
+          style="width:100%; justify-content:center; gap:0.5rem;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          تأكيد شراء الخامات وتدوين الحسابات
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Dynamic split supplier indexing
+    let supplierSplitIndex = 0;
+
+    async function initPurchasingPage() {
+      await initAuth();
+      const sb = getSupabase();
+
+      const aggregateEl = document.getElementById('aggregate-list');
+      const ordersList = document.getElementById('orders-list');
+
+      aggregateEl.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-muted);">جاري التحميل...</div>';
+      ordersList.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-muted);">جاري التحميل...</div>';
+
+      try {
+        // Load unique previous suppliers into datalist for autocomplete
+        await loadSuppliersDatalist();
+
+        const { data: orders, error } = await sb.from('client_orders')
+          .select('*')
+          .eq('archived', false)
+          .ilike('material_notes', '%عجز (معتمد للشراء)%')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Store active orders globally for quick referencing
+        window.activeOrders = orders || [];
+
+        if (!orders || orders.length === 0) {
+          document.getElementById('stat-pending').textContent = '0';
+          document.getElementById('stat-items').textContent = '0';
+          aggregateEl.innerHTML = `
+            <div class="empty-state">
+              <div class="icon" style="color:var(--success);">
+                <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              </div>
+              <h3>لا يوجد نواقص</h3>
+              <p>المخزن كافٍ لجميع الطلبيات الحالية</p>
+            </div>`;
+          ordersList.innerHTML = '';
+          return;
+        }
+
+        document.getElementById('stat-pending').textContent = orders.length;
+
+        let aggregate = {};
+        ordersList.innerHTML = '';
+
+        orders.forEach(order => {
+          const displayName = order.order_display_name || order.client_name || '-';
+          const lines = (order.material_notes || '').split('\n');
+          let deficits = [];
+
+          lines.forEach(line => {
+            if (line.includes('عجز (معتمد للشراء)')) {
+              let name = '';
+              const match1 = line.match(/تم سحب \d+(?:\.\d+)? من (.+?) \(/);
+              const match2 = line.match(/تم طلب شراء من الخارج \d+(?:\.\d+)? من (.+?) \[عجز/);
+
+              if (match1) name = match1[1].trim();
+              else if (match2) name = match2[1].trim();
+
+              const qtyMatch = line.match(/عجز \(معتمد للشراء\):\s*(\d+(?:\.\d+)?)/);
+              if (name && qtyMatch) {
+                const qty = parseFloat(qtyMatch[1]);
+                deficits.push({ name, qty });
+                if (!aggregate[name]) aggregate[name] = { qty: 0, orders: [] };
+                aggregate[name].qty += qty;
+                if (!aggregate[name].orders.includes(displayName))
+                  aggregate[name].orders.push(displayName);
+              }
+            }
+          });
+
+          if (deficits.length === 0) return;
+
+          const card = document.createElement('div');
+          card.className = 'order-purchase-card';
+          card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+              <div>
+                <div style="font-size:1.05rem; font-weight:800; color:var(--text-main);">${displayName}</div>
+                <div style="font-size:0.78rem; color:var(--text-muted); margin-top:0.2rem;">
+                  📅 ${new Date(order.created_at).toLocaleDateString('ar-EG')}
+                  &nbsp;|&nbsp; 💰 ${(order.total_price || 0).toLocaleString()} ج.م
+                </div>
+              </div>
+              <button class="buy-btn" style="background: linear-gradient(135deg, var(--primary), var(--primary-light)); gap:0.4rem; padding:0.5rem 1rem;" onclick="openPurchaseChecklistModal('${order.id}')">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+                </svg>
+                مراجعة وشراء الخامات 📋
+              </button>
+            </div>
+            <div>
+              ${deficits.map(d => `
+                <div class="material-need-row">
+                  <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" opacity="0.5"/></svg>
+                    <span style="font-weight:600; color:var(--text-main);">${d.name}</span>
+                  </div>
+                  <span class="qty-badge">${d.qty}</span>
+                </div>
+              `).join('')}
+            </div>
+          `;
+          ordersList.appendChild(card);
+        });
+
+        const items = Object.keys(aggregate);
+        document.getElementById('stat-items').textContent = items.length;
+
+        aggregateEl.innerHTML = '';
+        if (items.length === 0) {
+          aggregateEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);">لا يوجد نواقص</div>';
+          return;
+        }
+
+        items.forEach(name => {
+          const a = aggregate[name];
+          const div = document.createElement('div');
+          div.className = 'aggregate-row';
+          div.innerHTML = `
+            <div>
+              <div style="font-weight:700; color:var(--text-main);">${name}</div>
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.2rem;">
+                ${a.orders.map(o => `<span style="background:#eff6ff;color:#2563eb;padding:0.15rem 0.5rem;border-radius:50px;font-size:0.72rem;font-weight:700;margin-left:0.25rem;">${o}</span>`).join('')}
+              </div>
+            </div>
+            <span style="background:#fee2e2;color:#dc2626;font-weight:800;font-size:1.05rem;padding:0.3rem 0.9rem;border-radius:50px;">${a.qty}</span>
+          `;
+          aggregateEl.appendChild(div);
+        });
+
+      } catch (e) {
+        aggregateEl.innerHTML = `<div style="color:var(--error);padding:1rem;">خطأ: ${e.message}</div>`;
+      }
+    }
+
+    function parseTrackedMaterials(notes) {
+      if (!notes) return [];
+      const tracked = [];
+      const regex = /<!--TRACK:([a-zA-Z0-9\-]+):([0-9.]+)(?::([a-zA-Z0-9_]+):([a-zA-Z]+):([0-9.]+))?-->/g;
+      let match;
+      while ((match = regex.exec(notes)) !== null) {
+        tracked.push({
+          itemId: match[1],
+          qty: parseFloat(match[2]),
+          wh: match[3] || 'wh_1_qty',
+          source: match[4] || 'inventory',
+          deductedQty: parseFloat(match[5] || match[2])
+        });
+      }
+      return tracked;
+    }
+
+    async function loadSuppliersDatalist() {
+      try {
+        const sb = getSupabase();
+        const { data: accountsData } = await sb.from('accounts').select('person_name').eq('account_type', 'payable');
+        const supplierNames = [...new Set((accountsData || []).map(a => a.person_name).filter(Boolean))];
+        
+        let datalist = document.getElementById('suppliers-datalist');
+        if (!datalist) {
+          datalist = document.createElement('datalist');
+          datalist.id = 'suppliers-datalist';
+          document.body.appendChild(datalist);
+        }
+        datalist.innerHTML = supplierNames.map(name => `<option value="${name}"></option>`).join('');
+      } catch (e) {
+        console.error("Error loading suppliers datalist", e);
+      }
+    }
+
+    function openPurchaseChecklistModal(orderId) {
+      const order = window.activeOrders.find(o => o.id === orderId);
+      if (!order) return;
+
+      const displayName = order.order_display_name || order.client_name || '-';
+      document.getElementById('checklist-modal-title').textContent = `قائمة شراء الطلبية: ${displayName}`;
+
+      const container = document.getElementById('checklist-items-container');
+      container.innerHTML = '';
+
+      // Reset extra expenses container
+      document.getElementById('additional-expenses-container').innerHTML = '';
+
+      const lines = (order.material_notes || '').split('\n');
+      let hasDeficits = false;
+
+      lines.forEach((line, idx) => {
+        if (line.includes('عجز (معتمد للشراء)')) {
+          hasDeficits = true;
+          let name = '';
+          const match1 = line.match(/تم سحب \d+(?:\.\d+)? من (.+?) \(/);
+          const match2 = line.match(/تم طلب شراء من الخارج \d+(?:\.\d+)? من (.+?) \[عجز/);
+
+          if (match1) name = match1[1].trim();
+          else if (match2) name = match2[1].trim();
+
+          const qtyMatch = line.match(/عجز \(معتمد للشراء\):\s*(\d+(?:\.\d+)?)/);
+          if (name && qtyMatch) {
+            const qty = parseFloat(qtyMatch[1]);
+
+            const card = document.createElement('div');
+            card.className = 'purchase-item-card';
+            card.id = `item-card-${idx}`;
+
+            card.innerHTML = `
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                <label style="display:flex; align-items:center; gap:0.6rem; font-weight:800; cursor:pointer; margin:0;">
+                  <input type="checkbox" id="chk-${idx}" class="purchase-chk" data-index="${idx}" data-name="${name}" data-qty="${qty}" onchange="toggleItemPurchasing(${idx})" style="width:19px; height:19px; accent-color:var(--primary);">
+                  <span style="color:var(--text-main); font-size:1rem;">${name}</span>
+                </label>
+                <span class="qty-badge" style="margin:0;">${qty} مطلوب</span>
+              </div>
+
+              <!-- Purchasing details (hidden until checked) -->
+              <div id="purchasing-details-${idx}" class="hidden" style="margin-top:1rem; border-top:1px dashed var(--border); padding-top:1rem;">
+                <div style="margin-bottom:0.5rem;">
+                  <label style="font-size:0.78rem; font-weight:700; display:block; margin-bottom:0.35rem;">تفاصيل الشراء والموردين:</label>
+                  <div id="suppliers-split-container-${idx}">
+                    <!-- Initial Supplier Row -->
+                  </div>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="addSplitSupplierRow(${idx})" style="padding:0.35rem 0.75rem; font-size:0.75rem; gap:0.3rem;">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                    شراء كمية من مورد آخر
+                  </button>
+                </div>
+              </div>
+            `;
+            container.appendChild(card);
+            
+            // Add initial supplier row for this deficit item (prefilled with target qty)
+            addSplitSupplierRow(idx, qty);
+          }
+        }
+      });
+
+      if (!hasDeficits) {
+        container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:1.5rem;">لا توجد خامات معلقة للشراء في هذه الطلبية.</div>';
+        document.getElementById('btn-submit-purchase').style.display = 'none';
+      } else {
+        document.getElementById('btn-submit-purchase').style.display = 'flex';
+        document.getElementById('btn-submit-purchase').onclick = () => submitPurchaseChecklist(orderId);
+      }
+
+      updateModalSummary();
+      openModal('purchase-checklist-modal');
+    }
+
+    function toggleItemPurchasing(idx) {
+      const chk = document.getElementById(`chk-${idx}`);
+      const details = document.getElementById(`purchasing-details-${idx}`);
+      const card = document.getElementById(`item-card-${idx}`);
+      if (chk.checked) {
+        details.classList.remove('hidden');
+        card.classList.add('checked');
+      } else {
+        details.classList.add('hidden');
+        card.classList.remove('checked');
+      }
+      updateModalSummary();
+    }
+
+    function addSplitSupplierRow(deficitIdx, initialQty = '') {
+      const container = document.getElementById(`suppliers-split-container-${deficitIdx}`);
+      const rowId = supplierSplitIndex++;
+
+      const div = document.createElement('div');
+      div.className = 'supplier-split-row';
+      div.id = `split-row-${rowId}`;
+      div.innerHTML = `
+        <div class="form-group" style="margin:0;">
+          <label style="font-size:0.7rem;">الكمية *</label>
+          <input type="number" class="split-sup-qty" value="${initialQty}" placeholder="الكمية" min="0.01" step="any" required style="padding:0.4rem; font-size:0.8rem;" oninput="handleRowValueChange(${rowId})">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label style="font-size:0.7rem;">اسم المورد *</label>
+          <input type="text" class="split-sup-name" placeholder="اسم المورد" list="suppliers-datalist" required style="padding:0.4rem; font-size:0.8rem;">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label style="font-size:0.7rem;">السعر الإجمالي *</label>
+          <input type="number" class="split-sup-totalprice" placeholder="السعر الإجمالي" min="0" step="any" required style="padding:0.4rem; font-size:0.8rem;" oninput="handleRowValueChange(${rowId})">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label style="font-size:0.7rem;">طريقة الدفع *</label>
+          <select class="split-sup-paytype" style="padding:0.4rem; font-size:0.8rem;" onchange="handleSplitPayTypeChange(${rowId})">
+            <option value="كاش">💵 كاش</option>
+            <option value="آجل">📋 آجل</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label style="font-size:0.7rem;">المدفوع *</label>
+          <input type="number" class="split-sup-paid" placeholder="المدفوع" min="0" step="any" required readonly style="padding:0.4rem; font-size:0.8rem;" oninput="updateModalSummary()">
+        </div>
+        <div class="form-group split-sup-duedate-group" id="duedate-group-${rowId}" style="margin:0; visibility:hidden;">
+          <label style="font-size:0.7rem;">تاريخ الاستحقاق</label>
+          <input type="date" class="split-sup-duedate" style="padding:0.4rem; font-size:0.8rem;">
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="removeSplitSupplierRow(${rowId}, ${deficitIdx})" style="background:#fee2e2; color:#ef4444; border:none; padding:0.45rem; display:flex; align-items:center; justify-content:center;" title="حذف">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      `;
+      container.appendChild(div);
+      updateModalSummary();
+    }
+
+    function removeSplitSupplierRow(rowId, deficitIdx) {
+      const row = document.getElementById(`split-row-${rowId}`);
+      if (row) {
+        const parent = row.parentNode;
+        if (parent.children.length > 1) {
+          row.remove();
+          updateModalSummary();
+        } else {
+          showAlert('يجب بقاء مورد واحد على الأقل!', 'error');
+        }
+      }
+    }
+
+    function handleRowValueChange(rowId) {
+      const row = document.getElementById(`split-row-${rowId}`);
+      if (!row) return;
+      const totalPrice = parseFloat(row.querySelector('.split-sup-totalprice').value || 0);
+      const payType = row.querySelector('.split-sup-paytype').value;
+      const paidInput = row.querySelector('.split-sup-paid');
+
+      if (payType === 'كاش') {
+        paidInput.value = totalPrice > 0 ? totalPrice.toFixed(2) : '';
+      }
+      updateModalSummary();
+    }
+
+    function handleSplitPayTypeChange(rowId) {
+      const row = document.getElementById(`split-row-${rowId}`);
+      if (!row) return;
+      const payType = row.querySelector('.split-sup-paytype').value;
+      const totalPrice = parseFloat(row.querySelector('.split-sup-totalprice').value || 0);
+      const paidInput = row.querySelector('.split-sup-paid');
+      const dueDateGroup = document.getElementById(`duedate-group-${rowId}`);
+      const dueDateInput = dueDateGroup.querySelector('.split-sup-duedate');
+
+      if (payType === 'كاش') {
+        paidInput.value = totalPrice > 0 ? totalPrice.toFixed(2) : '';
+        paidInput.readOnly = true;
+        dueDateGroup.style.visibility = 'hidden';
+        dueDateInput.required = false;
+        dueDateInput.value = '';
+      } else {
+        paidInput.readOnly = false;
+        paidInput.value = '0';
+        dueDateGroup.style.visibility = 'visible';
+        dueDateInput.required = false;
+
+        // Set 30 days in the future
+        const d = new Date();
+        d.setDate(d.getDate() + 30);
+        dueDateInput.value = d.toISOString().split('T')[0];
+      }
+      updateModalSummary();
+    }
+
+    // Extra expenses dynamically added
+    let extraExpenseIndex = 0;
+    function addExtraExpenseRow() {
+      const container = document.getElementById('additional-expenses-container');
+      const id = extraExpenseIndex++;
+
+      const div = document.createElement('div');
+      div.className = 'extra-expense-row';
+      div.id = `extra-exp-${id}`;
+      div.innerHTML = `
+        <div class="form-group" style="margin:0;">
+          <label style="font-size:0.72rem;">نوع المصروف (مواصلات، شحن، عمالة...) *</label>
+          <input type="text" class="exp-desc-input" placeholder="اكتب نوع المصروف" required style="padding:0.4rem; font-size:0.8rem;">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label style="font-size:0.72rem;">المبلغ (جنيه) *</label>
+          <input type="number" class="exp-amount-input" placeholder="0" min="0" step="any" required style="padding:0.4rem; font-size:0.8rem;" oninput="updateModalSummary()">
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="removeExtraExpenseRow(${id})" style="background:#fee2e2; color:#ef4444; border:none; padding:0.45rem; display:flex; align-items:center; justify-content:center;" title="حذف">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      `;
+      container.appendChild(div);
+      updateModalSummary();
+    }
+
+    function removeExtraExpenseRow(id) {
+      const row = document.getElementById('extra-exp-' + id);
+      if (row) {
+        row.remove();
+        updateModalSummary();
+      }
+    }
+
+    function updateModalSummary() {
+      const checkedChks = document.querySelectorAll('.purchase-chk:checked');
+      let materialsTotal = 0;
+      let cashPaidTotal = 0;
+      let creditDebtsTotal = 0;
+
+      checkedChks.forEach(chk => {
+        const idx = chk.getAttribute('data-index');
+        const rows = document.querySelectorAll(`#suppliers-split-container-${idx} .supplier-split-row`);
+        rows.forEach(row => {
+          const totalPrice = parseFloat(row.querySelector('.split-sup-totalprice').value || 0);
+          const paid = parseFloat(row.querySelector('.split-sup-paid').value || 0);
+
+          materialsTotal += totalPrice;
+          cashPaidTotal += paid;
+
+          const rowDebt = Math.max(0, totalPrice - paid);
+          creditDebtsTotal += rowDebt;
+        });
+      });
+
+      let expensesTotal = 0;
+      const expenseRows = document.querySelectorAll('#additional-expenses-container .extra-expense-row');
+      expenseRows.forEach(row => {
+        const amt = parseFloat(row.querySelector('.exp-amount-input').value || 0);
+        expensesTotal += amt;
+      });
+
+      const grandTotal = materialsTotal + expensesTotal;
+      const finalCashPaid = cashPaidTotal + expensesTotal;
+      const finalRemainingDebts = creditDebtsTotal;
+
+      document.getElementById('summary-materials-total').textContent = materialsTotal.toLocaleString('ar-EG') + ' ج.م';
+      document.getElementById('summary-expenses-total').textContent = expensesTotal.toLocaleString('ar-EG') + ' ج.م';
+      document.getElementById('summary-grand-total').textContent = grandTotal.toLocaleString('ar-EG') + ' ج.م';
+      document.getElementById('summary-paid-total').textContent = finalCashPaid.toLocaleString('ar-EG') + ' ج.م';
+      document.getElementById('summary-remaining-total').textContent = finalRemainingDebts.toLocaleString('ar-EG') + ' ج.م';
+    }
+
+    async function submitPurchaseChecklist(orderId) {
+      const order = window.activeOrders.find(o => o.id === orderId);
+      if (!order) return;
+
+      const chks = document.querySelectorAll('.purchase-chk:checked');
+      if (chks.length === 0) {
+        showAlert('الرجاء تحديد عنصر واحد على الأقل تم شراؤه!', 'error');
+        return;
+      }
+
+      // Validate inputs for each checked item
+      let validated = true;
+      let purchasesData = [];
+
+      for (const chk of chks) {
+        const idx = chk.getAttribute('data-index');
+        const name = chk.getAttribute('data-name');
+        const qty = parseFloat(chk.getAttribute('data-qty'));
+
+        const supplierRows = document.querySelectorAll(`#suppliers-split-container-${idx} .supplier-split-row`);
+        let itemSuppliers = [];
+        let sumQty = 0;
+
+        for (const row of supplierRows) {
+          const qtyVal = parseFloat(row.querySelector('.split-sup-qty').value || 0);
+          const supName = row.querySelector('.split-sup-name').value.trim();
+          const totalPriceVal = parseFloat(row.querySelector('.split-sup-totalprice').value || 0);
+          const supPaytype = row.querySelector('.split-sup-paytype').value;
+          const supPaid = parseFloat(row.querySelector('.split-sup-paid').value || 0);
+          const dueDateVal = row.querySelector('.split-sup-duedate').value;
+
+          if (qtyVal <= 0 || !supName || totalPriceVal <= 0 || supPaid < 0) {
+            validated = false;
+            showAlert('يرجى ملء جميع حقول الموردين والأسعار بشكل صحيح وتوزيع الكميات!', 'error');
+            return;
+          }
+
+          sumQty += qtyVal;
+
+          const computedUnitPrice = qtyVal > 0 ? totalPriceVal / qtyVal : 0;
+
+          itemSuppliers.push({
+            supplier: supName,
+            quantity: qtyVal,
+            unit_price: computedUnitPrice,
+            price: totalPriceVal,
+            payment_type: supPaytype,
+            paid: supPaid,
+            due_date: supPaytype === 'كاش' ? null : dueDateVal
+          });
+        }
+
+        // Validate quantity sum matches deficit qty exactly
+        if (Math.abs(sumQty - qty) > 0.0001) {
+          validated = false;
+          showAlert(`مجموع الكميات الموزعة على الموردين لـ (${name}) هو ${sumQty}، ولكن الكمية المطلوبة هي ${qty}! يجب أن يتطابق المجموع تماماً.`, 'error');
+          return;
+        }
+
+        purchasesData.push({
+          index: parseInt(idx, 10),
+          material_name: name,
+          quantity: qty,
+          suppliers: itemSuppliers
+        });
+      }
+
+      // Gather additional expenses
+      let additionalExpenses = [];
+      const expenseRows = document.querySelectorAll('#additional-expenses-container .extra-expense-row');
+      for (const row of expenseRows) {
+        const desc = row.querySelector('.exp-desc-input').value.trim();
+        const amt = parseFloat(row.querySelector('.exp-amount-input').value || 0);
+        if (desc && amt > 0) {
+          additionalExpenses.push({ description: desc, amount: amt });
+        } else {
+          validated = false;
+          showAlert('يرجى ملء جميع بيانات المصاريف الإضافية بشكل صحيح!', 'error');
+          return;
+        }
+      }
+
+      if (!validated) return;
+
+      if (!(await customConfirm('✅ هل قمت بشراء الخامات المحددة بالفعل وتريد تحديث المخزن وتأكيد استلامها؟'))) return;
+
+      try {
+        showAlert('جاري تسجيل المشتريات وتحديث المخزن والماليات...', 'pending');
+        const sb = getSupabase();
+
+        // Skip price auto-update (keep manual prices fixed)
+        for (const p of purchasesData) {
+          // Fetch current price to check existence
+          const { data: priceData, error: priceFetchErr } = await sb
+            .from('prices')
+            .select('id, piece_price')
+            .eq('item_name', p.material_name)
+            .maybeSingle();
+
+          if (priceFetchErr) throw new Error(`فشل جلب السعر الحالي لـ ${p.material_name}: ${priceFetchErr.message}`);
+
+          // If price record doesn't exist, insert it for the first time with the purchase unit price as default
+          if (!priceData) {
+            const Q_new = p.quantity;
+            const C_new = p.suppliers.reduce((sum, s) => sum + (parseFloat(s.price) || 0), 0);
+            const initialPrice = Q_new > 0 ? C_new / Q_new : 0;
+
+            const { error: priceInsErr } = await sb
+              .from('prices')
+              .insert([{
+                item_name: p.material_name,
+                piece_price: Number(initialPrice.toFixed(2)),
+                unit: 'بالقطعة'
+              }]);
+            if (priceInsErr) throw new Error(`فشل إدخال سعر ${p.material_name}: ${priceInsErr.message}`);
+          }
+        }
+
+        const displayName = order.order_display_name || order.client_name || '-';
+        let lines = (order.material_notes || '').split('\n');
+        let logsToInsert = [];
+        let payablesToInsert = [];
+        let purchaseRecordsToInsert = [];
+
+        purchasesData.forEach(p => {
+          const line = lines[p.index];
+          const purchasedLine = line.replace(/\[عجز \(معتمد للشراء\):\s*(\d+(?:\.\d+)?)\]/g, (match, qty) => `[تم شراء عجز: ${qty}] ✅`);
+          lines[p.index] = purchasedLine;
+
+          // For each supplier, add to inventory logs
+          p.suppliers.forEach(s => {
+            logsToInsert.push({
+              item_name: p.material_name,
+              action_type: 'إضافة',
+              quantity: s.quantity,
+              warehouse: 'مشتريات خارجية',
+              notes: `شراء من المورد (${s.supplier}) لتغطية عجز طلبية العميل: ${displayName}`
+            });
+
+            payablesToInsert.push({
+              person_name: s.supplier,
+              account_type: 'payable',
+              total_amount: s.price,
+              paid_amount: s.paid,
+              notes: `شراء خامة (${p.material_name}) لطلبية: ${displayName} [كمية ${s.quantity}، السعر الإجمالي ${s.price}]`,
+              due_date: s.payment_type === 'كاش' ? new Date().toISOString().split('T')[0] : (s.due_date || null)
+            });
+          });
+
+          // Add to purchase_records table
+          purchaseRecordsToInsert.push({
+            order_id: orderId,
+            material_name: p.material_name,
+            suppliers: p.suppliers,
+            created_by: currentUser ? currentUser.id : null
+          });
+        });
+
+        // Insert additional expenses into general expenses AND order_expenses tables
+        let expensesToInsert = [];
+        let orderExpensesToInsert = [];
+        additionalExpenses.forEach(exp => {
+          expensesToInsert.push({
+            expense_date: new Date().toISOString().split('T')[0],
+            category: 'مصاريف نقل وشحن مشتريات',
+            amount: exp.amount,
+            notes: `مصاريف إضافية لشراء خامات طلبية (${displayName}): ${exp.description}`
+          });
+
+          orderExpensesToInsert.push({
+            order_id: orderId,
+            description: exp.description,
+            amount: exp.amount,
+            created_by: currentUser ? currentUser.id : null
+          });
+        });
+
+        // Re-calculate the actual manufacturing cost based on the actual purchase price paid
+        let newManufacturingCost = 0;
+        try {
+          const { data: invItems } = await sb.from('inventory').select('id, item_name');
+          const { data: pricesList } = await sb.from('prices').select('item_name, piece_price');
+          
+          if (invItems && pricesList) {
+            const trackedMats = parseTrackedMaterials(order.material_notes);
+            for (const t of trackedMats) {
+              const item = invItems.find(i => i.id === t.itemId);
+              if (!item) continue;
+              
+              const priceItem = pricesList.find(p => p.item_name === item.item_name);
+              const piecePrice = priceItem ? (priceItem.piece_price || 0) : 0;
+              
+              // 1. Stock consumption cost
+              newManufacturingCost += t.deductedQty * piecePrice;
+              
+              // 2. Shortage cost (actual purchase price if bought now, otherwise estimated old price)
+              const pData = purchasesData.find(p => p.material_name === item.item_name);
+              if (pData) {
+                const actualPurchaseCost = pData.suppliers.reduce((sum, s) => sum + (parseFloat(s.price) || 0), 0);
+                newManufacturingCost += actualPurchaseCost;
+              } else {
+                const shortageQty = t.qty - t.deductedQty;
+                if (shortageQty > 0) {
+                  newManufacturingCost += shortageQty * piecePrice;
+                }
+              }
+            }
+          }
+        } catch (calcErr) {
+          console.warn("Failed to calculate new manufacturing cost:", calcErr);
+        }
+
+        // Clean up old cost lines and append the new exact cost
+        lines = lines.filter(line => !line.includes('إجمالي تكلفة التصنيع'));
+        if (newManufacturingCost > 0) {
+          lines.push(`| إجمالي تكلفة التصنيع: ${newManufacturingCost} جنيه`);
+        }
+
+        // 1. Update order notes & stage
+        const newNotes = lines.join('\n');
+        const hasRemainingDeficits = lines.some(line => line.includes('عجز (معتمد للشراء)'));
+
+        let updateFields = {
+          material_notes: newNotes
+        };
+
+        if (!hasRemainingDeficits) {
+          updateFields.stage = 'قيد التنفيذ';
+        }
+
+        const { error: updateErr } = await sb.from('client_orders').update(updateFields).eq('id', orderId);
+        if (updateErr) throw updateErr;
+
+        // Insert notification for Preparation Manager (inventory_manager)
+        try {
+          const matsList = purchasesData.map(p => `${p.material_name} (${p.quantity})`).join('، ');
+          await sb.from('notifications').insert([{
+            order_id: orderId,
+            order_display_name: displayName,
+            message: `🛒 تم شراء خامات أوردر [${displayName}] بنجاح! المواد المشتراة: ${matsList}. وهي جاهزة الآن لمدير التجهيزات للبدء بقيد التصنيع.`,
+            created_by: currentUser ? currentUser.id : null,
+            read_by: []
+          }]);
+        } catch (notifErr) {
+          console.warn('Failed to send purchase notification:', notifErr.message);
+        }
+
+        // 2. Insert inventory logs
+        if (logsToInsert.length > 0) {
+          const { error: logErr } = await sb.from('inventory_logs').insert(logsToInsert);
+          if (logErr) throw logErr;
+        }
+
+        // 3. Insert purchase records
+        if (purchaseRecordsToInsert.length > 0) {
+          const { error: purRecErr } = await sb.from('purchase_records').insert(purchaseRecordsToInsert);
+          if (purRecErr) throw purRecErr;
+        }
+
+        // 4. Insert payables into accounts table (الأرباح والمصروفات - مدفوعات الموردين)
+        if (payablesToInsert.length > 0) {
+          const { error: payErr } = await sb.from('accounts').insert(payablesToInsert);
+          if (payErr) throw payErr;
+        }
+
+        // 5. Insert additional expenses into expenses table (الأرباح والمصروفات - إجمالي المصروفات)
+        if (expensesToInsert.length > 0) {
+          const { error: expErr } = await sb.from('expenses').insert(expensesToInsert);
+          if (expErr) throw expErr;
+        }
+
+        // 6. Insert additional expenses into order_expenses table
+        if (orderExpensesToInsert.length > 0) {
+          const { error: ordExpErr } = await sb.from('order_expenses').insert(orderExpensesToInsert);
+          if (ordExpErr) throw ordExpErr;
+        }
+
+        closeModal('purchase-checklist-modal');
+
+        if (!hasRemainingDeficits) {
+          showAlert('تم شراء جميع النواقص وقيد المعاملات بالماليات! الطلبية تحولت إلى قيد التنفيذ ✅', 'success');
+        } else {
+          showAlert('تم تأكيد الشراء وقيد الحسابات بنجاح! 📦', 'success');
+        }
+
+        await initPurchasingPage();
+      } catch (e) {
+        showAlert('خطأ أثناء الحفظ: ' + e.message, 'error');
+      }
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initPurchasingPage();
+      const sb = getSupabase();
+      sb.channel('purchasing-rt')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'client_orders' }, () => initPurchasingPage())
+        .subscribe();
+      setInterval(initPurchasingPage, 10000);
+    });
+  </script>
+</body>
+
+</html>

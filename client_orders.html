@@ -1,0 +1,2193 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>طلبيات العملاء - نظام الإدارة</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/auth.js"></script>
+</head>
+
+<style>
+  .shortage-card {
+    margin-top: 0.85rem;
+    padding: 0.85rem 1rem;
+    background: linear-gradient(135deg, #fffbf0 0%, #fff7ed 100%);
+    border: 1.5px solid rgba(249, 115, 22, 0.2);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.06);
+  }
+
+  .shortage-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #c2410c;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px dashed rgba(249, 115, 22, 0.2);
+  }
+
+  .shortage-approval-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    background: #fff;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid #ffe4cc;
+    border-radius: 8px;
+  }
+
+  .shortage-approval-label {
+    font-size: 0.77rem;
+    font-weight: 700;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .shortage-approved-badge {
+    background: #dcfce7;
+    color: #15803d;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    border: 1px solid #bbf7d0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .shortage-pending-badge {
+    background: #f1f5f9;
+    color: #64748b;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    border: 1px solid #e2e8f0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+  }
+
+  .shortage-approve-btn {
+    background: linear-gradient(135deg, #f59e0b, #ea580c);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 14px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 2px 6px rgba(234, 88, 12, 0.25);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .shortage-approve-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(234, 88, 12, 0.35);
+  }
+
+  .shortage-approve-btn:active {
+    transform: translateY(0);
+  }
+
+  .approval-notification-bar {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%);
+    border: 1.5px solid #fed7aa;
+    border-right: 5px solid #f97316;
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.4rem;
+    box-shadow: 0 4px 14px rgba(249, 115, 22, 0.09);
+    margin-bottom: 1.5rem;
+  }
+
+  .approval-notification-bar .notif-icon {
+    font-size: 1.75rem;
+    flex-shrink: 0;
+    animation: bell-ring 2s ease infinite;
+  }
+
+  @keyframes bell-ring {
+
+    0%,
+    100% {
+      transform: rotate(0);
+    }
+
+    8%,
+    24% {
+      transform: rotate(-14deg);
+    }
+
+    16%,
+    32% {
+      transform: rotate(14deg);
+    }
+
+    40% {
+      transform: rotate(0);
+    }
+  }
+
+  .approval-notification-bar .notif-title {
+    font-weight: 800;
+    color: #c2410c;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .approval-notif-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: #fff;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+    padding: 0.3rem 0.9rem;
+    border-radius: 50px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .approval-notif-chip:hover {
+    background: #fff7ed;
+    transform: scale(1.04);
+    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.15);
+  }
+</style>
+
+
+<body>
+  <main class="main-content">
+    <div class="page-header">
+      <h1 style="display:flex; align-items:center; gap:0.6rem;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round"
+          stroke-linejoin="round" style="width:30px;height:30px;flex-shrink:0;">
+          <rect x="2" y="3" width="20" height="18" rx="3" />
+          <path d="M8 7h8M8 11h5M8 15h3" />
+          <circle cx="17" cy="14" r="3" fill="var(--primary)" opacity="0.2" />
+          <path d="M16 14l1 1 2-2" />
+        </svg>
+        طلبيات العملاء
+      </h1>
+      <button id="create-order-btn" class="btn btn-primary" onclick="openCreateOrderModal()"
+        style="gap:0.5rem; display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round" style="width:18px;height:18px;">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        طلبية جديدة
+      </button>
+    </div>
+
+    <div id="overdue-banner" style="display:none; margin-bottom:1.5rem;"></div>
+    <div id="prep-notification-banner" style="display:none; margin-bottom:1.5rem;"></div>
+    <div id="approval-notification-banner" style="display:none; margin-bottom:1.5rem;"></div>
+    <div id="ready-delivery-banner" style="display:none; margin-bottom:1.5rem;"></div>
+
+    <div class="card">
+      <div class="card-header"
+        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+        <h2>قائمة الطلبيات الحالية</h2>
+        <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+          <div style="position:relative; min-width:250px;">
+            <input type="text" id="search-name" placeholder="🔍 ابحث باسم العميل..."
+              style="width:100%; padding:0.5rem 2.5rem 0.5rem 1rem; border-radius:8px; border:1.5px solid var(--border); font-size:0.9rem;"
+              oninput="filterOrders()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16" stroke-width="2.5"
+              style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--text-light); pointer-events:none;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <input type="date" id="search-date"
+              style="padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-size:0.9rem; font-family:inherit;"
+              oninput="filterOrders()">
+            <button class="btn btn-secondary btn-sm" onclick="resetSearch()"
+              style="padding:0.45rem 0.8rem; height:38px;">× مسح</button>
+          </div>
+          <span id="orders-count-badge"
+            style="background:var(--primary-bg); color:var(--primary); padding:0.35rem 0.85rem; border-radius:50px; font-size:0.82rem; font-weight:700;">جاري
+            التحميل...</span>
+        </div>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>العميل</th>
+                <th class="financial-field">المبالغ</th>
+                <th class="financial-field">الأقساط</th>
+                <th>موعد التسليم</th>
+                <th>تفاصيل الطلب والخامات</th>
+                <th>المرحلة</th>
+                <th style="text-align:center;">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="client-orders-table-body">
+              <tr>
+                <td colspan="7" style="text-align:center;color:var(--text-muted); padding:3rem;">جاري التحميل...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="create-client-order-modal" class="modal-overlay hidden">
+      <div class="modal" style="max-width: 600px;">
+        <div class="modal-header">
+          <h3>تسجيل طلبية جديدة</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('create-client-order-modal')"
+            style="padding:0.5rem">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+          <form id="create-client-order-form">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+              <div class="form-group" style="margin-bottom: 1rem; grid-column: 1 / -1;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.6rem;">
+                  <label style="margin:0; font-weight:700;">👤 العميل *</label>
+                </div>
+                <div style="position:relative; z-index: 1001;">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18" stroke-width="2"
+                    style="position:absolute; right:14px; top:50%; transform:translateY(-50%); color:var(--text-light); pointer-events:none; z-index:1;">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input type="text" id="co-client-search" autocomplete="off"
+                    placeholder="🔍 ابحث باسم العميل أو اكتب اسم جديد..."
+                    style="width:100%; padding:0.85rem 3rem 0.85rem 1rem; border:2px solid var(--border); border-radius:var(--radius); background:#fff; color:var(--text-main); font-size:0.95rem; font-family:inherit; transition:all 0.2s;"
+                    onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 4px rgba(99,102,241,0.1)'; showClientDropdown(this.value);"
+                    onblur="hideClientDropdown(); this.style.borderColor='var(--border)'; this.style.boxShadow='none';"
+                    oninput="handleClientSearchInput(this.value)" required>
+                  
+                  <!-- Custom Autocomplete Dropdown -->
+                  <div id="co-client-dropdown" class="autocomplete-dropdown hidden"></div>
+                </div>
+                <select id="co-client-name" class="hidden"></select>
+
+                <div id="new-customer-fields" class="hidden"
+                  style="margin-top: 1rem; padding: 1rem 1.25rem; border: 2px dashed #c7d2fe; border-radius: var(--radius); background: #f8f9ff;">
+                  <h5 style="margin:0 0 0.8rem 0; color:var(--primary); font-weight:800;">✨ هذا العميل جديد، يرجى إدخال بياناته</h5>
+                  <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>رقم التلفون (اختياري)</label>
+                    <input type="text" id="new-cust-phone-input" placeholder="01012345678">
+                  </div>
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label style="display:block; margin-bottom:0.35rem; font-weight:700;">نوع العميل *</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.4rem;">
+                      <label class="cust-type-option">
+                        <input type="radio" name="cust_type" value="regular" checked>
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 0.45rem;"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M12 2v3" opacity="0.6"/><path d="m9 3 3-1 3 1" opacity="0.6"/></svg>
+                        <span style="font-weight: 800; font-size: 0.82rem; color: var(--text-main);">عميل ثابت (مستمر)</span>
+                      </label>
+                      <label class="cust-type-option">
+                        <input type="radio" name="cust_type" value="temporary">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--error)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 0.45rem;"><path d="M5 2h14M5 22h14M19 2v4a7 7 0 0 1-7 7v0a7 7 0 0 1-7-7V2M5 22v-4a7 7 0 0 1 7-7v0a7 7 0 0 1 7 7v4"/></svg>
+                        <span style="font-weight: 800; font-size: 0.82rem; color: var(--text-main);">عميل مؤقت (أوردر واحد)</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="co-total-price">إجمالي الحساب (الفلوس) *</label>
+                <input type="number" id="co-total-price" required min="0" placeholder="مثال: 5000">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="co-paid-amount">المدفوع مقدماً *</label>
+                <input type="number" id="co-paid-amount" required min="0" placeholder="مثال: 2500">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 1rem; grid-column: 1 / -1;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
+                  <label style="margin:0;">خطة سداد الأقساط (اختياري)</label>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="addInstallmentRow()">+ إضافة
+                    قسط</button>
+                </div>
+                <div id="installments-container"
+                  style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom: 0.5rem;">
+                </div>
+                <input type="hidden" id="co-payment-plan">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="co-delivery-date">موعد التسليم *</label>
+                <input type="date" id="co-delivery-date" required>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 1rem; grid-column: 1 / -1;">
+                <label for="co-order-details">تفاصيل ومواصفات الطلب</label>
+                <textarea id="co-order-details" rows="3"
+                  placeholder="اكتب تفاصيل الطلب، المقاسات، الألوان، وأي متطلبات خاصة هنا..."></textarea>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="co-stage">المرحلة الحالية *</label>
+                <select id="co-stage" required>
+                  <option value="تم التعاقد (دفع عربون)">تم التعاقد (دفع عربون)</option>
+                  <option value="شراء الخامات">شراء الخامات</option>
+                  <option value="قيد التنفيذ">قيد التنفيذ</option>
+                  <option value="قيد التصنيع">قيد التصنيع</option>
+                  <option value="التجهيز">التجهيز</option>
+                  <option value="جاهز للتسليم">جاهز للتسليم</option>
+                  <option value="تم التسليم للزبون">تم التسليم للزبون</option>
+                </select>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 1rem; grid-column: 1 / -1;">
+                <label for="co-display-name">🏷️ اسم الأوردر للعرض العام *</label>
+                <input type="text" id="co-display-name" required placeholder="مثال: أوردر 001 — ستائر زرقاء..." style="font-weight:600;">
+                <small style="color:var(--text-muted);font-size:0.75rem;">هذا الاسم يراه جميع الموظفين بدلاً من اسم العميل</small>
+              </div>
+            </div>
+
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="submitCreateClientOrder()">تسجيل الطلبية</button>
+          <button type="button" class="btn btn-secondary"
+            onclick="closeModal('create-client-order-modal')">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="update-client-order-modal" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>تحديث الطلبية</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('update-client-order-modal')"
+            style="padding:0.5rem">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="update-client-order-form">
+            <input type="hidden" id="upd-order-id">
+
+            <div class="form-group financial-field" style="margin-bottom: 1rem;">
+              <label for="upd-paid-amount">المدفوع حتى الآن</label>
+              <input type="number" id="upd-paid-amount" required min="0">
+              <small style="color:var(--text-muted)">قم بزيادة الرقم إذا دفع الزبون دفعة جديدة.</small>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label for="upd-delivery-date">موعد التسليم *</label>
+              <input type="date" id="upd-delivery-date" required>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <label for="upd-stage">مرحلة الطلب</label>
+              <select id="upd-stage" required>
+                <option value="تم التعاقد (دفع عربون)">تم التعاقد (دفع عربون)</option>
+                <option value="شراء الخامات">شراء الخامات</option>
+                <option value="قيد التنفيذ">قيد التنفيذ</option>
+                <option value="قيد التصنيع">قيد التصنيع</option>
+                <option value="التجهيز">التجهيز</option>
+                <option value="جاهز للتسليم">جاهز للتسليم</option>
+                <option value="تم التسليم للزبون">تم التسليم للزبون</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1rem; grid-column: 1 / -1;">
+              <label for="upd-order-details">تفاصيل ومواصفات الطلب</label>
+              <textarea id="upd-order-details" rows="3" placeholder="اكتب تفاصيل الطلب، المقاسات، الألوان، وأي متطلبات خاصة هنا..."></textarea>
+            </div>
+
+            <div class="form-group financial-field" style="margin-bottom: 1rem; grid-column: 1 / -1;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
+                <label style="margin:0;">خطة سداد الأقساط (اختياري)</label>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="addInstallmentRowToUpdate()">+ إضافة
+                  قسط</button>
+              </div>
+              <div id="upd-installments-container"
+                style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom: 0.5rem;">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="submitUpdateClientOrder()">حفظ التحديثات</button>
+          <button type="button" class="btn btn-secondary"
+            onclick="closeModal('update-client-order-modal')">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="add-materials-modal" class="modal-overlay hidden">
+      <div class="modal" style="max-width: 600px;">
+        <div class="modal-header">
+          <h3 id="add-materials-modal-title">إضافة خامات للطلبية</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('add-materials-modal')" style="padding:0.5rem">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+          <form id="add-materials-form">
+            <input type="hidden" id="add-mat-order-id">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.8rem;">
+              <h4 style="color:var(--primary); margin:0;">الخامات المستخدمة</h4>
+              <button type="button" class="btn btn-secondary btn-sm"
+                onclick="addMaterialRow('materials-container-add')">+ إضافة خامة أخرى</button>
+            </div>
+            <div id="materials-container-add">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" id="add-materials-submit-btn" onclick="submitAddMaterials()">تأكيد وإضافة الخامات</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('add-materials-modal')">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="report-issue-modal" class="modal-overlay hidden">
+      <div class="modal" style="max-width: 450px;">
+        <div class="modal-header">
+          <h3>⚠️ إبلاغ عن مشكلة في خامات الطلبية</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('report-issue-modal')" style="padding:0.5rem">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="report-issue-order-id">
+          <div class="form-group">
+            <label>وصف المشكلة بالتفصيل</label>
+            <textarea id="report-issue-text" rows="4" placeholder="مثال: الخامة غير متطابقة مع المقاسات المطلوبة، أو الكمية المسحوبة غير كافية..." required style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:0.5rem; font-family:inherit;"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" onclick="submitMaterialIssue()">إرسال البلاغ</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('report-issue-modal')">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="return-material-modal" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>إرجاع خامات متبقية للمخزن</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('return-material-modal')" style="padding:0.5rem">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="return-material-form">
+            <input type="hidden" id="ret-order-id">
+            <input type="hidden" id="ret-old-notes">
+
+            <p style="margin-bottom:1rem;font-size:0.875rem;color:var(--text-muted);">
+              سيتم إضافة هذه الكمية مرة أخرى للمخزن وتقليل تكلفة التصنيع الخاصة بالطلبية.
+            </p>
+
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label for="ret-material-item">الصنف المرتجع</label>
+              <select id="ret-material-item" required>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label for="ret-material-warehouse">إلى أي مخزن؟</label>
+              <select id="ret-material-warehouse" required>
+                <option value="wh_1_qty">مخزن 1</option>
+                <option value="wh_2_qty">مخزن 2</option>
+                <option value="wh_3_qty">مخزن 3</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <label for="ret-material-qty">الكمية المرتجعة</label>
+              <input type="number" id="ret-material-qty" required min="0.01" step="any" placeholder="مثال: 0.25">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="submitReturnMaterial()">تأكيد الإرجاع</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('return-material-modal')">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let inventoryItems = [];
+
+      function scrollToOrder(orderId) {
+        const row = document.getElementById('order-row-' + orderId);
+        if (row) {
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          row.style.transition = 'background 0.3s';
+          row.style.background = '#fef3c7';
+          setTimeout(() => { row.style.background = '#fffbeb'; }, 500);
+          setTimeout(() => { row.style.background = ''; }, 2500);
+        }
+      }
+
+      let pricesList = [];
+      let clientOrdersData = [];
+      let customersList = [];
+
+      function openModal(id) {
+        document.getElementById(id).classList.remove('hidden');
+      }
+
+      function closeModal(id) {
+        document.getElementById(id).classList.add('hidden');
+      }
+
+      function checkCustomerExists(name) {
+        if (!name.trim()) {
+          document.getElementById('new-customer-fields').classList.add('hidden');
+          return;
+        }
+        const exists = customersList.some(c => c.name === name.trim());
+        if (!exists) {
+          document.getElementById('new-customer-fields').classList.remove('hidden');
+        } else {
+          document.getElementById('new-customer-fields').classList.add('hidden');
+        }
+      }
+
+      function showClientDropdown(val) {
+        const dropdown = document.getElementById('co-client-dropdown');
+        if (!dropdown) return;
+
+        const query = val.trim().toLowerCase();
+        let matches = [];
+        
+        if (!query) {
+          // If input is empty, show the first 10 customers as suggestions
+          matches = customersList.slice(0, 10);
+        } else {
+          matches = customersList.filter(c => c.name.toLowerCase().includes(query) || (c.phone && c.phone.includes(query)));
+        }
+
+        dropdown.innerHTML = '';
+        
+        if (matches.length > 0) {
+          matches.forEach(c => {
+            const isTemp = c.phone && c.phone.includes('[مؤقت]');
+            const cleanPhone = c.phone ? c.phone.replace(' [مؤقت]', '').replace('[مؤقت]', '') : '';
+            const badgeClass = isTemp ? 'badge-temp' : 'badge-regular';
+            const badgeText = isTemp ? 'مؤقت ⏳' : 'ثابت 📌';
+            
+            const div = document.createElement('div');
+            div.className = 'autocomplete-item';
+            div.setAttribute('onmousedown', `selectClientOption('${c.name.replace(/'/g, "\\'")}')`);
+            
+            div.innerHTML = `
+              <div class="client-info">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <strong style="color:var(--text-main); font-size:0.875rem;">${c.name}</strong>
+                ${cleanPhone ? `<span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">(📞 ${cleanPhone})</span>` : ''}
+              </div>
+              <span class="client-badge ${badgeClass}">${badgeText}</span>
+            `;
+            dropdown.appendChild(div);
+          });
+        }
+        
+        // Always show the "Add New Customer" option if the typed text doesn't exactly match any customer
+        const exactMatch = customersList.some(c => c.name.trim() === val.trim());
+        if (val.trim() && !exactMatch) {
+          const div = document.createElement('div');
+          div.className = 'autocomplete-item';
+          div.setAttribute('onmousedown', `selectClientOption('${val.trim().replace(/'/g, "\\'")}')`);
+          div.innerHTML = `
+            <div class="client-info" style="color:var(--primary);">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 5v14M5 12h14" /></svg>
+              <strong style="font-size:0.875rem;">إضافة عميل جديد باسم: "${val.trim()}"</strong>
+            </div>
+            <span class="client-badge badge-temp" style="background:rgba(99, 102, 241, 0.1); color:var(--primary);">✨ عميل جديد</span>
+          `;
+          dropdown.appendChild(div);
+        }
+
+        if (dropdown.children.length === 0) {
+          dropdown.classList.add('hidden');
+        } else {
+          dropdown.classList.remove('hidden');
+        }
+      }
+
+      function handleClientSearchInput(val) {
+        showClientDropdown(val);
+        checkCustomerExists(val);
+      }
+
+      function selectClientOption(name) {
+        const input = document.getElementById('co-client-search');
+        if (input) {
+          input.value = name;
+        }
+        hideClientDropdown();
+        checkCustomerExists(name);
+      }
+
+      function hideClientDropdown() {
+        const dropdown = document.getElementById('co-client-dropdown');
+        if (dropdown) {
+          dropdown.classList.add('hidden');
+        }
+      }
+
+      function addInstallmentRow(amount = '', date = '') {
+        const container = document.getElementById('installments-container');
+        const row = document.createElement('div');
+        row.className = 'installment-row';
+        row.style = 'display:grid; grid-template-columns: 1fr 1.2fr auto; gap:0.5rem; align-items:center;';
+        row.innerHTML = `
+          <input type="number" class="inst-amount" placeholder="المبلغ" value="${amount}" style="padding:0.5rem; border-radius:var(--radius); border:1px solid var(--border); background:rgba(0,0,0,0.2);">
+          <input type="date" class="inst-date" value="${date}" style="padding:0.5rem; border-radius:var(--radius); border:1px solid var(--border); background:rgba(0,0,0,0.2);">
+          <button type="button" class="btn btn-danger-outline btn-sm" onclick="this.parentElement.remove()" style="padding:0.5rem; width:35px; height:35px; display:flex; align-items:center; justify-content:center;">×</button>
+        `;
+        container.appendChild(row);
+      }
+
+      function addInstallmentRowToUpdate(amount = '', date = '') {
+        const container = document.getElementById('upd-installments-container');
+        const row = document.createElement('div');
+        row.className = 'upd-installment-row';
+        row.style = 'display:grid; grid-template-columns: 1fr 1.2fr auto; gap:0.5rem; align-items:center;';
+        row.innerHTML = `
+          <input type="number" class="upd-inst-amount" placeholder="المبلغ" value="${amount}" style="padding:0.5rem; border-radius:var(--radius); border:1px solid var(--border); background:rgba(0,0,0,0.2);">
+          <input type="date" class="upd-inst-date" value="${date}" style="padding:0.5rem; border-radius:var(--radius); border:1px solid var(--border); background:rgba(0,0,0,0.2);">
+          <button type="button" class="btn btn-danger-outline btn-sm" onclick="this.parentElement.remove()" style="padding:0.5rem; width:35px; height:35px; display:flex; align-items:center; justify-content:center;">×</button>
+        `;
+        container.appendChild(row);
+      }
+
+      function updateRowStockLabels(selectEl) {
+        const row = selectEl.closest('.material-row');
+        const materialId = selectEl.value;
+        const whSelect = row.querySelector('.mat-wh');
+
+        if (!materialId) {
+          whSelect.innerHTML = `
+            <option value="wh_1_qty">مخزن 1</option>
+            <option value="wh_2_qty">مخزن 2</option>
+            <option value="wh_3_qty">مخزن 3</option>
+          `;
+          return;
+        }
+
+        const item = inventoryItems.find(i => i.id === materialId);
+        if (item) {
+          whSelect.innerHTML = `
+            <option value="wh_1_qty">مخزن 1 (متاح: ${item.wh_1_qty || 0})</option>
+            <option value="wh_2_qty">مخزن 2 (متاح: ${item.wh_2_qty || 0})</option>
+            <option value="wh_3_qty">مخزن 3 (متاح: ${item.wh_3_qty || 0})</option>
+          `;
+        }
+      }
+
+      window.setFraction = function(inputEl, fraction) {
+        const currentVal = parseFloat(inputEl.value || 0);
+        const whole = Math.floor(currentVal);
+        inputEl.value = (whole + fraction).toString();
+      };
+
+      function parseTrackedMaterials(notes) {
+        if (!notes) return [];
+        const tracked = [];
+        const regex = /<!--TRACK:([a-zA-Z0-9\-]+):([0-9.]+)(?::([a-zA-Z0-9_]+):([a-zA-Z]+):([0-9.]+))?-->/g;
+        let match;
+        while ((match = regex.exec(notes)) !== null) {
+          tracked.push({
+            itemId: match[1],
+            qty: parseFloat(match[2]),
+            wh: match[3] || 'wh_1_qty',
+            source: match[4] || 'inventory',
+            deductedQty: parseFloat(match[5] || match[2])
+          });
+        }
+        return tracked;
+      }
+
+      function addMaterialRow(containerId = 'materials-container-add', val = null) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const row = document.createElement('div');
+        row.className = 'material-row';
+        row.style = 'border: 1px solid #e0e7ff; border-right: 4px solid var(--primary); padding: 1.25rem; border-radius: var(--radius); margin-bottom: 1rem; background: #fafbff;';
+
+        let options = '<option value="">-- اختر الصنف --</option>';
+        inventoryItems.forEach(item => {
+          const selected = val && val.itemId === item.id ? 'selected' : '';
+          options += `<option value="${item.id}" ${selected}>${item.item_name} (رصيد 1: ${item.wh_1_qty || 0} | 2: ${item.wh_2_qty || 0} | 3: ${item.wh_3_qty || 0})</option>`;
+        });
+
+        const selectWh1 = val && val.wh === 'wh_1_qty' ? 'selected' : '';
+        const selectWh2 = val && val.wh === 'wh_2_qty' ? 'selected' : '';
+        const selectWh3 = val && val.wh === 'wh_3_qty' ? 'selected' : '';
+
+        const sourceInv = val && val.source === 'inventory' ? 'selected' : '';
+        const sourceExt = val && val.source === 'external' ? 'selected' : '';
+
+        const qtyVal = val ? val.qty : '';
+
+        row.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+            <span style="font-weight:700; font-size:0.85rem; color:var(--primary);">🧱 خامة مستخدمة</span>
+            <button type="button" onclick="this.closest('.material-row').remove()"
+              style="background:#fee2e2; color:#dc2626; border:none; border-radius:8px; padding:0.35rem 0.75rem; font-size:0.82rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:0.3rem;">
+              🗑️ حذف
+            </button>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label>الصنف المستخدم</label>
+            <select class="mat-item" onchange="updateRowStockLabels(this)" required>
+              ${options}
+            </select>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom: 1rem;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label>مصدر الخامة</label>
+              <select class="mat-source" onchange="this.closest('.material-row').querySelector('.mat-wh-group').style.display = this.value === 'external' ? 'none' : 'block'">
+                <option value="inventory" ${sourceInv}>سحب من المخزن (أو عجز)</option>
+                <option value="external" ${sourceExt}>شراء من الخارج</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>الكمية المطلوبة</label>
+              <input type="number" class="mat-qty" min="0.01" step="any" placeholder="0.00" value="${qtyVal}" required>
+              <div style="display:flex; gap:0.25rem; margin-top:0.35rem;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="setFraction(this.closest('.form-group').querySelector('.mat-qty'), 0.25)" style="padding:0.2rem 0.35rem; font-size:0.7rem; flex:1; min-width:0; white-space:nowrap; background:#f8fafc; border:1px solid #cbd5e1; color:#334155;">ربع (0.25)</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="setFraction(this.closest('.form-group').querySelector('.mat-qty'), 0.50)" style="padding:0.2rem 0.35rem; font-size:0.7rem; flex:1; min-width:0; white-space:nowrap; background:#f8fafc; border:1px solid #cbd5e1; color:#334155;">نصف (0.50)</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="setFraction(this.closest('.form-group').querySelector('.mat-qty'), 0.75)" style="padding:0.2rem 0.35rem; font-size:0.7rem; flex:1; min-width:0; white-space:nowrap; background:#f8fafc; border:1px solid #cbd5e1; color:#334155;">تلت (0.75)</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="setFraction(this.closest('.form-group').querySelector('.mat-qty'), 0.0)" style="padding:0.2rem 0.35rem; font-size:0.7rem; flex:0.8; min-width:0; white-space:nowrap; background:#e2e8f0; border:1px solid #cbd5e1; color:#475569;">كامل (.0)</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group mat-wh-group" style="margin-bottom:0; display: ${val && val.source === 'external' ? 'none' : 'block'};">
+            <label>من أي مخزن؟ (في حالة السحب)</label>
+            <select class="mat-wh">
+              <option value="wh_1_qty" ${selectWh1}>مخزن 1</option>
+              <option value="wh_2_qty" ${selectWh2}>مخزن 2</option>
+              <option value="wh_3_qty" ${selectWh3}>مخزن 3</option>
+            </select>
+          </div>
+        `;
+        container.appendChild(row);
+      }
+
+      async function openAddMaterialsModal(orderId) {
+        document.getElementById('add-mat-order-id').value = orderId;
+        const container = document.getElementById('materials-container-add');
+        container.innerHTML = '';
+
+        try {
+          const sb = getSupabase();
+          const [invRes, prcRes] = await Promise.all([
+            sb.from('inventory').select('*'),
+            sb.from('prices').select('*')
+          ]);
+          if (prcRes.data) pricesList = prcRes.data;
+          if (invRes.data) inventoryItems = invRes.data;
+        } catch (e) { }
+
+        const order = clientOrdersData.find(o => o.id === orderId);
+        const tracked = parseTrackedMaterials(order ? order.material_notes : '');
+
+        const modalTitle = document.getElementById('add-materials-modal-title');
+        const submitBtn = document.getElementById('add-materials-submit-btn');
+
+        if (tracked.length > 0) {
+          if (modalTitle) modalTitle.textContent = 'تعديل خامات الطلبية';
+          if (submitBtn) submitBtn.textContent = 'حفظ التعديلات';
+          tracked.forEach(t => addMaterialRow('materials-container-add', t));
+        } else {
+          if (modalTitle) modalTitle.textContent = 'إضافة خامات للطلبية';
+          if (submitBtn) submitBtn.textContent = 'تأكيد وإضافة الخامات';
+          addMaterialRow('materials-container-add');
+        }
+
+        openModal('add-materials-modal');
+      }
+
+      async function submitAddMaterials() {
+        const orderId = document.getElementById('add-mat-order-id').value;
+        const order = clientOrdersData.find(o => o.id === orderId);
+        if (!order) return;
+
+        const container = document.getElementById('materials-container-add');
+        const materialRows = container.querySelectorAll('.material-row');
+        let materialsToProcess = [];
+        materialRows.forEach(row => {
+          const itemId = row.querySelector('.mat-item').value;
+          const wh = row.querySelector('.mat-wh').value;
+          const qty = parseFloat(row.querySelector('.mat-qty').value || '0');
+          const source = row.querySelector('.mat-source').value;
+          if (itemId && qty > 0) {
+            materialsToProcess.push({ itemId, wh, qty, source });
+          }
+        });
+
+        if (materialsToProcess.length === 0) {
+          showAlert('يجب إضافة خامة واحدة على الأقل', 'error');
+          return;
+        }
+
+        try {
+          showAlert('جاري حفظ الخامات...', 'pending');
+          const sb = getSupabase();
+
+          // REVERT OLD TRACKED MATERIALS & REVERSE THEIR RECORDED EXPENSE
+          const oldTracked = parseTrackedMaterials(order.material_notes);
+          let totalRevertedCost = 0;
+          if (oldTracked.length > 0) {
+            for (const oldMat of oldTracked) {
+              if (oldMat.source !== 'external' && oldMat.deductedQty > 0) {
+                const item = inventoryItems.find(i => i.id === oldMat.itemId);
+                if (item) {
+                  const currentQtyInDB = item[oldMat.wh] || 0;
+                  const revertedQty = currentQtyInDB + oldMat.deductedQty;
+                  
+                  const { error: invError } = await sb.from('inventory').update({ [oldMat.wh]: revertedQty }).eq('id', oldMat.itemId);
+                  if (invError) throw new Error(`فشل استرجاع خامة ${item.item_name}: ${invError.message}`);
+
+                  const whNames = { wh_1_qty: 'مخزن 1', wh_2_qty: 'مخزن 2', wh_3_qty: 'مخزن 3' };
+                  await sb.from('inventory_logs').insert([{
+                    item_name: item.item_name,
+                    action_type: 'إضافة',
+                    quantity: oldMat.deductedQty,
+                    warehouse: whNames[oldMat.wh],
+                    notes: `تعديل خامات: استرجاع رصيد ملغي للطلبية العميل: ${order.client_name}`
+                  }]);
+
+                  // Calculate cost of reverted material to subtract from expenses
+                  const priceItem = pricesList.find(p => p.item_name === item.item_name);
+                  const oldMatPrice = priceItem ? (priceItem.piece_price || 0) : 0;
+                  totalRevertedCost += oldMat.deductedQty * oldMatPrice;
+                }
+              }
+            }
+          }
+
+          if (totalRevertedCost > 0) {
+            const { error: expError } = await sb.from('expenses').insert([{
+              expense_date: new Date().toISOString().split('T')[0],
+              category: 'مرتجع خامات (تصنيع)',
+              amount: -totalRevertedCost,
+              notes: `تعديل خامات: استرداد تكلفة الخامات الملغاة لطلبية: ${order.client_name}`
+            }]);
+            if (expError) console.error("Failed to add material cost revert to expenses", expError);
+          }
+
+          // Parse oldNotes to build a map of already purchased quantities
+          const purchasedMap = {};
+          if (order.material_notes) {
+            const lines = order.material_notes.split('\n');
+            lines.forEach(line => {
+              const trackMatch = line.match(/<!--TRACK:([a-zA-Z0-9\-]+):/);
+              const purchasedMatch = line.match(/\[تم شراء عجز:\s*(\d+(?:\.\d+)?)\]\s*✅/);
+              if (trackMatch && purchasedMatch) {
+                const itemId = trackMatch[1];
+                const purchasedQty = parseFloat(purchasedMatch[1]);
+                purchasedMap[itemId] = (purchasedMap[itemId] || 0) + purchasedQty;
+              }
+            });
+          }
+
+          // DEDUCT NEW MATERIALS
+          let fullMaterialNotes = [];
+          let totalManufacturingCost = 0;
+          let totalStockConsumptionCost = 0;
+
+          // Re-fetch latest inventory from DB to avoid race conditions after reverting
+          const { data: latestInv } = await sb.from('inventory').select('*');
+          if (latestInv) inventoryItems = latestInv;
+
+          for (const mat of materialsToProcess) {
+            const item = inventoryItems.find(i => i.id === mat.itemId);
+            if (!item) continue;
+
+            const alreadyPurchased = purchasedMap[mat.itemId] || 0;
+            const currentQty = item[mat.wh] || 0;
+            let newQty = currentQty;
+            let deficit = 0;
+            let deductedQty = 0;
+
+            // We offset the new total requested quantity by what was already purchased for this order
+            const neededQty = mat.qty - alreadyPurchased;
+
+            if (neededQty <= 0) {
+              deficit = 0;
+              deductedQty = 0;
+            } else {
+              if (mat.source === 'external') {
+                deficit = neededQty;
+                deductedQty = 0;
+              } else {
+                newQty = currentQty - neededQty;
+                deductedQty = neededQty;
+                if (newQty < 0) {
+                  deficit = Math.abs(newQty);
+                  deductedQty = currentQty;
+                  newQty = 0;
+                }
+              }
+            }
+
+            const priceItem = pricesList.find(p => p.item_name === item.item_name);
+            const piecePrice = priceItem ? (priceItem.piece_price || 0) : 0;
+            
+            // Total manufacturing cost (for display and estimation) uses full requested quantity
+            const displayCost = mat.qty * piecePrice;
+            totalManufacturingCost += displayCost;
+
+            // Stock consumption cost (for financial ledger) uses actually drawn stock
+            const stockCost = deductedQty * piecePrice;
+            totalStockConsumptionCost += stockCost;
+
+            const whNames = { wh_1_qty: 'مخزن 1', wh_2_qty: 'مخزن 2', wh_3_qty: 'مخزن 3' };
+
+            if (mat.source !== 'external') {
+              const { error: invError } = await sb.from('inventory').update({ [mat.wh]: newQty }).eq('id', mat.itemId);
+              if (invError) throw new Error(`فشل خصم ${item.item_name}: ${invError.message}`);
+
+              if (deductedQty > 0) {
+                const { error: logErr } = await sb.from('inventory_logs').insert([{
+                  item_name: item.item_name,
+                  action_type: 'سحب',
+                  quantity: deductedQty,
+                  warehouse: whNames[mat.wh],
+                  notes: `تم السحب لطلبية العميل: ${order.client_name}`
+                }]);
+                if (logErr) throw logErr;
+              }
+            }
+            
+            // Construct the note, keeping and displaying the already purchased quantity tag
+            const displayPurchased = Math.min(mat.qty, alreadyPurchased);
+            let note = '';
+            if (mat.source === 'external') {
+              note = `تم طلب شراء من الخارج ${mat.qty} من ${item.item_name} <!--TRACK:${mat.itemId}:${mat.qty}:${mat.wh}:${mat.source}:${deductedQty}-->`;
+              if (displayPurchased > 0) {
+                note += ` [تم شراء عجز: ${displayPurchased}] ✅`;
+              }
+              if (deficit > 0) {
+                note += ` [عجز (مطلوب شراء): ${deficit}]`;
+              }
+            } else {
+              note = `تم سحب ${deductedQty} من ${item.item_name} (${whNames[mat.wh]}) <!--TRACK:${mat.itemId}:${mat.qty}:${mat.wh}:${mat.source}:${deductedQty}-->`;
+              if (displayPurchased > 0) {
+                note += ` [تم شراء عجز: ${displayPurchased}] ✅`;
+              }
+              if (deficit > 0) {
+                note += ` [عجز (مطلوب شراء): ${deficit}]`;
+              }
+            }
+            fullMaterialNotes.push(note);
+          }
+
+          // Clean up old notes
+          let cleanOldNotes = (order.material_notes || '').split('\n').filter(line => {
+            const hasTrack = line.includes('<!--TRACK:');
+            const hasCost = line.includes('إجمالي تكلفة التصنيع');
+            const hasDraw = line.includes('تم سحب') && line.includes('من');
+            const hasBuy = line.includes('تم طلب شراء') && line.includes('من');
+            const hasDashes = line.trim() === '---------------------------';
+            const hasDeficit = line.includes('عجز');
+            const hasIssue = line.includes('<!--MATERIAL_ISSUE:') || line.includes('مشكلة في الخامات (تم الإبلاغ عنها):');
+            return !hasTrack && !hasCost && !hasDraw && !hasBuy && !hasDashes && !hasDeficit && !hasIssue;
+          }).join('\n').trim();
+
+          const extraNotes = fullMaterialNotes.join('\n') + (totalManufacturingCost > 0 ? `\n| إجمالي تكلفة التصنيع: ${totalManufacturingCost} جنيه` : '');
+
+          let newNotes = cleanOldNotes;
+          if (newNotes && extraNotes) {
+            newNotes += '\n---------------------------\n' + extraNotes;
+          } else if (extraNotes) {
+            newNotes = extraNotes;
+          }
+
+          const hasShortage = extraNotes.includes('عجز (مطلوب شراء)');
+          let updateData = { material_notes: newNotes };
+          if (hasShortage) {
+            updateData.approval_production = false;
+            updateData.approval_purchasing = false;
+          } else {
+            updateData.stage = 'قيد التنفيذ';
+            updateData.approval_production = true;
+            updateData.approval_purchasing = true;
+          }
+
+          const { error: updError } = await sb.from('client_orders').update(updateData).eq('id', orderId);
+          if (updError) throw updError;
+
+          // Send notification about quantity / materials edit by Manager or Purchasing Manager
+          const role = currentProfile ? currentProfile.role : 'user';
+          if (['admin', 'manager', 'purchasing_manager'].includes(role)) {
+            try {
+              const roleText = (role === 'admin' || role === 'manager') ? 'المدير' : 'مدير المشتريات';
+              const displayName = order.order_display_name || order.client_name || 'أوردر';
+              await sb.from('notifications').insert([{
+                order_id: orderId,
+                order_display_name: displayName,
+                message: `قام ${roleText} بتعديل الكميات المطلوبة لخامات أوردر: ${displayName}`,
+                created_by: currentUser ? currentUser.id : null,
+                read_by: []
+              }]);
+            } catch (notifErr) {
+              console.warn('Failed to send edit quantity notification:', notifErr.message);
+            }
+          }
+
+          if (totalStockConsumptionCost > 0) {
+            const { error: expError } = await sb.from('expenses').insert([{
+              expense_date: new Date().toISOString().split('T')[0],
+              category: 'تكلفة خامات (تصنيع)',
+              amount: totalStockConsumptionCost,
+              notes: `تكلفة خامات مضافة للطلبية: ${order.client_name}`
+            }]);
+            if (expError) console.error("Failed to add material cost to expenses", expError);
+          }
+
+          showAlert('تم حفظ وتعديل الخامات بنجاح!', 'success');
+          closeModal('add-materials-modal');
+          await initClientOrdersPage();
+        } catch (e) {
+          showAlert(e.message, 'error');
+        }
+      }
+
+      function reportMaterialIssue(orderId) {
+        document.getElementById('report-issue-order-id').value = orderId;
+        document.getElementById('report-issue-text').value = '';
+        openModal('report-issue-modal');
+      }
+
+      async function submitMaterialIssue() {
+        const orderId = document.getElementById('report-issue-order-id').value;
+        const text = document.getElementById('report-issue-text').value.trim();
+        if (!text) {
+          showAlert('يرجى كتابة وصف المشكلة', 'error');
+          return;
+        }
+
+        const order = clientOrdersData.find(o => o.id === orderId);
+        if (!order) return;
+
+        try {
+          showAlert('جاري حفظ البلاغ...', 'pending');
+          const sb = getSupabase();
+
+          const role = currentProfile ? currentProfile.role : 'user';
+          const issueTag = `<!--MATERIAL_ISSUE:${role}:${text}-->`;
+          let cleanNotes = (order.material_notes || '').replace(/<!--MATERIAL_ISSUE:.*?-->/g, '').trim();
+          
+          let newNotes = `⚠️ مشكلة في الخامات (تم الإبلاغ عنها): ${text}\n${issueTag}`;
+          if (cleanNotes) {
+            newNotes += '\n---------------------------\n' + cleanNotes;
+          }
+
+          const { error } = await sb.from('client_orders').update({
+            material_notes: newNotes,
+            approval_production: false,
+            approval_purchasing: false
+          }).eq('id', orderId);
+
+          if (error) throw error;
+
+          closeModal('report-issue-modal');
+          showAlert('🎉 تم تسجيل المشكلة بنجاح وإرسال تنبيه لمدير التجهيزات!', 'success');
+          await initClientOrdersPage();
+        } catch (e) {
+          console.error(e);
+          showAlert(e.message, 'error');
+        }
+      }
+
+      async function openCreateOrderModal() {
+        try {
+          const sb = getSupabase();
+          const [invRes, prcRes, custRes] = await Promise.all([
+            sb.from('inventory').select('*'),
+            sb.from('prices').select('*'),
+            sb.from('customers').select('*').order('name')
+          ]);
+
+          if (prcRes.data) pricesList = prcRes.data;
+          if (invRes.data) inventoryItems = invRes.data;
+          if (custRes.data) {
+            customersList = custRes.data;
+          }
+        } catch (e) {
+          console.error('Failed to load data for orders', e);
+        }
+
+        document.getElementById('create-client-order-form').reset();
+        document.getElementById('new-customer-fields').classList.add('hidden');
+        document.getElementById('installments-container').innerHTML = '';
+        openModal('create-client-order-modal');
+      }
+
+      async function submitCreateClientOrder() {
+        const form = document.getElementById('create-client-order-form');
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+
+        let clientName = document.getElementById('co-client-search').value.trim();
+        const isNewCustomer = !document.getElementById('new-customer-fields').classList.contains('hidden');
+
+        const totalPrice = parseFloat(document.getElementById('co-total-price').value || 0);
+        const paidAmount = parseFloat(document.getElementById('co-paid-amount').value || 0);
+        const deliveryDate = document.getElementById('co-delivery-date').value;
+        const stage = document.getElementById('co-stage').value;
+
+        const instRows = document.querySelectorAll('.installment-row');
+        const installments = [];
+        instRows.forEach(row => {
+          const amt = row.querySelector('.inst-amount').value;
+          const dt = row.querySelector('.inst-date').value;
+          if (amt && dt) installments.push({ amount: parseFloat(amt), date: dt });
+        });
+
+        const paymentPlan = installments.length > 0 ? JSON.stringify(installments) : '';
+
+        try {
+          showAlert('جاري تسجيل الطلبية...', 'pending');
+          const sb = getSupabase();
+
+          if (isNewCustomer) {
+            let phone = document.getElementById('new-cust-phone-input').value.trim();
+            const custType = document.querySelector('input[name="cust_type"]:checked').value;
+            if (custType === 'temporary') {
+              phone = phone ? `${phone} [مؤقت]` : '[مؤقت]';
+            }
+            const { error: custErr } = await sb.from('customers').insert([{ name: clientName, phone: phone }]);
+            if (custErr) throw new Error('فشل تسجيل العميل الجديد: ' + custErr.message);
+          }
+
+          let finalMaterialNotes = "";
+          const orderDetails = document.getElementById('co-order-details').value.trim();
+          if (orderDetails) {
+            finalMaterialNotes = `📝 تفاصيل الطلب: ${orderDetails}`;
+          }
+
+          const displayName = document.getElementById('co-display-name').value.trim();
+
+          const { error: ordError } = await sb.from('client_orders').insert([{
+            client_name: clientName,
+            order_display_name: displayName || clientName,
+            total_price: totalPrice,
+            paid_amount: paidAmount,
+            payment_plan: paymentPlan,
+            delivery_date: deliveryDate,
+            stage: stage,
+            material_notes: finalMaterialNotes
+          }]);
+
+          if (ordError) throw ordError;
+
+          // Check and delete temporary customer (if already completed/paid upon registration)
+          await checkAndDeleteTemporaryCustomer(clientName);
+
+          showAlert('تم تسجيل الطلبية بنجاح!', 'success');
+          closeModal('create-client-order-modal');
+          form.reset();
+          await initClientOrdersPage();
+        } catch (e) {
+          showAlert(e.message, 'error');
+        }
+      }
+
+      function openUpdateModal(orderId) {
+        const order = clientOrdersData.find(o => o.id === orderId);
+        if (!order) return;
+
+        const role = currentProfile ? currentProfile.role : 'user';
+        const canSeeFinancials = ['manager', 'admin', 'purchasing_manager'].includes(role);
+
+        document.getElementById('upd-order-id').value = order.id;
+        const paidInput = document.getElementById('upd-paid-amount');
+        paidInput.value = order.paid_amount;
+        if (!canSeeFinancials) {
+          paidInput.removeAttribute('required');
+        } else {
+          paidInput.setAttribute('required', 'required');
+        }
+        document.getElementById('upd-stage').value = order.stage || 'تم التعاقد (دفع عربون)';
+        document.getElementById('upd-delivery-date').value = order.delivery_date || '';
+
+        // Extract order details from material_notes
+        let extractedDetails = '';
+        if (order.material_notes) {
+          const cleanLines = order.material_notes.split('\n').filter(line => {
+            const hasTrack = line.includes('<!--TRACK:');
+            const hasCost = line.includes('إجمالي تكلفة التصنيع');
+            const hasDraw = line.includes('تم سحب') && line.includes('من');
+            const hasBuy = line.includes('تم طلب شراء') && line.includes('من');
+            const hasDashes = line.trim() === '---------------------------';
+            const hasDeficit = line.includes('عجز');
+            const hasIssue = line.includes('<!--MATERIAL_ISSUE:') || line.includes('مشكلة في الخامات (تم الإبلاغ عنها):');
+            const hasArchived = line.includes('<!--ARCHIVED_AT:');
+            return !hasTrack && !hasCost && !hasDraw && !hasBuy && !hasDashes && !hasDeficit && !hasIssue && !hasArchived;
+          });
+
+          let text = cleanLines.join('\n').trim();
+          text = text.replace(/^📝 تفاصيل الطلب:\s*/, '');
+          extractedDetails = text.replace(/<!--[\s\S]*?-->/g, '').trim();
+        }
+        document.getElementById('upd-order-details').value = extractedDetails;
+
+        const instContainer = document.getElementById('upd-installments-container');
+        instContainer.innerHTML = '';
+        try {
+          const installments = JSON.parse(order.payment_plan);
+          if (Array.isArray(installments)) {
+            installments.forEach(inst => addInstallmentRowToUpdate(inst.amount, inst.date));
+          }
+        } catch (e) { }
+
+        openModal('update-client-order-modal');
+      }
+
+      async function submitUpdateClientOrder() {
+        const orderId = document.getElementById('upd-order-id').value;
+        const paidAmount = parseFloat(document.getElementById('upd-paid-amount').value || 0);
+        const stage = document.getElementById('upd-stage').value;
+        const deliveryDate = document.getElementById('upd-delivery-date').value;
+
+        const instRows = document.querySelectorAll('.upd-installment-row');
+        const installments = [];
+        instRows.forEach(row => {
+          const amt = row.querySelector('.upd-inst-amount').value;
+          const dt = row.querySelector('.upd-inst-date').value;
+          if (amt && dt) installments.push({ amount: parseFloat(amt), date: dt });
+        });
+        const paymentPlan = installments.length > 0 ? JSON.stringify(installments) : '';
+
+        const role = currentProfile ? currentProfile.role : 'user';
+        const canSeeFinancials = ['manager', 'admin', 'purchasing_manager'].includes(role);
+
+        try {
+          showAlert('جاري التحديث...', 'pending');
+          const sb = getSupabase();
+
+          const isDelivered = (stage === 'تم التسليم للزبون');
+          const originalNotes = (clientOrdersData.find(o => o.id === orderId)?.material_notes || '');
+          const newDetails = document.getElementById('upd-order-details').value.trim();
+
+          // Split original notes by line and keep only system/materials lines
+          const systemLines = originalNotes.split('\n').filter(line => {
+            const hasTrack = line.includes('<!--TRACK:');
+            const hasCost = line.includes('إجمالي تكلفة التصنيع');
+            const hasDraw = line.includes('تم سحب') && line.includes('من');
+            const hasBuy = line.includes('تم طلب شراء') && line.includes('من');
+            const hasDashes = line.trim() === '---------------------------';
+            const hasDeficit = line.includes('عجز');
+            const hasIssue = line.includes('<!--MATERIAL_ISSUE:') || line.includes('مشكلة في الخامات (تم الإبلاغ عنها):');
+            const hasArchived = line.includes('<!--ARCHIVED_AT:');
+            return hasTrack || hasCost || hasDraw || hasBuy || hasDashes || hasDeficit || hasIssue || hasArchived;
+          });
+
+          // Rebuild final material_notes
+          let materialNotes = '';
+          if (newDetails) {
+            materialNotes = `📝 تفاصيل الطلب: ${newDetails}`;
+          }
+
+          // If there are system lines (like materials or costs), append them with a separator
+          const cleanSystemLines = systemLines.filter(line => line.trim() !== '---------------------------');
+          if (cleanSystemLines.length > 0) {
+            if (materialNotes) {
+              materialNotes += '\n---------------------------\n' + cleanSystemLines.join('\n');
+            } else {
+              materialNotes = cleanSystemLines.join('\n');
+            }
+          }
+
+          if (isDelivered) {
+            const now = Date.now();
+            materialNotes += ` <!--ARCHIVED_AT:${now}-->`;
+          }
+
+          let updateData = {
+            stage: stage,
+            delivery_date: deliveryDate,
+            archived: isDelivered,
+            material_notes: materialNotes
+          };
+
+          if (canSeeFinancials) {
+            updateData.paid_amount = paidAmount;
+            updateData.payment_plan = paymentPlan;
+          }
+
+          const { error } = await sb.from('client_orders').update(updateData).eq('id', orderId);
+
+          if (error) throw error;
+
+          // Check and delete temporary customer
+          const updatedOrder = clientOrdersData.find(o => o.id === orderId);
+          const clientNameForCheck = updatedOrder ? updatedOrder.client_name : null;
+          if (clientNameForCheck) {
+            await checkAndDeleteTemporaryCustomer(clientNameForCheck);
+          }
+
+          // Send notification to all staff about manager edit
+          try {
+            const displayName = updatedOrder ? (updatedOrder.order_display_name || updatedOrder.client_name) : 'أوردر';
+            await sb.from('notifications').insert([{
+              order_id: orderId,
+              order_display_name: displayName,
+              message: `قام المدير بتعديل تفاصيل أوردر: ${displayName} (مرحلة: ${stage})`,
+              created_by: currentUser ? currentUser.id : null,
+              read_by: []
+            }]);
+          } catch (notifErr) {
+            console.warn('Failed to send notification:', notifErr.message);
+          }
+
+          showAlert('تم التحديث بنجاح!', 'success');
+          closeModal('update-client-order-modal');
+          await initClientOrdersPage();
+        } catch (e) {
+          showAlert('فشل التحديث: ' + e.message, 'error');
+        }
+      }
+
+      function openReturnMaterialModal(orderId) {
+        const order = clientOrdersData.find(o => o.id === orderId);
+        if (!order) return;
+
+        document.getElementById('ret-order-id').value = order.id;
+        document.getElementById('ret-old-notes').value = order.material_notes || '';
+
+        const select = document.getElementById('ret-material-item');
+        select.innerHTML = '';
+
+        const tracked = parseTrackedMaterials(order.material_notes);
+        const usedTracked = tracked.filter(t => t.qty > 0);
+
+        if (usedTracked.length === 0) {
+          const opt = document.createElement('option');
+          opt.value = '';
+          opt.textContent = '-- لا توجد خامات في هذه الطلبية للاسترجاع --';
+          select.appendChild(opt);
+        } else {
+          usedTracked.forEach(u => {
+            const item = inventoryItems.find(i => i.id === u.itemId);
+            if (item) {
+              const opt = document.createElement('option');
+              opt.value = item.id;
+              opt.textContent = `${item.item_name} (إجمالي الكمية: ${u.qty} من ${u.wh === 'wh_1_qty' ? 'مخزن 1' : u.wh === 'wh_2_qty' ? 'مخزن 2' : 'مخزن 3'})`;
+              select.appendChild(opt);
+            }
+          });
+        }
+
+        openModal('return-material-modal');
+      }
+
+      async function submitReturnMaterial() {
+        const orderId = document.getElementById('ret-order-id').value;
+        const oldNotes = document.getElementById('ret-old-notes').value;
+        const materialId = document.getElementById('ret-material-item').value;
+        const materialWh = document.getElementById('ret-material-warehouse').value;
+        const qtyToReturn = parseFloat(document.getElementById('ret-material-qty').value || 0);
+
+        if (qtyToReturn <= 0) return;
+        if (!materialId) {
+          showAlert('خطأ: لا يوجد خامات للاسترجاع في هذه الطلبية.', 'error');
+          return;
+        }
+
+        const trackPattern = new RegExp(`<!--TRACK:${materialId}:([0-9.]+)(?::([a-zA-Z0-9_]+):([a-zA-Z]+):([0-9.]+))?-->`);
+        const match = oldNotes.match(trackPattern);
+
+        if (!match) {
+          showAlert('خطأ: هذا الصنف لم يتم استخدامه في هذه الطلبية أصلاً ولذلك لا يمكن استرجاعه.', 'error');
+          return;
+        }
+
+        const order = clientOrdersData.find(o => o.id === orderId);
+
+        const maxAllowed = parseFloat(match[1]);
+
+        const returnLines = oldNotes.split('\n').filter(line => line.includes('تم إرجاع') && line.includes(`<!--TRACK:${materialId}:`));
+        let totalReturnedAlready = 0;
+        returnLines.forEach(line => {
+          const rMatch = line.match(/تم إرجاع (\d+(?:\.\d+)?)/);
+          if (rMatch) totalReturnedAlready += parseFloat(rMatch[1]);
+        });
+
+        const currentRemaining = maxAllowed - totalReturnedAlready;
+
+        if (qtyToReturn > currentRemaining) {
+          showAlert('خطأ: لا يمكن إرجاع كميه أكتر من الي انتا واخدها', 'error');
+          return;
+        }
+
+        try {
+          showAlert('جاري إرجاع الخامات...', 'pending');
+          const sb = getSupabase();
+
+          const item = inventoryItems.find(i => i.id === materialId);
+          if (!item) throw new Error('الصنف غير موجود');
+
+          const currentQty = item[materialWh] || 0;
+          const { error: invError } = await sb.from('inventory').update({ [materialWh]: currentQty + qtyToReturn }).eq('id', materialId);
+          if (invError) throw invError;
+
+          const whNames = { wh_1_qty: 'مخزن 1', wh_2_qty: 'مخزن 2', wh_3_qty: 'مخزن 3' };
+          const { error: logErr } = await sb.from('inventory_logs').insert([{
+            item_name: item.item_name,
+            action_type: 'إرجاع',
+            quantity: qtyToReturn,
+            warehouse: whNames[materialWh],
+            notes: `إرجاع من طلبية العميل: ${order.client_name}`
+          }]);
+          if (logErr) throw logErr;
+
+          let costReductionStr = '';
+          if (pricesList.length === 0) {
+            const { data: prcData } = await sb.from('prices').select('*');
+            if (prcData) pricesList = prcData;
+          }
+          const priceItem = pricesList.find(p => p.item_name === item.item_name);
+          if (priceItem) {
+            const reduction = qtyToReturn * (priceItem.piece_price || 0);
+            costReductionStr = ` (وقلت التكلفة بمقدار ${reduction} جنيه)`;
+          }
+
+          const newNote = `${oldNotes}\n[تحديث: تم إرجاع ${qtyToReturn} من ${item.item_name} لـ ${whNames[materialWh]}${costReductionStr}] <!--TRACK:${materialId}:0-->`;
+
+          const { error: ordError } = await sb.from('client_orders').update({ material_notes: newNote }).eq('id', orderId);
+          if (ordError) throw ordError;
+
+          if (pricesList.length > 0) {
+            const priceItem = pricesList.find(p => p.item_name === item.item_name);
+            if (priceItem) {
+              const reduction = qtyToReturn * (priceItem.piece_price || 0);
+              if (reduction > 0) {
+                const { error: expError } = await sb.from('expenses').insert([{
+                  expense_date: new Date().toISOString().split('T')[0],
+                  category: 'مرتجع خامات (تصنيع)',
+                  amount: -reduction,
+                  notes: `استرداد تكلفة خامات لطلبية: تم إرجاع ${qtyToReturn} من (${item.item_name})`
+                }]);
+                if (expError) console.error("Failed to add refund to expenses", expError);
+              }
+            }
+          }
+
+          showAlert('تم إرجاع الخامات وتقليل التكلفة بنجاح!', 'success');
+          closeModal('return-material-modal');
+          await initClientOrdersPage();
+        } catch (e) {
+          showAlert('فشل الإرجاع: ' + e.message, 'error');
+        }
+      }
+
+      async function approveShortage(orderId, type) {
+        const title = type === 'production' ? 'اعتماد النواقص من طرف مهندس الإنتاج' : 'اعتماد النواقص من طرف مدير المشتريات';
+        if (!(await customConfirm(`هل أنت متأكد من ${title}؟`))) return;
+
+        try {
+          showAlert('جاري حفظ الاعتماد...', 'pending');
+          const sb = getSupabase();
+
+          const { data: order, error: fetchErr } = await sb.from('client_orders').select('*').eq('id', orderId).single();
+          if (fetchErr) throw fetchErr;
+
+          let updateFields = {};
+          if (type === 'production') {
+            updateFields.approval_production = true;
+          } else if (type === 'purchasing') {
+            updateFields.approval_purchasing = true;
+          }
+
+          const prodApproved = type === 'production' ? true : order.approval_production;
+          const purchApproved = type === 'purchasing' ? true : order.approval_purchasing;
+
+          if (prodApproved && purchApproved) {
+            updateFields.material_notes = (order.material_notes || '').replace(/عجز \(مطلوب شراء\)/g, 'عجز (معتمد للشراء)');
+            updateFields.stage = 'قيد التنفيذ';
+
+            try {
+              const displayName = order.order_display_name || order.client_name || 'أوردر';
+              await sb.from('notifications').insert([{
+                order_id: orderId,
+                order_display_name: displayName,
+                message: `🎉 تم اعتماد نواقص طلبية العميل "${displayName}" بالكامل وهي جاهزة للشراء الآن!`,
+                created_by: currentUser ? currentUser.id : null,
+                read_by: []
+              }]);
+            } catch (notifErr) {
+              console.warn('Failed to send shortage approval notification:', notifErr.message);
+            }
+          }
+
+          const { error: updateErr } = await sb.from('client_orders').update(updateFields).eq('id', orderId);
+          if (updateErr) throw updateErr;
+
+          if (prodApproved && purchApproved) {
+            showAlert('تم اعتماد النواقص بالكامل وإرسالها لقسم الشراء بنجاح! 🎉', 'success');
+          } else {
+            showAlert('تم تسجيل الاعتماد بنجاح! وبانتظار اعتماد الطرف الآخر.', 'success');
+          }
+
+          await initClientOrdersPage();
+        } catch (e) {
+          showAlert('فشل الاعتماد: ' + e.message, 'error');
+        }
+      }
+
+      async function deleteClientOrder(id) {
+        if (!(await customConfirm('هل متأكد من حذف هذه الطلبيه؟'))) return;
+        try {
+          const sb = getSupabase();
+          const { error } = await sb.from('client_orders').update({ archived: true }).eq('id', id);
+          if (error) throw error;
+          showAlert('تم حذف الطلبيه بنجاح', 'success');
+          await initClientOrdersPage();
+        } catch (e) {
+          showAlert('فشل الأرشفة: ' + e.message, 'error');
+        }
+      }
+
+      function filterOrders() {
+        const nameQuery = document.getElementById('search-name').value.trim().toLowerCase();
+        const dateQuery = document.getElementById('search-date').value;
+
+        const filtered = clientOrdersData.filter(order => {
+          const displayName = (order.order_display_name || order.client_name || '').toLowerCase();
+          const clientName  = (order.client_name || '').toLowerCase();
+          const matchesName = displayName.includes(nameQuery) || clientName.includes(nameQuery);
+
+          let matchesDate = true;
+          if (dateQuery) {
+            const orderDate = new Date(order.created_at).toISOString().split('T')[0];
+            matchesDate = (orderDate === dateQuery);
+          }
+
+          return matchesName && matchesDate;
+        });
+
+        renderOrdersTable(filtered);
+      }
+
+      function resetSearch() {
+        document.getElementById('search-name').value = '';
+        document.getElementById('search-date').value = '';
+        renderOrdersTable(clientOrdersData);
+      }
+
+      function renderOrdersTable(data) {
+        const tbody = document.getElementById('client-orders-table-body');
+        const role = currentProfile ? currentProfile.role : 'user';
+        const isPrepManagerOrAdmin = ['inventory_manager', 'admin'].includes(role);
+        const isManagerOrAdmin = ['manager', 'admin'].includes(role);
+        // manager + purchasing_manager see client name in addition to display name
+        const canSeeClientName = ['manager', 'admin', 'purchasing_manager'].includes(role);
+        const canSeeFinancials = ['manager', 'admin', 'purchasing_manager'].includes(role);
+        const canEditMaterials = ['inventory_manager', 'admin', 'manager', 'purchasing_manager'].includes(role);
+
+        if (data.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted); padding:3rem;">لا توجد نتائج تطابق البحث</td></tr>`;
+          document.getElementById('orders-count-badge').textContent = `0 طلبية`;
+          return;
+        }
+
+        tbody.innerHTML = '';
+        data.forEach(order => {
+          const remaining = order.total_price - order.paid_amount;
+          const isFullyPaid = remaining <= 0;
+
+          let planDisplay = order.payment_plan || '-';
+          try {
+            const parsed = JSON.parse(order.payment_plan);
+            if (Array.isArray(parsed)) {
+              planDisplay = parsed.map(inst => `<div>${inst.amount} جـ (${new Date(inst.date).toLocaleDateString('ar-EG')})</div>`).join('');
+            }
+          } catch (e) { }
+
+          const stageColors = {
+            'تم التعاقد (دفع عربون)': { bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
+            'شراء الخامات': { bg: '#fefce8', color: '#a16207', border: '#fde68a' },
+            'قيد التنفيذ': { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe' },
+            'قيد التصنيع': { bg: '#faf5ff', color: '#7c3aed', border: '#e9d5ff' },
+            'التجهيز': { bg: '#f0fdfa', color: '#0d9488', border: '#ccfbf1' },
+            'جاهز للتسليم': { bg: '#f0fdf4', color: '#059669', border: '#6ee7b7' },
+            'تم التسليم للزبون': { bg: '#f5f3ff', color: '#6d28d9', border: '#ddd6fe' },
+          };
+          const sc = stageColors[order.stage] || { bg: '#f8fafc', color: '#475569', border: '#e2e8f0' };
+          const stageName = order.stage || 'جديد';
+
+          const paidPercent = order.total_price > 0 ? Math.round((order.paid_amount / order.total_price) * 100) : 0;
+
+          let cleanNotes = (order.material_notes || '').replace(/<!--.*?-->/g, '').trim();
+          if (!canSeeFinancials) {
+            cleanNotes = cleanNotes.split('\n').filter(line => !line.includes('إجمالي تكلفة التصنيع')).join('\n').trim();
+          }
+          cleanNotes = cleanNotes.replace(/---------------------------/g, '<hr style="margin:0.5rem 0; border:0; border-top:1px dashed #cbd5e1;">');
+          cleanNotes = cleanNotes.replace(/📝 تفاصيل الطلب:/g, '<strong style="color:var(--primary); font-size:0.85rem; display:block; margin-bottom:0.2rem;">📝 تفاصيل الطلب:</strong>');
+          cleanNotes = cleanNotes.replace(/\| إجمالي تكلفة التصنيع:/g, '<strong style="color:var(--error); font-size:0.8rem; display:block; margin-top:0.4rem;">💰 إجمالي تكلفة التصنيع:');
+          cleanNotes = cleanNotes.replace(/\n/g, '<br>');
+
+          const tr = document.createElement('tr');
+          tr.id = 'order-row-' + order.id;
+          
+          // Name cell: show display_name for all; show client_name only for privileged roles
+          const displayName = order.order_display_name || order.client_name;
+          const customerObj = customersList.find(c => c.name === order.client_name);
+          const clientPhone = customerObj ? customerObj.phone : null;
+          const cleanPhone = clientPhone ? clientPhone.replace(' [مؤقت]', '').replace('[مؤقت]', '') : '';
+          const isTemp = clientPhone && clientPhone.includes('[مؤقت]');
+          const custBadge = isTemp 
+            ? `<span style="font-size:0.68rem; font-weight:700; background:#fee2e2; color:#ef4444; padding:1px 6px; border-radius:4px;">عميل مؤقت ⏳</span>` 
+            : `<span style="font-size:0.68rem; font-weight:700; background:#fef3c7; color:#92400e; padding:1px 6px; border-radius:4px;">عميل 📌</span>`;
+
+          let nameCellHTML;
+          if (canSeeClientName) {
+            // Privileged: show display name in large text, client name below as label
+            nameCellHTML = `
+              <div style="font-weight:800; font-size:1rem; color:var(--primary);">${displayName}</div>
+              <div style="margin-top:0.25rem; display:flex; flex-direction:column; gap:0.25rem;">
+                <div style="display:flex; align-items:center; gap:0.35rem;">
+                  ${custBadge}
+                  <span style="font-size:0.8rem; color:var(--text-main); font-weight:700;">${order.client_name}</span>
+                </div>
+                ${cleanPhone ? `
+                  <div style="display:flex; align-items:center; gap:0.35rem; font-size:0.78rem; color:var(--text-muted); font-weight:600;">
+                    <span>📞</span>
+                    <a href="tel:${cleanPhone}" style="color:inherit; text-decoration:none;">${cleanPhone}</a>
+                  </div>
+                ` : ''}
+              </div>
+              <div style="font-size:0.73rem; color:var(--text-muted); margin-top:0.2rem;">${new Date(order.created_at).toLocaleDateString('ar-EG')}</div>
+            `;
+          } else {
+            // Regular staff: display name only
+            nameCellHTML = `
+              <div style="font-weight:800; font-size:1rem; color:var(--text-main);">${displayName}</div>
+              ${isTemp ? `<div style="margin-top:0.25rem;">${custBadge}</div>` : ''}
+              <div style="font-size:0.73rem; color:var(--text-muted); margin-top:0.2rem;">${new Date(order.created_at).toLocaleDateString('ar-EG')}</div>
+            `;
+          }
+
+          tr.innerHTML = `
+            <td>${nameCellHTML}</td>
+            <td class="financial-field" style="min-width:140px; ${canSeeFinancials ? '' : 'display:none;'}">
+              <div style="display:flex; flex-direction:column; gap:0.3rem;">
+                <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
+                  <span style="color:var(--text-muted);">الإجمالي:</span>
+                  <strong style="color:var(--text-main);">${order.total_price.toLocaleString()} ج</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
+                  <span style="color:var(--text-muted);">المدفوع:</span>
+                  <span style="color:var(--success); font-weight:700;">${order.paid_amount.toLocaleString()} ج</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
+                  <span style="color:var(--text-muted);">الباقي:</span>
+                  <span style="color:${isFullyPaid ? 'var(--success)' : 'var(--error)'}; font-weight:700;">${isFullyPaid ? '✅ خالص' : remaining.toLocaleString() + ' ج'}</span>
+                </div>
+                <div style="margin-top:0.35rem;">
+                  <div style="background:#e2e8f0; border-radius:50px; height:5px; overflow:hidden;">
+                    <div style="width:${paidPercent}%; height:100%; background:var(--success); border-radius:50px; transition:width 0.5s;"></div>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td class="financial-field" style="font-size:0.8rem; color:var(--text-muted); ${canSeeFinancials ? '' : 'display:none;'}">${planDisplay || '<span style="color:#cbd5e1;">—</span>'}</td>
+            <td>
+              <div style="font-size:0.875rem; font-weight:600; color:var(--text-main);">${order.delivery_date ? new Date(order.delivery_date).toLocaleDateString('ar-EG') : '—'}</div>
+            </td>
+            <td style="min-width:280px; max-width:320px; font-size:0.82rem; line-height:1.6; vertical-align:middle;">
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:0.6rem 0.8rem; max-height:140px; overflow-y:auto; color:var(--text-main);">
+                ${cleanNotes || '<span style="color:var(--text-muted)">-</span>'}
+              </div>
+            </td>
+            <td>
+              <span style="background:${sc.bg}; color:${sc.color}; border:1px solid ${sc.border}; padding:0.35rem 0.75rem; border-radius:50px; font-size:0.78rem; font-weight:700; white-space:nowrap;">${stageName}</span>
+            </td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:0.4rem; justify-content:center; align-items:center;">
+                <div style="display:flex; gap:0.4rem; flex-wrap:wrap; justify-content:center;">
+                  ${canEditMaterials ? `
+                    ${!(order.material_notes && order.material_notes.includes('<!--TRACK:')) ? `
+                    <button onclick="openAddMaterialsModal('${order.id}')" title="تحديد الخامات المستخدمة"
+                      style="background:#fef08a; color:#854d0e; border:none; border-radius:8px; padding:0.4rem 0.7rem; font-size:0.78rem; font-weight:700; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:0.3rem;">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                      تحديد الخامات
+                    </button>
+                    ` : `
+                    <button onclick="openAddMaterialsModal('${order.id}')" title="تعديل الخامات المستخدمة"
+                      style="background:#fef08a; color:#854d0e; border:none; border-radius:8px; padding:0.4rem 0.7rem; font-size:0.78rem; font-weight:700; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:0.3rem;">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                      تعديل الخامات
+                    </button>
+                    `}
+                  ` : ''}
+
+                  <button onclick="openReturnMaterialModal('${order.id}')" title="إرجاع خامات للمخزن"
+                    style="background:#e0f2fe; color:#0369a1; border:none; border-radius:8px; padding:0.4rem 0.7rem; font-size:0.78rem; font-weight:700; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:0.3rem;">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline><path d="M10 2h4M12 2v5" opacity="0.4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    إرجاع
+                  </button>
+
+                  <button onclick="openUpdateModal('${order.id}')" title="تحديث الطلبية / تسجيل دفعة"
+                    style="background:var(--primary); color:#fff; border:none; border-radius:8px; padding:0.4rem 0.7rem; font-size:0.78rem; font-weight:700; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:0.3rem;">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    تحديث
+                  </button>
+
+                  ${isManagerOrAdmin ? `
+                    <button onclick="deleteClientOrder('${order.id}')" title="حذف الطلبية"
+                      style="background:#fee2e2; color:#dc2626; border:none; border-radius:8px; padding:0.4rem 0.7rem; font-size:0.78rem; font-weight:700; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:0.3rem;">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1-2-2h4a2 2 0 0 1-2 2v2"/></svg>
+                      حذف
+                    </button>
+                  ` : ''}
+                </div>
+                ${(() => {
+              if (order.material_notes && order.material_notes.includes('عجز (مطلوب شراء)')) {
+                const isProd = role === 'production_engineer';
+                const isPurch = role === 'purchasing_manager';
+
+                const isIssue = order.material_notes && order.material_notes.includes('<!--MATERIAL_ISSUE:');
+                let issueReporter = '';
+                if (isIssue) {
+                  const match = order.material_notes.match(/<!--MATERIAL_ISSUE:([^:]+?):/);
+                  if (match) {
+                    issueReporter = match[1];
+                  }
+                }
+
+                const prodRejected = isIssue && (issueReporter === 'production_engineer' || issueReporter === 'admin' || issueReporter === 'manager');
+                const prodHTML = order.approval_production
+                  ? `<span class="shortage-approved-badge">
+                           <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                           مُعتمد
+                         </span>`
+                  : prodRejected
+                    ? `<span class="shortage-rejected-badge" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; padding:0.35rem 0.6rem; border-radius:8px; font-size:0.78rem; font-weight:700; display:inline-flex; align-items:center; gap:0.25rem;">
+                         ❌ مرفوض
+                       </span>`
+                    : (isProd || isManagerOrAdmin)
+                      ? `<button class="shortage-approve-btn" onclick="approveShortage('${order.id}', 'production')">
+                               <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                               اعتماد
+                             </button>`
+                      : `<span class="shortage-pending-badge">⏳ بانتظار الإنتاج</span>`;
+
+                const purchRejected = isIssue && (issueReporter === 'purchasing_manager' || issueReporter === 'admin' || issueReporter === 'manager');
+                const purchHTML = order.approval_purchasing
+                  ? `<span class="shortage-approved-badge">
+                           <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                           مُعتمد
+                         </span>`
+                  : purchRejected
+                    ? `<span class="shortage-rejected-badge" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; padding:0.35rem 0.6rem; border-radius:8px; font-size:0.78rem; font-weight:700; display:inline-flex; align-items:center; gap:0.25rem;">
+                         ❌ مرفوض
+                       </span>`
+                    : (isPurch || isManagerOrAdmin)
+                      ? `<button class="shortage-approve-btn" onclick="approveShortage('${order.id}', 'purchasing')">
+                               <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                               اعتماد
+                             </button>`
+                      : `<span class="shortage-pending-badge">⏳ بانتظار المشتريات</span>`;
+
+                const canReport = ['production_engineer', 'purchasing_manager', 'manager', 'admin'].includes(role);
+                const reportHTML = canReport
+                  ? `<button onclick="reportMaterialIssue('${order.id}')" class="shortage-approve-btn" style="background:#fee2e2; color:#dc2626; margin-top:0.6rem; width:100%; justify-content:center; border:1px dashed #fca5a5;">
+                       <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:0.25rem;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                       إبلاغ عن مشكلة في الخامات
+                     </button>`
+                  : '';
+
+                return `
+                      <div class="shortage-card">
+                        <div class="shortage-card-header">
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                          </svg>
+                          اعتماد نواقص الشراء
+                        </div>
+                        <div class="shortage-approval-row">
+                          <span class="shortage-approval-label">👷 مهندس الإنتاج</span>
+                          ${prodHTML}
+                        </div>
+                        <div class="shortage-approval-row">
+                          <span class="shortage-approval-label">💼 مدير المشتريات</span>
+                          ${purchHTML}
+                        </div>
+                        ${reportHTML}
+                      </div>
+                    `;
+              }
+              return '';
+            })()}
+              </div>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        document.getElementById('orders-count-badge').textContent = `${data.length} طلبية`;
+      }
+
+      async function initClientOrdersPage() {
+        await initAuth();
+
+        const sb = getSupabase();
+        const tbody = document.getElementById('client-orders-table-body');
+
+        try {
+          const [{ data: invData }, { data: prcData }, { data: custData }, { data: orders, error: ordersErr }] = await Promise.all([
+            sb.from('inventory').select('*'),
+            sb.from('prices').select('*'),
+            sb.from('customers').select('*'),
+            sb.from('client_orders').select('*').eq('archived', false).order('created_at', { ascending: false })
+          ]);
+
+          if (invData) inventoryItems = invData;
+          if (prcData) pricesList = prcData;
+          if (custData) customersList = custData;
+          if (ordersErr) throw ordersErr;
+          clientOrdersData = orders || [];
+
+          const role = currentProfile ? currentProfile.role : 'user';
+          const canSeeFinancials = ['manager', 'admin', 'purchasing_manager'].includes(role);
+          document.querySelectorAll('.financial-field').forEach(el => {
+            el.style.display = canSeeFinancials ? '' : 'none';
+          });
+
+          // Show/Hide Create Order button based on role
+          const createBtn = document.getElementById('create-order-btn');
+          if (createBtn) {
+            if (['manager', 'admin'].includes(role)) {
+              createBtn.style.display = 'flex';
+            } else {
+              createBtn.style.display = 'none';
+            }
+          }
+
+          if (clientOrdersData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted); padding:3rem;">لا يوجد طلبيات حالياً</td></tr>`;
+            document.getElementById('orders-count-badge').textContent = `0 طلبية نشطة`;
+            return;
+          }
+
+          filterOrders();
+
+          // Render Prep Notification Banner
+          const prepBanner = document.getElementById('prep-notification-banner');
+          if (prepBanner) {
+            const isPrepOrAdmin = ['inventory_manager', 'admin'].includes(role);
+            if (isPrepOrAdmin) {
+              const noMaterialsOrders = clientOrdersData.filter(o => {
+                return !(o.material_notes && o.material_notes.includes('<!--TRACK:'));
+              });
+
+              const issueOrders = clientOrdersData.filter(o => {
+                return o.material_notes && o.material_notes.includes('<!--MATERIAL_ISSUE:');
+              });
+
+              let bannerHTML = '';
+
+              if (noMaterialsOrders.length > 0) {
+                bannerHTML += `
+                  <div style="background:#eff6ff; border:1.5px solid #bfdbfe; border-right:5px solid var(--primary); border-radius:var(--radius-lg); padding:1.1rem 1.5rem; display:flex; align-items:flex-start; gap:1rem; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom:1.5rem;">
+                    <span style="font-size:1.75rem; flex-shrink:0;">🔔</span>
+                    <div>
+                      <div style="font-weight:800; color:var(--primary); font-size:1rem; margin-bottom:0.35rem;">
+                        تنبيه لمدير التجهيزات: هناك ${noMaterialsOrders.length} طلبيات جديدة بحاجة لتحديد خاماتها!
+                      </div>
+                      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                        ${noMaterialsOrders.map(o => `
+                          <span onclick="scrollToOrder('${o.id}')" style="background:#fff; border:1px solid #bfdbfe; color:var(--primary); padding:0.25rem 0.75rem; border-radius:50px; font-size:0.8rem; font-weight:700; cursor:pointer; transition:all 0.2s;"
+                            onmouseover="this.style.background='#eff6ff'; this.style.transform='scale(1.05)';"
+                            onmouseout="this.style.background='#fff'; this.style.transform='scale(1)';">
+                            📦 ${o.client_name} (حدد الخامات)
+                          </span>
+                        `).join('')}
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }
+
+              if (issueOrders.length > 0) {
+                bannerHTML += `
+                  <div style="background:#fef2f2; border:1.5px solid #fecaca; border-right:5px solid var(--error); border-radius:var(--radius-lg); padding:1.1rem 1.5rem; display:flex; align-items:flex-start; gap:1rem; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom:1.5rem;">
+                    <span style="font-size:1.75rem; flex-shrink:0;">⚠️</span>
+                    <div>
+                      <div style="font-weight:800; color:var(--error); font-size:1rem; margin-bottom:0.35rem;">
+                        تنبيه هام لمدير التجهيزات: هناك مشكلة خامات تم الإبلاغ عنها في ${issueOrders.length} طلبيات!
+                      </div>
+                      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                        ${issueOrders.map(o => {
+                          const match = o.material_notes.match(/<!--MATERIAL_ISSUE:(.*?)-->/);
+                          const issueText = match ? match[1] : 'مشكلة بالخامات';
+                          return `
+                            <span onclick="scrollToOrder('${o.id}')" style="background:#fff; border:1px solid #fecaca; color:var(--error); padding:0.25rem 0.75rem; border-radius:50px; font-size:0.8rem; font-weight:700; cursor:pointer; transition:all 0.2s;"
+                              onmouseover="this.style.background='#fef2f2'; this.style.transform='scale(1.05)';"
+                              onmouseout="this.style.background='#fff'; this.style.transform='scale(1)';"
+                              title="${issueText}">
+                              ⚠️ ${o.client_name} (تعديل الخامات)
+                            </span>
+                          `;
+                        }).join('')}
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }
+
+              if (bannerHTML) {
+                prepBanner.style.display = 'block';
+                prepBanner.innerHTML = bannerHTML;
+              } else {
+                prepBanner.style.display = 'none';
+                prepBanner.innerHTML = '';
+              }
+            } else {
+              prepBanner.style.display = 'none';
+              prepBanner.innerHTML = '';
+            }
+          }
+
+          // Render Approvals Notification Banner for Production Engineer and Purchasing Manager
+          const approvalBanner = document.getElementById('approval-notification-banner');
+          if (approvalBanner) {
+            const isProd = role === 'production_engineer';
+            const isPurch = role === 'purchasing_manager';
+            const isMgr = ['manager', 'admin'].includes(role);
+
+            if (isProd || isPurch || isMgr) {
+              const pendingApprovals = clientOrdersData.filter(o => {
+                const hasShortage = o.material_notes && o.material_notes.includes('عجز (مطلوب شراء)');
+                if (!hasShortage) return false;
+
+                if (isProd && !o.approval_production) return true;
+                if (isPurch && !o.approval_purchasing) return true;
+                if (isMgr && (!o.approval_production || !o.approval_purchasing)) return true;
+                return false;
+              });
+
+              if (pendingApprovals.length > 0) {
+                approvalBanner.style.display = 'block';
+                const roleLabel = isProd ? '👷 مهندس الإنتاج' : isPurch ? '💼 مدير المشتريات' : '📋 المدير';
+                approvalBanner.innerHTML = `
+                  <div class="approval-notification-bar">
+                    <span class="notif-icon">🔔</span>
+                    <div style="flex:1;">
+                      <div class="notif-title">
+                        ${roleLabel} — ${pendingApprovals.length} طلبية بانتظار اعتمادك لنواقص الشراء
+                      </div>
+                      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                        ${pendingApprovals.map(o => `
+                          <span class="approval-notif-chip" onclick="scrollToOrder('${o.id}')">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                              <line x1="12" y1="9" x2="12" y2="13"/>
+                            </svg>
+                            ${o.client_name}
+                          </span>
+                        `).join('')}
+                      </div>
+                    </div>
+                  </div>
+                `;
+              } else {
+                approvalBanner.style.display = 'none';
+                approvalBanner.innerHTML = '';
+              }
+            } else {
+              approvalBanner.style.display = 'none';
+              approvalBanner.innerHTML = '';
+            }
+          }
+
+          // Render Ready for Delivery Banner
+          const readyBanner = document.getElementById('ready-delivery-banner');
+          if (readyBanner) {
+            const isPurch = role === 'purchasing_manager';
+            const isMgr = ['manager', 'admin'].includes(role);
+            if (isPurch || isMgr) {
+              const readyOrders = clientOrdersData.filter(o => o.stage === 'جاهز للتسليم');
+              if (readyOrders.length > 0) {
+                readyBanner.style.display = 'block';
+                readyBanner.innerHTML = `
+                  <div style="background:#f0fdf4; border:1.5px solid #bbf7d0; border-right:5px solid #10b981; border-radius:var(--radius-lg); padding:1.1rem 1.5rem; display:flex; align-items:flex-start; gap:1rem; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom:1.5rem;">
+                    <span style="font-size:1.75rem; flex-shrink:0;">🎉</span>
+                    <div style="flex:1;">
+                      <div style="font-weight:800; color:#15803d; font-size:1rem; margin-bottom:0.35rem;">
+                        تنبيه: هناك ${readyOrders.length} طلبيات جاهزة للتسليم وبانتظار تواصلكم!
+                      </div>
+                      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                        ${readyOrders.map(o => `
+                          <span onclick="scrollToOrder('${o.id}')" style="background:#fff; border:1px solid #bbf7d0; color:#15803d; padding:0.25rem 0.75rem; border-radius:50px; font-size:0.8rem; font-weight:700; cursor:pointer; transition:all 0.2s;"
+                            onmouseover="this.style.background='#f0fdf4'; this.style.transform='scale(1.05)';"
+                            onmouseout="this.style.background='#fff'; this.style.transform='scale(1)';">
+                            📦 ${o.client_name} (جاهز للتسليم)
+                          </span>
+                        `).join('')}
+                      </div>
+                    </div>
+                  </div>
+                `;
+              } else {
+                readyBanner.style.display = 'none';
+                readyBanner.innerHTML = '';
+              }
+            } else {
+              readyBanner.style.display = 'none';
+              readyBanner.innerHTML = '';
+            }
+          }
+
+          // Handle automatic scrolling to an order if specified in query param
+          const urlParams = new URLSearchParams(window.location.search);
+          const scrollId = urlParams.get('scroll');
+          if (scrollId) {
+            setTimeout(() => {
+              scrollToOrder(scrollId);
+            }, 800);
+            urlParams.delete('scroll');
+            const newSearch = urlParams.toString();
+            const newURL = window.location.pathname + (newSearch ? '?' + newSearch : '');
+            window.history.replaceState({}, '', newURL);
+          }
+
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const overdue = orders.filter(o => {
+            if (!o.delivery_date || o.stage === 'تم التسليم للزبون') return false;
+            const d = new Date(o.delivery_date);
+            d.setHours(0, 0, 0, 0);
+            return d < today;
+          });
+          const banner = document.getElementById('overdue-banner');
+          if (banner) {
+            if (overdue.length > 0) {
+              banner.style.display = 'block';
+              banner.innerHTML = `
+                <div style="background:#fff7ed; border:1.5px solid #fed7aa; border-right:5px solid #f97316; border-radius:var(--radius-lg); padding:1.1rem 1.5rem; display:flex; align-items:flex-start; gap:1rem;">
+                  <span style="font-size:1.75rem; flex-shrink:0;">⚠️</span>
+                  <div>
+                    <div style="font-weight:800; color:#c2410c; font-size:1rem; margin-bottom:0.35rem;">
+                      ${overdue.length} طلبية متأخرة عن موعد التسليم!
+                    </div>
+                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                      ${overdue.map(o => `
+                        <span onclick="scrollToOrder('${o.id}')" style="background:#fff; border:1px solid #fed7aa; color:#9a3412; padding:0.25rem 0.75rem; border-radius:50px; font-size:0.8rem; font-weight:700; cursor:pointer; transition:all 0.2s;"
+                          onmouseover="this.style.background='#fff7ed'; this.style.transform='scale(1.05)';"
+                          onmouseout="this.style.background='#fff'; this.style.transform='scale(1)';">
+                          📦 ${o.client_name} — ${new Date(o.delivery_date).toLocaleDateString('ar-EG')}
+                        </span>
+                      `).join('')}
+                    </div>
+                  </div>
+                </div>
+              `;
+            } else {
+              banner.style.display = 'none';
+              banner.innerHTML = '';
+            }
+          }
+
+        } catch (e) {
+          console.error(e);
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--error)">تأكد من إنشاء جدول client_orders في قاعدة البيانات: ${e.message}</td></tr>`;
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', async () => {
+        await initClientOrdersPage();
+
+        const sb = getSupabase();
+
+        sb.channel('orders-realtime')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'client_orders' }, (payload) => {
+            if (payload) {
+              const role = currentProfile ? currentProfile.role : 'user';
+              if (payload.eventType === 'INSERT') {
+                if (['inventory_manager', 'admin'].includes(role)) {
+                  showAlert(`🔔 طلبيّة جديدة مضافة للعميل "${payload.new.client_name}"! يرجى تحديد الخامات المطلوبة لها.`, 'success');
+                }
+              } else if (payload.eventType === 'UPDATE') {
+                if (payload.new && payload.new.archived) {
+                  initClientOrdersPage();
+                  return;
+                }
+                const newShortage = payload.new && payload.new.material_notes && payload.new.material_notes.includes('عجز (مطلوب شراء)');
+                const oldShortage = payload.old && payload.old.material_notes && payload.old.material_notes.includes('عجز (مطلوب شراء)');
+
+                if (newShortage && !oldShortage) {
+                  if (['production_engineer', 'purchasing_manager', 'manager', 'admin'].includes(role)) {
+                    showAlert(`⚠️ طلبية العميل "${payload.new.client_name}" بها نواقص وبانتظار اعتمادكم للشراء!`, 'warning');
+                  }
+                }
+
+                if (payload.new && payload.new.approval_production && payload.new.approval_purchasing) {
+                  const oldApproved = payload.old && payload.old.approval_production && payload.old.approval_purchasing;
+                  if (!oldApproved) {
+                    if (['purchasing_manager', 'manager', 'admin'].includes(role)) {
+                      showAlert(`🎉 تم اعتماد نواقص طلبية العميل "${payload.new.client_name}" بالكامل وإرسالها لقسم الشراء!`, 'success');
+                    }
+                  }
+                }
+              }
+            }
+            initClientOrdersPage();
+          })
+          .subscribe();
+
+        sb.channel('inventory-sync')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory' }, () => {
+            initClientOrdersPage();
+          })
+          .subscribe();
+
+        setInterval(() => {
+          initClientOrdersPage();
+        }, 5000);
+      });
+    </script>
+</body>
+
+</html>

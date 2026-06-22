@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>شؤون العمال - نظام الإدارة</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/auth.js"></script>
+  <style>
+    /* ══════════════════════════════════════
+       PREMIUM DESIGN SYSTEM VARIABLES & MIXINS
+       ══════════════════════════════════════ */
+    :root {
+      --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+      --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      --info-gradient: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+      --pending-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+      
+      --card-bg-glass: rgba(255, 255, 255, 0.75);
+      --card-border-glass: rgba(255, 255, 255, 0.4);
+      --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+    }
+
+    /* Pulse animation for active workers badge */
+    .pulse-badge {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(16, 185, 129, 0.12);
+      color: #059669;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      padding: 0.35rem 0.85rem;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .pulse-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+      animation: pulse-dot 1.5s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.4; }
+    }
+
+    .inactive-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+      padding: 0.35rem 0.85rem;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .inactive-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #94a3b8;
+    }
+
+    /* Glassmorphism Stats Cards */
+    .stats-container-premium {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 2.25rem;
+    }
+    .stat-card-premium {
+      background: var(--card-bg-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border-glass);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.4rem;
+      box-shadow: var(--glass-shadow);
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+    .stat-card-premium:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 40px rgba(99, 102, 241, 0.08);
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+    .stat-info-side {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .stat-info-side h3 {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin: 0;
+    }
+    .stat-info-side .value {
+      font-size: 1.55rem;
+      font-weight: 900;
+      color: var(--text-main);
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+    }
+    .stat-icon-side {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      flex-shrink: 0;
+    }
+
+    /* Actions styling with soft transition and gradient effects */
+    .btn-gradient-success {
+      background: var(--success-gradient);
+      color: #fff !important;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
+    .btn-gradient-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+    }
+    .btn-gradient-warning {
+      background: var(--warning-gradient);
+      color: #fff !important;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+    }
+    .btn-gradient-warning:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3);
+    }
+    .btn-gradient-primary {
+      background: var(--primary-gradient);
+      color: #fff !important;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+    }
+    .btn-gradient-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
+    }
+
+    /* Tables Styles */
+    .card-premium {
+      background: var(--card-bg-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border-glass);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--glass-shadow);
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+    .data-table-premium th {
+      background: rgba(248, 250, 252, 0.8) !important;
+      font-weight: 800;
+      color: var(--text-main);
+      border-bottom: 1.5px solid var(--border);
+    }
+    .data-table-premium tbody tr:hover {
+      background: rgba(99, 102, 241, 0.03);
+    }
+
+    /* Modals Glassmorphism backdrop */
+    .modal-overlay-premium {
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .modal-premium {
+      border: 1px solid var(--card-border-glass);
+      box-shadow: 0 24px 64px rgba(31, 38, 135, 0.12);
+    }
+
+    @media (max-width: 900px) {
+      .stats-container-premium {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+      }
+    }
+    @media (max-width: 480px) {
+      .stats-container-premium {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="main-content">
+    <div class="page-header">
+      <h1 style="display:flex; align-items:center; gap:0.75rem; font-weight:900;">
+        <div style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg,#6366f1,#4f46e5); display:flex; align-items:center; justify-content:center; box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+        </div>
+        شؤون وإدارة العمال
+      </h1>
+      <button class="btn btn-primary" onclick="openModal('create-worker-modal')" style="gap:0.5rem; border-radius:12px; padding: 0.75rem 1.5rem; box-shadow: 0 4px 14px rgba(99,102,241,0.35);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        إضافة عامل جديد
+      </button>
+    </div>
+
+    <!-- Glassmorphic Stats Grid -->
+    <div class="stats-container-premium">
+      <!-- Total Workers -->
+      <div class="stat-card-premium">
+        <div class="stat-info-side">
+          <h3>إجمالي العمال</h3>
+          <div class="value" id="stat-total-workers">0</div>
+        </div>
+        <div class="stat-icon-side" style="background: var(--primary-gradient);">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+      </div>
+      <!-- Present Workers -->
+      <div class="stat-card-premium">
+        <div class="stat-info-side">
+          <h3>المتواجدون حالياً</h3>
+          <div class="value" id="stat-active-workers">0</div>
+        </div>
+        <div class="stat-icon-side" style="background: var(--success-gradient);">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+      </div>
+      <!-- Total Wages -->
+      <div class="stat-card-premium">
+        <div class="stat-info-side">
+          <h3>إجمالي المستحقات</h3>
+          <div class="value" id="stat-total-earnings">0 ج.م</div>
+        </div>
+        <div class="stat-icon-side" style="background: var(--pending-gradient);">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+      </div>
+      <!-- Total Advances -->
+      <div class="stat-card-premium">
+        <div class="stat-info-side">
+          <h3>إجمالي السلف</h3>
+          <div class="value" id="stat-total-advances">0 ج.م</div>
+        </div>
+        <div class="stat-icon-side" style="background: var(--warning-gradient);">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="12" y1="6" x2="12" y2="18"/></svg>
+        </div>
+      </div>
+      <!-- Net Remaining -->
+      <div class="stat-card-premium">
+        <div class="stat-info-side">
+          <h3>صافي المتبقي</h3>
+          <div class="value" id="stat-net-balance">0 ج.م</div>
+        </div>
+        <div class="stat-icon-side" style="background: var(--info-gradient);">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h4v-6z"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Workers List Card -->
+    <div class="card-premium">
+      <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; border-bottom: 1.5px solid var(--border);">
+        <h2 style="font-weight:900;">قائمة العمال والأرصدة</h2>
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="worker-search-input" placeholder="البحث عن عامل..." oninput="filterWorkers()" style="border-radius:12px; padding-right: 2.8rem;">
+        </div>
+      </div>
+      <div class="card-body" style="padding: 1.25rem;">
+        <div class="table-container">
+          <table class="data-table data-table-premium">
+            <thead>
+              <tr>
+                <th>اسم العامل</th>
+                <th>سعر الساعة</th>
+                <th>الحالة</th>
+                <th>إجمالي الساعات</th>
+                <th>المستحقات الكلية</th>
+                <th>إجمالي السُلف</th>
+                <th>صافي الحساب</th>
+                <th style="text-align:center;">إجراءات الوردية والمالية</th>
+              </tr>
+            </thead>
+            <tbody id="workers-table-body">
+              <tr>
+                <td colspan="8" style="text-align:center;color:var(--text-muted); padding: 3rem 0;">جاري تحميل العمال...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Worker Modal -->
+    <div id="create-worker-modal" class="modal-overlay modal-overlay-premium hidden">
+      <div class="modal modal-premium">
+        <div class="modal-header">
+          <h3 style="font-weight:900;">إضافة عامل جديد</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('create-worker-modal')" style="padding:0.5rem; border-radius:50%;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body" style="padding: 2rem;">
+          <form id="create-worker-form">
+            <div class="form-group">
+              <label for="worker-name" style="font-weight:700;">اسم العامل *</label>
+              <input type="text" id="worker-name" required placeholder="أدخل اسم العامل الكامل" style="border-radius:12px; padding: 0.85rem 1rem;">
+            </div>
+            <div class="form-group">
+              <label for="worker-rate" style="font-weight:700;">حساب الساعة (جنيه) *</label>
+              <input type="number" id="worker-rate" min="0" required placeholder="مثال: 50" style="border-radius:12px; padding: 0.85rem 1rem;">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer" style="padding: 1.25rem 2rem;">
+          <button type="button" class="btn btn-primary" onclick="submitCreateWorker()" style="border-radius:12px; padding: 0.7rem 1.4rem;">حفظ العامل</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('create-worker-modal')" style="border-radius:12px; padding: 0.7rem 1.4rem;">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Advance Modal -->
+    <div id="add-advance-modal" class="modal-overlay modal-overlay-premium hidden">
+      <div class="modal modal-premium">
+        <div class="modal-header">
+          <h3 style="font-weight:900;">تسجيل سلفة لعامل</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('add-advance-modal')" style="padding:0.5rem; border-radius:50%;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body" style="padding: 2rem;">
+          <form id="add-advance-form">
+            <input type="hidden" id="advance-worker-id">
+            <div class="form-group">
+              <label style="font-weight:700;">اسم العامل</label>
+              <div id="advance-worker-name" style="font-weight: 900; font-size: 1.3rem; color: var(--primary); padding: 0.5rem 0;">-</div>
+            </div>
+            <div class="form-group">
+              <label for="advance-amount" style="font-weight:700;">مبلغ السلفة (جنيه) *</label>
+              <input type="number" id="advance-amount" min="1" required placeholder="أدخل مبلغ السلفة" style="border-radius:12px; padding: 0.85rem 1rem;">
+            </div>
+            <div class="form-group">
+              <label for="advance-notes" style="font-weight:700;">ملاحظات / سبب السلفة</label>
+              <textarea id="advance-notes" placeholder="اكتب ملاحظة اختيارية..." rows="2" style="border-radius:12px; padding: 0.85rem 1rem; resize: none;"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer" style="padding: 1.25rem 2rem;">
+          <button type="button" class="btn btn-primary" onclick="submitAddAdvance()" style="border-radius:12px; padding: 0.7rem 1.4rem;">تسجيل السلفة</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('add-advance-modal')" style="border-radius:12px; padding: 0.7rem 1.4rem;">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Worker History Modal -->
+    <div id="worker-history-modal" class="modal-overlay modal-overlay-premium hidden">
+      <div class="modal modal-premium" style="max-width: 850px;">
+        <div class="modal-header">
+          <h3 id="history-title" style="font-weight:900;">سجل العامل</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('worker-history-modal')" style="padding:0.5rem; border-radius:50%;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body" style="padding: 2rem;">
+          <div style="margin-bottom: 2rem;">
+            <h4 style="color: var(--primary); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; font-weight:800; font-size:1rem;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              سجل الحضور والانصراف (الورديات)
+            </h4>
+            <div class="table-container" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px;">
+              <table class="data-table data-table-premium" style="min-width: 100%;">
+                <thead>
+                  <tr>
+                    <th>اليوم</th>
+                    <th>الحضور</th>
+                    <th>الانصراف</th>
+                    <th>المدة</th>
+                    <th>المستحق</th>
+                    <th>إجراء</th>
+                  </tr>
+                </thead>
+                <tbody id="history-attendance-body">
+                  <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">لا يوجد ورديات مسجلة</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <h4 style="color: var(--warning-text); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; font-weight:800; font-size:1rem;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="12" y1="6" x2="12" y2="18"/></svg>
+              سجل السلف النقدية
+            </h4>
+            <div class="table-container" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px;">
+              <table class="data-table data-table-premium" style="min-width: 100%;">
+                <thead>
+                  <tr>
+                    <th>التاريخ</th>
+                    <th>المبلغ</th>
+                    <th>ملاحظات</th>
+                    <th>إجراء</th>
+                  </tr>
+                </thead>
+                <tbody id="history-advances-body">
+                  <tr>
+                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">لا يوجد سلف مسجلة</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let allWorkers = [];
+    let allAttendance = [];
+    let allAdvances = [];
+
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    async function initWorkersPage() {
+      await initAuth();
+      const sb = getSupabase();
+      
+      try {
+        // Fetch all workers, attendance logs, and advances logs
+        const { data: workers, error: wErr } = await sb.from('workers').select('*').order('name');
+        if (wErr) throw wErr;
+        allWorkers = workers || [];
+
+        const { data: attendance, error: attErr } = await sb.from('attendance').select('*').order('check_in', { ascending: false });
+        if (attErr) throw attErr;
+        allAttendance = attendance || [];
+
+        const { data: advances, error: advErr } = await sb.from('advances').select('*').order('advance_date', { ascending: false });
+        if (advErr) throw advErr;
+        allAdvances = advances || [];
+
+        renderStats();
+        renderWorkersList();
+      } catch (e) {
+        showAlert('خطأ أثناء جلب البيانات: ' + e.message, 'error');
+      }
+    }
+
+    function renderStats() {
+      const totalWorkers = allWorkers.length;
+      
+      // Matched workers currently in work (check_out is null)
+      const activeWorkers = allAttendance.filter(a => a.check_out === null).length;
+      
+      // Calculate total earnings
+      const totalEarnings = allAttendance.reduce((sum, a) => sum + (parseFloat(a.earnings) || 0), 0);
+      
+      // Calculate total advances
+      const totalAdvances = allAdvances.reduce((sum, a) => sum + (parseFloat(a.amount) || 0), 0);
+      
+      // Net balance
+      const netBalance = totalEarnings - totalAdvances;
+
+      document.getElementById('stat-total-workers').textContent = totalWorkers;
+      document.getElementById('stat-active-workers').textContent = activeWorkers;
+      document.getElementById('stat-total-earnings').textContent = totalEarnings.toLocaleString('ar-EG') + ' ج.م';
+      document.getElementById('stat-total-advances').textContent = totalAdvances.toLocaleString('ar-EG') + ' ج.م';
+      document.getElementById('stat-net-balance').textContent = netBalance.toLocaleString('ar-EG') + ' ج.م';
+      
+      // Dynamic color style for Net Balance
+      const netValEl = document.getElementById('stat-net-balance');
+      if (netBalance < 0) {
+        netValEl.style.color = 'var(--error)';
+      } else {
+        netValEl.style.color = 'var(--success-text)';
+      }
+    }
+
+    function renderWorkersList(workers = allWorkers) {
+      const tbody = document.getElementById('workers-table-body');
+      
+      if (workers.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted); padding: 3rem 0;">لا يوجد عمال مسجلين حالياً</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      workers.forEach(w => {
+        // Filter attendance for this worker
+        const wAtt = allAttendance.filter(a => a.worker_id === w.id);
+        const activeAtt = wAtt.find(a => a.check_out === null); // session where check_out is null
+        
+        const totalHours = wAtt.reduce((sum, a) => sum + (parseFloat(a.total_hours) || 0), 0);
+        const totalEarnings = wAtt.reduce((sum, a) => sum + (parseFloat(a.earnings) || 0), 0);
+        
+        // Filter advances for this worker
+        const wAdv = allAdvances.filter(a => a.worker_id === w.id);
+        const totalAdvances = wAdv.reduce((sum, a) => sum + (parseFloat(a.amount) || 0), 0);
+        
+        const netBalance = totalEarnings - totalAdvances;
+        
+        const isCheckedIn = !!activeAtt;
+        const statusBadge = isCheckedIn 
+          ? `<span class="pulse-badge">في العمل</span>` 
+          : `<span class="inactive-badge">غير متواجد</span>`;
+
+        // Attendance Action button
+        const attBtn = isCheckedIn
+          ? `<button onclick="checkOutWorker('${w.id}', ${w.hourly_rate})" class="btn btn-gradient-warning btn-sm" style="border-radius:10px; gap:0.3rem;">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              انصراف
+             </button>`
+          : `<button onclick="checkInWorker('${w.id}')" class="btn btn-gradient-success btn-sm" style="border-radius:10px; gap:0.3rem;">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+              حضور
+             </button>`;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td data-label="اسم العامل">
+            <div style="font-weight: 800; color: var(--primary-dark); font-size:0.95rem;">${w.name}</div>
+          </td>
+          <td data-label="سعر الساعة">
+            <span style="font-weight: 700; background:rgba(99,102,241,0.06); color:var(--primary); padding:3px 10px; border-radius:8px; font-size:0.8rem;">
+              ${w.hourly_rate} ج.م/ساعة
+            </span>
+          </td>
+          <td data-label="الحالة">${statusBadge}</td>
+          <td data-label="إجمالي الساعات" style="font-weight: 600;">${totalHours.toFixed(2)} ساعة</td>
+          <td data-label="المستحقات الكلية" style="font-weight: 700;">${totalEarnings.toLocaleString('ar-EG')} ج.م</td>
+          <td data-label="إجمالي السُلف" style="color: var(--warning-text); font-weight:700;">${totalAdvances.toLocaleString('ar-EG')} ج.م</td>
+          <td data-label="صافي الحساب" style="font-weight:900; font-size:1rem; color: ${netBalance < 0 ? 'var(--error)' : 'var(--success-text)'}">
+            ${netBalance.toLocaleString('ar-EG')} ج.م
+          </td>
+          <td data-label="إجراءات الوردية والمالية">
+            <div style="display:flex; gap:0.4rem; justify-content:center; flex-wrap:wrap;">
+              ${attBtn}
+              <button onclick="openAdvanceModal('${w.id}', '${w.name}')" class="btn btn-gradient-primary btn-sm" style="border-radius:10px; gap:0.3rem;">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="12" y1="6" x2="12" y2="18"/></svg>
+                سُلفة
+              </button>
+              <button onclick="viewWorkerHistory('${w.id}', '${w.name}')" class="btn btn-secondary btn-sm" style="border-radius:10px; border-color:#d1d5db; font-weight:700; gap:0.3rem;">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                السجل
+              </button>
+              <button onclick="deleteWorker('${w.id}', '${w.name}')" class="btn btn-danger-outline btn-sm" style="border-radius:10px; padding: 0.35rem 0.75rem; font-weight:700; gap:0.3rem;">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                حذف
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterWorkers() {
+      const q = document.getElementById('worker-search-input').value.trim().toLowerCase();
+      let filtered = allWorkers;
+      if (q) {
+        filtered = filtered.filter(w => w.name.toLowerCase().includes(q));
+      }
+      renderWorkersList(filtered);
+    }
+
+    async function submitCreateWorker() {
+      const form = document.getElementById('create-worker-form');
+      if (!form.checkValidity()) { form.reportValidity(); return; }
+
+      const name = document.getElementById('worker-name').value.trim();
+      const rate = parseFloat(document.getElementById('worker-rate').value || 0);
+
+      try {
+        showAlert('جاري حفظ العامل...', 'pending');
+        const sb = getSupabase();
+
+        const { error } = await sb.from('workers').insert([{
+          name: name,
+          hourly_rate: rate
+        }]);
+
+        if (error) throw error;
+
+        showAlert('تم حفظ العامل بنجاح!', 'success');
+        closeModal('create-worker-modal');
+        form.reset();
+        await initWorkersPage();
+      } catch (e) {
+        showAlert('فشل الحفظ: ' + e.message, 'error');
+      }
+    }
+
+    async function checkInWorker(workerId) {
+      try {
+        showAlert('جاري تسجيل الحضور...', 'pending');
+        const sb = getSupabase();
+        
+        // Ensure no active session
+        const { data: active } = await sb.from('attendance')
+          .select('*')
+          .eq('worker_id', workerId)
+          .is('check_out', null)
+          .maybeSingle();
+          
+        if (active) {
+          showAlert('العامل مسجل حضور بالفعل!', 'error');
+          return;
+        }
+
+        // Today's date automatically detected
+        const todayStr = new Date().toISOString().split('T')[0];
+        
+        const { error } = await sb.from('attendance').insert([{
+          worker_id: workerId,
+          work_date: todayStr,
+          check_in: new Date().toISOString()
+        }]);
+        
+        if (error) throw error;
+        
+        showAlert('تم تسجيل الحضور بنجاح', 'success');
+        await initWorkersPage();
+      } catch (e) {
+        showAlert('فشل تسجيل الحضور: ' + e.message, 'error');
+      }
+    }
+
+    async function checkOutWorker(workerId, hourlyRate) {
+      try {
+        showAlert('جاري تسجيل الانصراف...', 'pending');
+        const sb = getSupabase();
+        
+        // Get active session
+        const { data: active } = await sb.from('attendance')
+          .select('*')
+          .eq('worker_id', workerId)
+          .is('check_out', null)
+          .maybeSingle();
+          
+        if (!active) {
+          showAlert('لا يوجد تسجيل حضور نشف لهذا العامل!', 'error');
+          return;
+        }
+
+        const checkInTime = new Date(active.check_in);
+        const checkOutTime = new Date();
+        
+        // Elapsed hours (decimal)
+        const diffMs = checkOutTime - checkInTime;
+        const totalHours = Math.max(0.01, Number((diffMs / (1000 * 60 * 60)).toFixed(2))); // minimum 0.01 hours
+        const earnings = Number((totalHours * hourlyRate).toFixed(2));
+
+        const { error = null } = await sb.from('attendance')
+          .update({
+            check_out: checkOutTime.toISOString(),
+            total_hours: totalHours,
+            earnings: earnings
+          })
+          .eq('id', active.id);
+          
+        if (error) throw error;
+        
+        showAlert(`تم تسجيل الانصراف بنجاح (المدة: ${totalHours} ساعة، المستحق: ${earnings} ج.م)`, 'success');
+        await initWorkersPage();
+      } catch (e) {
+        showAlert('فشل تسجيل الانصراف: ' + e.message, 'error');
+      }
+    }
+
+    function openAdvanceModal(workerId, workerName) {
+      document.getElementById('advance-worker-id').value = workerId;
+      document.getElementById('advance-worker-name').textContent = workerName;
+      document.getElementById('advance-amount').value = '';
+      document.getElementById('advance-notes').value = '';
+      openModal('add-advance-modal');
+    }
+
+    async function submitAddAdvance() {
+      const form = document.getElementById('add-advance-form');
+      if (!form.checkValidity()) { form.reportValidity(); return; }
+
+      const workerId = document.getElementById('advance-worker-id').value;
+      const amount = parseFloat(document.getElementById('advance-amount').value);
+      const notes = document.getElementById('advance-notes').value.trim();
+
+      try {
+        showAlert('جاري تسجيل السلفة...', 'pending');
+        const sb = getSupabase();
+
+        // Today's date automatically detected
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        const { error } = await sb.from('advances').insert([{
+          worker_id: workerId,
+          amount: amount,
+          notes: notes,
+          advance_date: todayStr
+        }]);
+
+        if (error) throw error;
+
+        showAlert('تم تسجيل السلفة بنجاح!', 'success');
+        closeModal('add-advance-modal');
+        form.reset();
+        await initWorkersPage();
+      } catch (e) {
+        showAlert('فشل تسجيل السلفة: ' + e.message, 'error');
+      }
+    }
+
+    async function viewWorkerHistory(workerId, workerName) {
+      document.getElementById('history-title').textContent = `سجل العامل: ${workerName}`;
+      
+      const attBody = document.getElementById('history-attendance-body');
+      const advBody = document.getElementById('history-advances-body');
+      
+      attBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem 0;">جاري التحميل...</td></tr>';
+      advBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 2rem 0;">جاري التحميل...</td></tr>';
+      
+      openModal('worker-history-modal');
+
+      const sb = getSupabase();
+      try {
+        const { data: att } = await sb.from('attendance').select('*').eq('worker_id', workerId).order('check_in', { ascending: false });
+        const { data: adv } = await sb.from('advances').select('*').eq('worker_id', workerId).order('advance_date', { ascending: false });
+
+        // Populate Attendance
+        if (!att || att.length === 0) {
+          attBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">لا يوجد ورديات مسجلة</td></tr>';
+        } else {
+          attBody.innerHTML = '';
+          att.forEach(a => {
+            const dateStr = new Date(a.work_date).toLocaleDateString('ar-EG');
+            const inTimeStr = new Date(a.check_in).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+            const outTimeStr = a.check_out 
+              ? new Date(a.check_out).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+              : '<span style="color:var(--success-text); font-weight:700;">نشط حالياً</span>';
+            const hoursStr = a.total_hours ? `${a.total_hours} ساعة` : '-';
+            const earnStr = a.earnings ? `${a.earnings.toLocaleString()} ج.م` : '-';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${dateStr}</td>
+              <td>${inTimeStr}</td>
+              <td>${outTimeStr}</td>
+              <td style="font-weight:600;">${hoursStr}</td>
+              <td style="font-weight:700; color:var(--primary-dark);">${earnStr}</td>
+              <td>
+                <button onclick="deleteAttendanceRecord('${a.id}', '${workerId}', '${workerName}')" class="btn btn-secondary btn-sm" style="color:var(--error); padding: 0.2rem 0.5rem; background:transparent; border:none; font-weight:700; display:inline-flex; align-items:center; gap:0.25rem;">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  حذف
+                </button>
+              </td>
+            `;
+            attBody.appendChild(tr);
+          });
+        }
+
+        // Populate Advances
+        if (!adv || adv.length === 0) {
+          advBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">لا يوجد سلف مسجلة</td></tr>';
+        } else {
+          advBody.innerHTML = '';
+          adv.forEach(ad => {
+            const dateStr = new Date(ad.advance_date).toLocaleDateString('ar-EG');
+            const amountStr = `${ad.amount.toLocaleString()} ج.م`;
+            const notesStr = ad.notes || '-';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${dateStr}</td>
+              <td style="color:var(--warning-text); font-weight:800;">${amountStr}</td>
+              <td>${notesStr}</td>
+              <td>
+                <button onclick="deleteAdvanceRecord('${ad.id}', '${workerId}', '${workerName}')" class="btn btn-secondary btn-sm" style="color:var(--error); padding: 0.2rem 0.5rem; background:transparent; border:none; font-weight:700; display:inline-flex; align-items:center; gap:0.25rem;">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  حذف
+                </button>
+              </td>
+            `;
+            advBody.appendChild(tr);
+          });
+        }
+
+      } catch (e) {
+        attBody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--error); padding: 2rem 0;">فشل تحميل السجل: ${e.message}</td></tr>`;
+        advBody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--error); padding: 2rem 0;">فشل تحميل السجل: ${e.message}</td></tr>`;
+      }
+    }
+
+    async function deleteAttendanceRecord(id, workerId, workerName) {
+      if (!(await customConfirm('هل أنت متأكد من حذف وردية العمل هذه؟ سيؤثر هذا على إجمالي مستحقات العامل.'))) return;
+      try {
+        const sb = getSupabase();
+        const { error } = await sb.from('attendance').delete().eq('id', id);
+        if (error) throw error;
+        showAlert('تم حذف الوردية بنجاح', 'success');
+        await initWorkersPage();
+        await viewWorkerHistory(workerId, workerName);
+      } catch (e) {
+        showAlert('فشل الحذف: ' + e.message, 'error');
+      }
+    }
+
+    async function deleteAdvanceRecord(id, workerId, workerName) {
+      if (!(await customConfirm('هل أنت متأكد من حذف هذه السلفة؟ سيتم إرجاع المبلغ لصافي حساب العامل.'))) return;
+      try {
+        const sb = getSupabase();
+        const { error } = await sb.from('advances').delete().eq('id', id);
+        if (error) throw error;
+        showAlert('تم حذف السلفة بنجاح', 'success');
+        await initWorkersPage();
+        await viewWorkerHistory(workerId, workerName);
+      } catch (e) {
+        showAlert('فشل الحذف: ' + e.message, 'error');
+      }
+    }
+
+    async function deleteWorker(id, name) {
+      if (!(await customConfirm(`هل أنت متأكد تماماً من حذف العامل "${name}" نهائياً؟ سيتم حذف كامل سجلات الحضور والسلف الخاصة به.`))) return;
+      try {
+        showAlert('جاري حذف العامل...', 'pending');
+        const sb = getSupabase();
+        const { error } = await sb.from('workers').delete().eq('id', id);
+        if (error) throw error;
+        showAlert(`تم حذف العامل "${name}" وكل سجلاته بنجاح`, 'success');
+        await initWorkersPage();
+      } catch (e) {
+        showAlert('فشل الحذف: ' + e.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initWorkersPage);
+  </script>
+</body>
+
+</html>

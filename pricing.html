@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>قائمة الأسعار - نظام الإدارة</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/auth.js"></script>
+</head>
+
+<body>
+  <main class="main-content">
+    <div class="page-header">
+      <h1 style="display:flex; align-items:center; gap:0.6rem;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px;flex-shrink:0;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><circle cx="7" cy="7" r="1.5" fill="var(--primary)"/></svg>
+        قائمة الأسعار
+      </h1>
+      <button class="btn btn-primary" onclick="openModal('create-price-modal')" style="gap:0.5rem;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><path d="M12 5v14M5 12h14"/></svg>
+        صنف جديد
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>أسعار المنتجات</h2>
+      </div>
+      <div class="card-body">
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>اسم الصنف</th>
+                <th>وحدة الحساب</th>
+                <th>تاريخ الإضافة</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="prices-table-body">
+              <tr>
+                <td colspan="4" style="text-align:center;color:var(--text-muted)">جاري التحميل...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="create-price-modal" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>إضافة صنف جديد</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('create-price-modal')" style="padding:0.5rem">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <style>
+            .cat-btn {
+              flex: 1; cursor: pointer; margin: 0;
+            }
+            .cat-btn input { display: none; }
+            .cat-btn span {
+              display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+              padding: 0.65rem 0.5rem; border-radius: 8px;
+              font-weight: 700; font-size: 0.88rem; color: var(--text-muted);
+              transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+            }
+            .cat-btn:hover span {
+              color: var(--text-main);
+            }
+            .cat-btn input:checked + span {
+              background: #fff; color: var(--primary);
+              box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            }
+            .datalist-input {
+              width: 100%; padding: 0.8rem 1rem; border: 1.5px solid var(--border); border-radius: var(--radius);
+              font-family: inherit; font-size: 0.95rem; color: var(--text-main); background: #fff;
+              transition: var(--transition);
+            }
+            .datalist-input:focus { 
+              border-color: var(--primary); outline: none; 
+              box-shadow: 0 0 0 4px rgba(79,70,229,0.1); 
+            }
+          </style>
+          <form id="create-price-form">
+            <div style="background: var(--border-light); padding: 0.35rem; border-radius: 10px; display: flex; gap: 0.25rem; margin-bottom: 1.5rem;">
+              <label class="cat-btn">
+                <input type="radio" name="item_category" value="normal" checked onchange="toggleItemCategory('create')" style="display:none;">
+                <span>📦 صنف عادي</span>
+              </label>
+              <label class="cat-btn">
+                <input type="radio" name="item_category" value="paper" onchange="toggleItemCategory('create')" style="display:none;">
+                <span>📄 ورق</span>
+              </label>
+              <label class="cat-btn">
+                <input type="radio" name="item_category" value="special" onchange="toggleItemCategory('create')" style="display:none;">
+                <span>🧽 خامات خاصة</span>
+              </label>
+            </div>
+
+            
+            <div id="create-normal-fields">
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="item-name">اسم الصنف (مثال: كرتون بلاستيك) *</label>
+                <input type="text" id="item-name" placeholder="اكتب اسم الصنف هنا">
+              </div>
+            </div>
+
+            
+            <div id="create-paper-fields" class="hidden">
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="paper-type">نوع الورق *</label>
+                <select id="paper-type">
+                  <option value="كوشيه">كوشيه</option>
+                  <option value="طبع">طبع</option>
+                  <option value="بيرستول كوشيه">بيرستول كوشيه</option>
+                  <option value="فيبراينو">فيبراينو</option>
+                  <option value="عجينة">عجينة</option>
+                </select>
+              </div>
+              <div style="display:flex; gap:1rem; margin-bottom: 1rem;">
+                <div class="form-group" style="flex:1;">
+                  <label for="paper-gram">الجرام *</label>
+                  <input type="number" id="paper-gram" placeholder="مثال: 150" min="0">
+                </div>
+                <div class="form-group" style="flex:1;">
+                  <label for="paper-size">المقاس *</label>
+                  <input type="text" id="paper-size" list="paper-sizes-list" class="datalist-input" placeholder="مثال: 70x100" dir="ltr" style="text-align:right;">
+                  <datalist id="paper-sizes-list">
+                    <option value="70x100">
+                    <option value="60x90">
+                    <option value="A3">
+                    <option value="A4">
+                  </datalist>
+                </div>
+              </div>
+            </div>
+
+            
+            <div id="create-special-fields" class="hidden">
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="special-type">نوع الخامة *</label>
+                <select id="special-type">
+                  <option value="سفنج">سفنج</option>
+                  <option value="فوم">فوم</option>
+                  <option value="كاوتش">كاوتش</option>
+                </select>
+              </div>
+              <div style="display:flex; gap:0.75rem; margin-bottom: 1rem; flex-wrap:wrap;">
+                <div class="form-group" style="flex:1; min-width:80px;">
+                  <label for="special-thickness">السمك *</label>
+                  <input type="text" id="special-thickness" list="thick-options" class="datalist-input" placeholder="مثال: 5 سم">
+                  <datalist id="thick-options">
+                    <option value="2 ملي">
+                    <option value="5 ملي">
+                    <option value="1 سم">
+                    <option value="5 سم">
+                    <option value="10 سم">
+                  </datalist>
+                </div>
+                <div class="form-group" style="flex:1; min-width:80px;">
+                  <label for="special-color">درجة اللون *</label>
+                  <input type="text" id="special-color" placeholder="مثال: أبيض">
+                </div>
+                <div class="form-group" style="flex:1; min-width:80px;">
+                  <label for="special-size">المقاس *</label>
+                  <input type="text" id="special-size" placeholder="مثال: 100x200" dir="ltr" style="text-align:right;">
+                </div>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <label for="item-unit">وحدة الحساب *</label>
+              <select id="item-unit" required>
+                <option value="بالقطعة">بالقطعة (العدد)</option>
+                <option value="بالمتر">بالمتر</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="submitCreatePrice()">حفظ الصنف</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('create-price-modal')">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    
+    <div id="edit-price-modal" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>تعديل السعر</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('edit-price-modal')" style="padding:0.5rem">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="edit-price-form">
+            <input type="hidden" id="edit-item-id">
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label for="edit-item-name">اسم الصنف *</label>
+              <input type="text" id="edit-item-name" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <label for="edit-item-unit">وحدة الحساب *</label>
+              <select id="edit-item-unit" required>
+                <option value="بالقطعة">بالقطعة (العدد)</option>
+                <option value="بالمتر">بالمتر</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="submitUpdatePrice()">حفظ التعديلات</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('edit-price-modal')">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function openModal(id) {
+        document.getElementById(id).classList.remove('hidden');
+      }
+
+      function closeModal(id) {
+        document.getElementById(id).classList.add('hidden');
+      }
+
+      function toggleItemCategory(mode) {
+        const category = document.querySelector(`input[name="item_category"]:checked`).value;
+        const unitSelect = document.getElementById('item-unit');
+
+        document.getElementById('create-normal-fields').classList.add('hidden');
+        document.getElementById('create-paper-fields').classList.add('hidden');
+        document.getElementById('create-special-fields').classList.add('hidden');
+
+        if (category === 'paper') {
+          document.getElementById('create-paper-fields').classList.remove('hidden');
+          unitSelect.value = 'بالقطعة';
+          unitSelect.disabled = true;
+        } else if (category === 'special') {
+          document.getElementById('create-special-fields').classList.remove('hidden');
+          unitSelect.value = 'بالقطعة'; // غالباً بتتباع باللوح أو القطعة
+          unitSelect.disabled = false;
+        } else {
+          document.getElementById('create-normal-fields').classList.remove('hidden');
+          unitSelect.disabled = false;
+        }
+      }
+
+      async function submitCreatePrice() {
+        const form = document.getElementById('create-price-form');
+        
+        const category = document.querySelector(`input[name="item_category"]:checked`).value;
+        let itemName = '';
+        let unit = document.getElementById('item-unit').value;
+
+        if (category === 'paper') {
+          const pType = document.getElementById('paper-type').value;
+          const pGram = document.getElementById('paper-gram').value;
+          const pSize = document.getElementById('paper-size').value;
+          if (!pGram || !pSize) {
+            showAlert('يرجى إدخال جرامات ومقاس الورق', 'error');
+            return;
+          }
+          itemName = `ورق ${pType} | ${pGram} جرام | مقاس ${pSize}`;
+          unit = 'بالقطعة';
+        } else if (category === 'special') {
+          const sType = document.getElementById('special-type').value;
+          const sThick = document.getElementById('special-thickness').value;
+          const sColor = document.getElementById('special-color').value;
+          const sSize = document.getElementById('special-size').value;
+          if (!sThick || !sColor || !sSize) {
+            showAlert('يرجى إدخال السمك، درجة اللون، والمقاس', 'error');
+            return;
+          }
+          itemName = `${sType} | سمك ${sThick} | لون ${sColor} | مقاس ${sSize}`;
+        } else {
+          itemName = document.getElementById('item-name').value;
+          if (!itemName) {
+            showAlert('يرجى إدخال اسم الصنف', 'error');
+            return;
+          }
+        }
+
+        try {
+          showAlert('جاري حفظ الصنف...', 'pending');
+          const sb = getSupabase();
+          
+          const { error } = await sb.from('prices').insert([{
+            item_name: itemName,
+            unit: unit
+          }]);
+
+          if (error) throw error;
+
+          showAlert('تم حفظ الصنف بنجاح!', 'success');
+          closeModal('create-price-modal');
+          form.reset();
+          await initPricesPage(); // Refresh table
+        } catch (e) {
+          showAlert('فشل الحفظ: ' + e.message, 'error');
+        }
+      }
+
+      let allPricesData = [];
+
+      function openEditModal(id) {
+        const item = allPricesData.find(p => p.id === id);
+        if (!item) return;
+
+        document.getElementById('edit-item-id').value = item.id;
+        document.getElementById('edit-item-name').value = item.item_name;
+        document.getElementById('edit-item-unit').value = item.unit || 'بالقطعة';
+        
+        openModal('edit-price-modal');
+      }
+
+      async function submitUpdatePrice() {
+        const form = document.getElementById('edit-price-form');
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+
+        const id = document.getElementById('edit-item-id').value;
+        const itemName = document.getElementById('edit-item-name').value;
+        const unit = document.getElementById('edit-item-unit').value;
+
+        try {
+          showAlert('جاري تحديث الصنف...', 'pending');
+          const sb = getSupabase();
+          
+          const { error } = await sb.from('prices').update({
+            item_name: itemName,
+            unit: unit
+          }).eq('id', id);
+
+          if (error) throw error;
+
+          showAlert('تم التعديل بنجاح!', 'success');
+          closeModal('edit-price-modal');
+          await initPricesPage();
+        } catch (e) {
+          showAlert('فشل التعديل: ' + e.message, 'error');
+        }
+      }
+
+      async function initPricesPage() {
+        await initAuth();
+
+        const sb = getSupabase();
+        const tbody = document.getElementById('prices-table-body');
+
+        try {
+          const { data: prices, error } = await sb.from('prices').select('*').order('created_at', { ascending: false });
+          if (error) throw error;
+
+          if (!prices || prices.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">لا يوجد أصناف حالياً</td></tr>`;
+            return;
+          }
+
+          allPricesData = prices;
+          tbody.innerHTML = '';
+          prices.forEach(p => {
+            const tr = document.createElement('tr');
+            const itemUnit = p.unit || 'بالقطعة';
+
+            let formattedName = p.item_name;
+            if (p.item_name.includes('|')) {
+              const parts = p.item_name.split('|').map(s => s.trim());
+              const title = `<strong>${parts[0]}</strong>`;
+              const badges = parts.slice(1).map(b => `<span style="background:var(--primary-bg); color:var(--primary); padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:700; margin-left:4px; display:inline-block; margin-top:4px;">${b}</span>`).join('');
+              formattedName = `${title}<br><div>${badges}</div>`;
+            } else {
+              formattedName = `<strong>${p.item_name}</strong>`;
+            }
+
+            tr.innerHTML = `
+              <td>${formattedName}</td>
+              <td><span class="badge badge-pending">${itemUnit}</span></td>
+              <td>${new Date(p.created_at).toLocaleDateString('ar-EG')}</td>
+              <td>
+                <div style="display:flex;gap:0.4rem;justify-content:center;flex-wrap:wrap;">
+                  <button onclick="openEditModal('${p.id}')"
+                    style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:0.4rem 0.75rem;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:0.3rem;">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    تعديل
+                  </button>
+                  <button onclick="deletePrice('${p.id}')"
+                    style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:0.4rem 0.75rem;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:0.3rem;">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                    حذف
+                  </button>
+                </div>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } catch (e) {
+          console.error(e);
+          tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--error)">خطأ: ${e.message}</td></tr>`;
+        }
+      }
+
+      async function deletePrice(id) {
+        if (!(await customConfirm('هل أنت متأكد من حذف هذا الصنف؟'))) return;
+        try {
+          const sb = getSupabase();
+          const { error } = await sb.from('prices').delete().eq('id', id);
+          if (error) throw error;
+          showAlert('تم الحذف بنجاح', 'success');
+          await initPricesPage();
+        } catch (e) {
+          showAlert('فشل الحذف: ' + e.message, 'error');
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', async () => {
+        await initPricesPage();
+
+        const sb = getSupabase();
+        sb.channel('prices-realtime')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'prices' }, () => {
+            initPricesPage();
+          })
+          .subscribe();
+
+        setInterval(initPricesPage, 5000);
+      });
+    </script>
+</body>
+</html>
+

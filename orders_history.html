@@ -1,0 +1,2278 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>سجل الطلبيات الشامل - نظام الإدارة</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/auth.js"></script>
+  <style>
+    /* ══════════════════════════════════════
+       PAGE HEADER
+    ══════════════════════════════════════ */
+    .ph-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .ph-left {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .ph-icon-wrap {
+      width: 46px;
+      height: 46px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+      flex-shrink: 0;
+    }
+
+    .ph-icon-wrap svg {
+      width: 24px;
+      height: 24px;
+      color: #fff;
+      stroke: #fff;
+    }
+
+    .ph-title {
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: var(--text-main);
+      margin: 0;
+    }
+
+    .ph-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 0.1rem;
+      font-weight: 600;
+    }
+
+    .live-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(5, 150, 105, 0.1);
+      color: #059669;
+      border: 1px solid rgba(5, 150, 105, 0.2);
+      padding: 0.35rem 0.9rem;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .live-dot::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      animation: blink 1.5s infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.3;
+      }
+    }
+
+    /* ══════════════════════════════════════
+       KPI STRIP (replaces hero)
+    ══════════════════════════════════════ */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .kpi-card {
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem 0.9rem 0.85rem;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .kpi-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      border-radius: 0 0 14px 14px;
+    }
+
+    .kpi-card.kc-orders::after {
+      background: #818cf8;
+    }
+
+    .kpi-card.kc-revenue::after {
+      background: #34d399;
+    }
+
+    .kpi-card.kc-cost::after {
+      background: #f87171;
+    }
+
+    .kpi-card.kc-rec::after {
+      background: #60a5fa;
+    }
+
+    .kpi-card.kc-pay::after {
+      background: #fbbf24;
+    }
+
+    .kpi-card.kc-profit::after {
+      background: linear-gradient(90deg, #34d399, #059669);
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
+      border-color: #c7d2fe;
+    }
+
+    .kpi-icon-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.6rem;
+    }
+
+    .kpi-icon-box {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .kpi-icon-box svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .kpi-icon-box.orders-ic {
+      background: rgba(99, 102, 241, 0.1);
+      color: #4f46e5;
+    }
+
+    .kpi-icon-box.revenue-ic {
+      background: rgba(5, 150, 105, 0.1);
+      color: #059669;
+    }
+
+    .kpi-icon-box.cost-ic {
+      background: rgba(220, 38, 38, 0.08);
+      color: #dc2626;
+    }
+
+    .kpi-icon-box.rec-ic {
+      background: rgba(37, 99, 235, 0.08);
+      color: #2563eb;
+    }
+
+    .kpi-icon-box.pay-ic {
+      background: rgba(217, 119, 6, 0.08);
+      color: #d97706;
+    }
+
+    .kpi-icon-box.profit-ic {
+      background: rgba(5, 150, 105, 0.1);
+      color: #059669;
+    }
+
+    .kpi-label {
+      font-size: 0.67rem;
+      font-weight: 700;
+      color: var(--text-light);
+      letter-spacing: 0.02em;
+    }
+
+    .kpi-value {
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: var(--text-main);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-top: 0.25rem;
+    }
+
+    .kpi-value.profit-pos {
+      color: #059669;
+    }
+
+    .kpi-value.profit-neg {
+      color: #dc2626;
+    }
+
+    .kpi-sub {
+      font-size: 0.62rem;
+      color: var(--text-light);
+      margin-top: 0.2rem;
+      font-weight: 600;
+    }
+
+    /* ══════════════════════════════════════
+       CONTROLS BAR
+    ══════════════════════════════════════ */
+    .ctrl-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.1rem;
+    }
+
+    .filter-chips {
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+
+    .fchip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.42rem 0.9rem;
+      border-radius: 50px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.77rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+
+    .fchip svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+    }
+
+    .fchip .cnt {
+      background: var(--border-light);
+      color: var(--text-light);
+      font-size: 0.63rem;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+
+    .fchip.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.28);
+    }
+
+    .fchip.active .cnt {
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+
+    .search-wrap {
+      flex: 1;
+      min-width: 160px;
+      position: relative;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      right: 0.85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 15px;
+      height: 15px;
+      color: var(--text-light);
+      pointer-events: none;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      padding: 0.52rem 2.4rem 0.52rem 1rem;
+      border-radius: 50px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      font-family: inherit;
+      font-size: 0.84rem;
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.18s;
+    }
+
+    .search-wrap input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .sort-pills {
+      display: flex;
+      gap: 0.3rem;
+    }
+
+    .sort-pill {
+      padding: 0.42rem 0.85rem;
+      border-radius: 50px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      font-family: inherit;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+
+    .sort-pill.active,
+    .sort-pill:hover {
+      border-color: var(--primary-light);
+      color: var(--primary);
+      background: rgba(99, 102, 241, 0.06);
+    }
+
+    /* ══════════════════════════════════════
+       ORDERS GRID — CARDS
+    ══════════════════════════════════════ */
+    .orders-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+      gap: 1rem;
+    }
+
+    .order-card {
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 18px;
+      padding: 1.1rem 1.15rem;
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .order-card:nth-child(1) {
+      animation-delay: 0ms;
+    }
+
+    .order-card:nth-child(2) {
+      animation-delay: 40ms;
+    }
+
+    .order-card:nth-child(3) {
+      animation-delay: 80ms;
+    }
+
+    .order-card:nth-child(4) {
+      animation-delay: 120ms;
+    }
+
+    .order-card:nth-child(5) {
+      animation-delay: 160ms;
+    }
+
+    .order-card:nth-child(n+6) {
+      animation-delay: 200ms;
+    }
+
+    .order-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--primary);
+      border-radius: 0 18px 18px 0;
+    }
+
+    .order-card.c-delivered::before {
+      background: #10b981;
+    }
+
+    .order-card.c-archived::before {
+      background: #94a3b8;
+    }
+
+    .order-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 42px rgba(0, 0, 0, 0.09);
+      border-color: #c7d2fe;
+    }
+
+    /* Card top row */
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .card-client-name {
+      font-size: 0.97rem;
+      font-weight: 900;
+      color: var(--primary-dark);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 0.25rem;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .stage-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      padding: 0.15rem 0.6rem;
+      border-radius: 50px;
+      font-size: 0.65rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .sp-contract {
+      background: rgba(5, 150, 105, 0.1);
+      color: #047857;
+      border: 1px solid rgba(5, 150, 105, 0.2);
+    }
+
+    .sp-production {
+      background: rgba(124, 58, 237, 0.1);
+      color: #6d28d9;
+      border: 1px solid rgba(124, 58, 237, 0.2);
+    }
+
+    .sp-delivery {
+      background: rgba(217, 119, 6, 0.1);
+      color: #b45309;
+      border: 1px solid rgba(217, 119, 6, 0.2);
+    }
+
+    .sp-done {
+      background: rgba(5, 150, 105, 0.1);
+      color: #047857;
+      border: 1px solid rgba(5, 150, 105, 0.25);
+    }
+
+    .sp-archived {
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+    }
+
+    .sp-default {
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+    }
+
+    .archived-tag {
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+      padding: 1px 6px;
+      border-radius: 5px;
+      font-size: 0.6rem;
+      font-weight: 800;
+    }
+
+    .card-date {
+      font-size: 0.68rem;
+      color: var(--text-light);
+      font-weight: 600;
+    }
+
+    .days-tag {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: rgba(79, 70, 229, 0.07);
+      color: var(--primary);
+      border: 1px solid rgba(79, 70, 229, 0.15);
+      padding: 0.28rem 0.7rem;
+      border-radius: 9px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .days-tag svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    /* Fin grid inside card */
+    .card-fins {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.45rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .fin-box {
+      background: var(--bg-color);
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      padding: 0.55rem 0.7rem;
+    }
+
+    .fin-box-label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: var(--text-light);
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .fin-box-label svg {
+      width: 11px;
+      height: 11px;
+      flex-shrink: 0;
+    }
+
+    .fin-box-val {
+      font-size: 0.86rem;
+      font-weight: 900;
+      color: var(--text-main);
+    }
+
+    .fin-box-val.green {
+      color: #059669;
+    }
+
+    .fin-box-val.red {
+      color: #dc2626;
+    }
+
+    .fin-box-val.blue {
+      color: #2563eb;
+    }
+
+    .fin-box-val.amber {
+      color: #d97706;
+    }
+
+    /* Profit strip */
+    .profit-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.55rem 0.75rem;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.07), rgba(5, 150, 105, 0.03));
+      border: 1px solid rgba(16, 185, 129, 0.18);
+      border-radius: 10px;
+      margin-bottom: 0.65rem;
+    }
+
+    .profit-strip.loss {
+      background: linear-gradient(135deg, rgba(220, 38, 38, 0.07), rgba(220, 38, 38, 0.02));
+      border-color: rgba(220, 38, 38, 0.15);
+    }
+
+    .profit-lbl {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .profit-lbl svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    .profit-amt {
+      font-size: 1rem;
+      font-weight: 900;
+      color: #10b981;
+    }
+
+    .profit-strip.loss .profit-amt {
+      color: #dc2626;
+    }
+
+    .profit-pct-badge {
+      font-size: 0.68rem;
+      font-weight: 800;
+      background: rgba(16, 185, 129, 0.12);
+      color: #059669;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .profit-strip.loss .profit-pct-badge {
+      background: rgba(220, 38, 38, 0.08);
+      color: #dc2626;
+    }
+
+    /* status badges row */
+    .status-row {
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.7rem;
+    }
+
+    .st-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.22rem 0.65rem;
+      border-radius: 50px;
+      font-size: 0.67rem;
+      font-weight: 800;
+    }
+
+    .st-badge svg {
+      width: 10px;
+      height: 10px;
+      flex-shrink: 0;
+    }
+
+    .sb-rec-owed {
+      background: #fee2e2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .sb-rec-clear {
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+
+    .sb-pay-owed {
+      background: #fef3c7;
+      color: #d97706;
+      border: 1px solid #fde68a;
+    }
+
+    .sb-pay-clear {
+      background: #f0fdf4;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+
+    /* Card action btn */
+    .card-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.58rem;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--primary);
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+
+    .card-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .card-btn:hover {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
+    }
+
+    /* Empty / Loading */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 2rem;
+      color: var(--text-light);
+      text-align: center;
+      grid-column: 1/-1;
+    }
+
+    .empty-state svg {
+      opacity: 0.2;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .empty-state p {
+      font-size: 0.82rem;
+    }
+
+    /* Skeleton */
+    .skel {
+      background: linear-gradient(90deg, #f1f5f9 25%, #e8ecf4 50%, #f1f5f9 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.3s infinite;
+      border-radius: 8px;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0;
+      }
+
+      100% {
+        background-position: -200% 0;
+      }
+    }
+
+    .skel-card {
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 18px;
+      padding: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    /* ══════════════════════════════════════
+       FINANCIAL SHEET MODAL
+    ══════════════════════════════════════ */
+    #financial-sheet-modal .modal {
+      max-width: 880px;
+      border-radius: 20px;
+    }
+
+    .fsh-header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      border-radius: 20px 20px 0 0;
+      padding: 1.35rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .fsh-header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .fsh-hicon {
+      width: 42px;
+      height: 42px;
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .fsh-hicon svg {
+      width: 20px;
+      height: 20px;
+      color: #a5b4fc;
+      stroke: #a5b4fc;
+    }
+
+    .fsh-htitle {
+      color: #f1f5f9;
+      font-size: 1rem;
+      font-weight: 900;
+      margin: 0;
+    }
+
+    .fsh-hsub {
+      color: #64748b;
+      font-size: 0.72rem;
+      margin-top: 0.15rem;
+    }
+
+    .fsh-close {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.18s;
+    }
+
+    .fsh-close:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+
+    .fsh-close svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Quick KPIs bar */
+    .fsh-kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .fsh-kpi {
+      padding: 0.9rem 1.1rem;
+      text-align: center;
+      border-left: 1px solid var(--border);
+    }
+
+    .fsh-kpi:last-child {
+      border-left: none;
+    }
+
+    .fsh-kpi-lbl {
+      font-size: 0.63rem;
+      color: var(--text-light);
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+    }
+
+    .fsh-kpi-lbl svg {
+      width: 11px;
+      height: 11px;
+      flex-shrink: 0;
+    }
+
+    .fsh-kpi-val {
+      font-size: 1rem;
+      font-weight: 900;
+      color: var(--text-main);
+    }
+
+    .fsh-kpi-val.green {
+      color: #059669;
+    }
+
+    .fsh-kpi-val.red {
+      color: #dc2626;
+    }
+
+    .fsh-kpi-val.blue {
+      color: #2563eb;
+    }
+
+    .fsh-kpi-val.amber {
+      color: #d97706;
+    }
+
+    .fsh-body {
+      padding: 1.4rem 1.5rem;
+      max-height: 64vh;
+      overflow-y: auto;
+    }
+
+    /* Timeline row */
+    .fsh-timeline {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.65rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .fsh-titem {
+      background: var(--bg-color);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 0.75rem 0.85rem;
+      text-align: center;
+    }
+
+    .fsh-tlbl {
+      font-size: 0.62rem;
+      color: var(--text-light);
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+    }
+
+    .fsh-tlbl svg {
+      width: 11px;
+      height: 11px;
+      flex-shrink: 0;
+    }
+
+    .fsh-tval {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .fsh-tval.hl {
+      color: var(--primary);
+    }
+
+    /* Section */
+    .fsh-sec {
+      margin-bottom: 1.25rem;
+    }
+
+    .fsh-sec-hdr {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.65rem;
+      padding-bottom: 0.45rem;
+      border-bottom: 1.5px solid var(--border-light);
+    }
+
+    .fsh-sec-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .fsh-sec-icon svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .fsh-sec-icon.blue {
+      background: rgba(37, 99, 235, 0.09);
+      color: #2563eb;
+    }
+
+    .fsh-sec-icon.green {
+      background: rgba(5, 150, 105, 0.09);
+      color: #059669;
+    }
+
+    .fsh-sec-icon.amber {
+      background: rgba(217, 119, 6, 0.09);
+      color: #d97706;
+    }
+
+    .fsh-sec-icon.red {
+      background: rgba(220, 38, 38, 0.07);
+      color: #dc2626;
+    }
+
+    .fsh-sec-icon.purple {
+      background: rgba(124, 58, 237, 0.09);
+      color: #7c3aed;
+    }
+
+    .fsh-sec-title {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--text-main);
+      flex: 1;
+    }
+
+    .fsh-sec-total {
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    /* Compact inner tables */
+    .fsh-tbl-wrap {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .fsh-tbl {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.78rem;
+    }
+
+    .fsh-tbl th {
+      padding: 0.5rem 0.75rem;
+      background: var(--bg-color);
+      color: var(--text-muted);
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .fsh-tbl td {
+      padding: 0.55rem 0.75rem;
+      border-bottom: 1px solid var(--border-light);
+      vertical-align: middle;
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .fsh-tbl tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .fsh-tbl tbody tr:hover {
+      background: rgba(79, 70, 229, 0.02);
+    }
+
+    /* Client summary 3-col */
+    .cli-sum {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.55rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .cli-sum-item {
+      border-radius: 10px;
+      padding: 0.65rem 0.75rem;
+      text-align: center;
+    }
+
+    .cli-sum-lbl {
+      font-size: 0.62rem;
+      color: var(--text-light);
+      font-weight: 700;
+      margin-bottom: 0.2rem;
+    }
+
+    .cli-sum-val {
+      font-size: 0.95rem;
+      font-weight: 900;
+    }
+
+    /* Profit summary */
+    .psum-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+    }
+
+    .psum-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.55rem 0.8rem;
+      border-radius: 9px;
+      background: var(--bg-color);
+      border: 1px solid var(--border-light);
+    }
+
+    .psum-lbl {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .psum-lbl svg {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+    }
+
+    .psum-val {
+      font-size: 0.88rem;
+      font-weight: 900;
+    }
+
+    .psum-val.pos {
+      color: #059669;
+    }
+
+    .psum-val.neg {
+      color: #dc2626;
+    }
+
+    .psum-val.neutral {
+      color: var(--text-main);
+    }
+
+    .psum-final {
+      grid-column: 1/-1;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(5, 150, 105, 0.03));
+      border: 1.5px solid rgba(16, 185, 129, 0.2);
+      padding: 0.85rem 1rem;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .psum-final.loss {
+      background: linear-gradient(135deg, rgba(220, 38, 38, 0.07), rgba(220, 38, 38, 0.02));
+      border-color: rgba(220, 38, 38, 0.15);
+    }
+
+    .psum-final-lbl {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .psum-final-lbl svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .psum-final-val {
+      font-size: 1.35rem;
+      font-weight: 900;
+    }
+
+    .psum-final-pct {
+      font-size: 0.75rem;
+      font-weight: 800;
+      background: rgba(16, 185, 129, 0.12);
+      color: #059669;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-right: 0.5rem;
+    }
+
+    .psum-final.loss .psum-final-pct {
+      background: rgba(220, 38, 38, 0.08);
+      color: #dc2626;
+    }
+
+    /* ══════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════ */
+    @media (max-width: 900px) {
+      .kpi-strip {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .fsh-kpis {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .fsh-kpi {
+        border-bottom: 1px solid var(--border);
+      }
+
+      .psum-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sort-pills {
+        display: none;
+      }
+    }
+
+    /* ── MOBILE FULL-WIDTH ── */
+    @media (max-width: 600px) {
+
+      /* KPI strip scrolls horizontally */
+      .kpi-strip {
+        display: flex;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        gap: 0.65rem;
+        padding-bottom: 0.5rem;
+        margin-left: -1rem;
+        margin-right: -1rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+
+      .kpi-card {
+        min-width: 140px;
+        flex-shrink: 0;
+        scroll-snap-align: start;
+      }
+
+      /* Cards full width */
+      .orders-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+
+      /* Page title */
+      .ph-title {
+        font-size: 1.1rem;
+      }
+
+      /* Modal bottom sheet */
+      .fsh-kpis {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .fsh-timeline {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .psum-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cli-sum {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .fsh-body {
+        padding: 1rem;
+        max-height: 70vh;
+      }
+
+      .fsh-header {
+        padding: 1.1rem;
+      }
+
+      .ctrl-bar {
+        gap: 0.45rem;
+      }
+
+      .ph-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .kpi-strip {
+        margin-left: -0.875rem;
+        margin-right: -0.875rem;
+        padding-left: 0.875rem;
+        padding-right: 0.875rem;
+      }
+
+      .kpi-card {
+        min-width: 130px;
+      }
+
+      .fsh-timeline {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="main-content">
+
+    <!-- ─── PAGE HEADER ─── -->
+    <div class="ph-row">
+      <div class="ph-left">
+        <div class="ph-icon-wrap">
+          <!-- Ledger / register SVG -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+            <line x1="9" y1="8" x2="15" y2="8" />
+            <line x1="9" y1="12" x2="15" y2="12" />
+            <line x1="9" y1="16" x2="13" y2="16" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="ph-title">سجل الطلبيات</h1>
+          <p class="ph-sub">تحليل لكل اوردر بشكل مفصل</p>
+        </div>
+      </div>
+      <span class="live-dot">تحديث مباشر</span>
+    </div>
+
+    <!-- ─── KPI STRIP ─── -->
+    <div class="kpi-strip">
+
+      <!-- Orders count -->
+      <div class="kpi-card kc-orders">
+        <div class="kpi-icon-row">
+          <div class="kpi-icon-box orders-ic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="18" rx="3" />
+              <path d="M8 7h8M8 11h5M8 15h3" />
+            </svg>
+          </div>
+          <div class="kpi-label">الطلبيات</div>
+        </div>
+        <div class="kpi-value" id="stat-total-orders">—</div>
+        <div class="kpi-sub">نشطة + مسلمة + مؤرشفة</div>
+      </div>
+
+      <!-- Revenue -->
+      <div class="kpi-card kc-revenue">
+        <div class="kpi-icon-row">
+          <div class="kpi-icon-box revenue-ic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23" />
+              <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+            </svg>
+          </div>
+          <div class="kpi-label">الإيرادات</div>
+        </div>
+        <div class="kpi-value" id="stat-total-revenue">—</div>
+        <div class="kpi-sub">قيمة الطلبيات الكلية</div>
+      </div>
+
+      <!-- Costs -->
+      <div class="kpi-card kc-cost">
+        <div class="kpi-icon-row">
+          <div class="kpi-icon-box cost-ic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path
+                d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+              <line x1="12" y1="22.08" x2="12" y2="12" />
+            </svg>
+          </div>
+          <div class="kpi-label">التكاليف</div>
+        </div>
+        <div class="kpi-value" id="stat-total-expenses">—</div>
+        <div class="kpi-sub">خامات + مصاريف تشغيلية</div>
+      </div>
+
+      <!-- Receivable -->
+      <div class="kpi-card kc-rec">
+        <div class="kpi-icon-row">
+          <div class="kpi-icon-box rec-ic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </div>
+          <div class="kpi-label">ليا كام</div>
+        </div>
+        <div class="kpi-value" id="stat-total-receivables">—</div>
+        <div class="kpi-sub">مستحقات العملاء</div>
+      </div>
+
+      <!-- Payable -->
+      <div class="kpi-card kc-pay">
+        <div class="kpi-icon-row">
+          <div class="kpi-icon-box pay-ic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+          <div class="kpi-label">عليا كام</div>
+        </div>
+        <div class="kpi-value" id="stat-total-payables">—</div>
+        <div class="kpi-sub">ديون موردين معلقة</div>
+      </div>
+
+      <!-- Net Profit -->
+      <div class="kpi-card kc-profit">
+        <div class="kpi-icon-row">
+          <div class="kpi-icon-box profit-ic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+              <polyline points="17 6 23 6 23 12" />
+            </svg>
+          </div>
+          <div class="kpi-label">صافي الأرباح</div>
+        </div>
+        <div class="kpi-value" id="stat-total-net-profit">—</div>
+        <div class="kpi-sub" id="stat-profit-pct">نسبة الربح: —</div>
+      </div>
+
+    </div>
+
+    <!-- ─── CONTROLS ─── -->
+    <div class="ctrl-bar">
+      <div class="filter-chips">
+        <button class="fchip active" id="chip-all" onclick="setFilter('all')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round">
+            <line x1="8" y1="6" x2="21" y2="6" />
+            <line x1="8" y1="12" x2="21" y2="12" />
+            <line x1="8" y1="18" x2="21" y2="18" />
+            <line x1="3" y1="6" x2="3.01" y2="6" />
+            <line x1="3" y1="12" x2="3.01" y2="12" />
+            <line x1="3" y1="18" x2="3.01" y2="18" />
+          </svg>
+          <span>الكل</span>
+          <span class="cnt" id="cnt-all">0</span>
+        </button>
+        <button class="fchip" id="chip-active" onclick="setFilter('active')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <span>نشطة</span>
+          <span class="cnt" id="cnt-active">0</span>
+        </button>
+        <button class="fchip" id="chip-delivered" onclick="setFilter('delivered')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          <span>مسلمة</span>
+          <span class="cnt" id="cnt-delivered">0</span>
+        </button>
+        <button class="fchip" id="chip-archived" onclick="setFilter('archived')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round">
+            <polyline points="21 8 21 21 3 21 3 8" />
+            <rect x="1" y="3" width="22" height="5" />
+            <line x1="10" y1="12" x2="14" y2="12" />
+          </svg>
+          <span>مؤرشفة</span>
+          <span class="cnt" id="cnt-archived">0</span>
+        </button>
+      </div>
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="text" id="search-query" placeholder="ابحث باسم العميل أو الطلبية..."
+          oninput="handleSearch(this.value)">
+      </div>
+      <div class="sort-pills">
+        <button class="sort-pill active" onclick="handleSort('created_desc',this)">الأحدث</button>
+        <button class="sort-pill" onclick="handleSort('profit_desc',this)">الأعلى ربحاً</button>
+        <button class="sort-pill" onclick="handleSort('revenue_desc',this)">الأعلى قيمةً</button>
+        <button class="sort-pill" onclick="handleSort('days_desc',this)">الأطول مدةً</button>
+      </div>
+    </div>
+
+    <!-- ─── ORDERS GRID ─── -->
+    <div class="orders-grid" id="orders-grid">
+      <div class="skel-card">
+        <div class="skel" style="height:18px;width:55%;"></div>
+        <div class="skel" style="height:13px;width:38%;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.45rem;">
+          <div class="skel" style="height:54px;"></div>
+          <div class="skel" style="height:54px;"></div>
+          <div class="skel" style="height:54px;"></div>
+          <div class="skel" style="height:54px;"></div>
+        </div>
+        <div class="skel" style="height:36px;"></div>
+        <div class="skel" style="height:26px;"></div>
+        <div class="skel" style="height:34px;"></div>
+      </div>
+      <div class="skel-card">
+        <div class="skel" style="height:18px;width:65%;"></div>
+        <div class="skel" style="height:13px;width:42%;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.45rem;">
+          <div class="skel" style="height:54px;"></div>
+          <div class="skel" style="height:54px;"></div>
+          <div class="skel" style="height:54px;"></div>
+          <div class="skel" style="height:54px;"></div>
+        </div>
+        <div class="skel" style="height:36px;"></div>
+        <div class="skel" style="height:26px;"></div>
+        <div class="skel" style="height:34px;"></div>
+      </div>
+      <div class="skel-card">
+        <div class="skel" style="height:18px;width:48%;"></div>
+        <div class="skel" style="height:13px;width:35%;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.45rem;">
+          <div class="skel" style="height:54px;"></div>
+          <div class="skel" style="height:54px;"></div>
+          <div class="skel" style="height:54px;"></div>
+          <div class="skel" style="height:54px;"></div>
+        </div>
+        <div class="skel" style="height:36px;"></div>
+        <div class="skel" style="height:26px;"></div>
+        <div class="skel" style="height:34px;"></div>
+      </div>
+    </div>
+
+    <!-- ─── FINANCIAL SHEET MODAL ─── -->
+    <div id="financial-sheet-modal" class="modal-overlay hidden" style="z-index:10005;">
+      <div class="modal" style="max-width:880px;width:95%;">
+
+        <!-- Dark header -->
+        <div class="fsh-header">
+          <div class="fsh-header-left">
+            <div class="fsh-hicon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10" />
+                <line x1="12" y1="20" x2="12" y2="4" />
+                <line x1="6" y1="20" x2="6" y2="14" />
+                <rect x="1" y="20" width="22" height="2" rx="1" fill="currentColor" opacity="0.2" />
+              </svg>
+            </div>
+            <div>
+              <div class="fsh-htitle" id="sheet-modal-title">كشف الحساب التحليلي</div>
+              <div class="fsh-hsub" id="sheet-modal-sub">—</div>
+            </div>
+          </div>
+          <button class="fsh-close" onclick="closeFinancialSheet()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+              stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Quick KPIs -->
+        <div class="fsh-kpis">
+          <div class="fsh-kpi">
+            <div class="fsh-kpi-lbl">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23" />
+                <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+              </svg>
+              قيمة الطلبية
+            </div>
+            <div class="fsh-kpi-val green" id="fkpi-total">—</div>
+          </div>
+          <div class="fsh-kpi">
+            <div class="fsh-kpi-lbl">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path
+                  d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+              </svg>
+              إجمالي التكاليف
+            </div>
+            <div class="fsh-kpi-val red" id="fkpi-cost">—</div>
+          </div>
+          <div class="fsh-kpi">
+            <div class="fsh-kpi-lbl">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              ليا (العميل)
+            </div>
+            <div class="fsh-kpi-val blue" id="fkpi-rec">—</div>
+          </div>
+          <div class="fsh-kpi">
+            <div class="fsh-kpi-lbl">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+              عليا (موردين)
+            </div>
+            <div class="fsh-kpi-val amber" id="fkpi-pay">—</div>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div class="fsh-body">
+
+          <!-- Timeline -->
+          <div class="fsh-timeline">
+            <div class="fsh-titem">
+              <div class="fsh-tlbl">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                تاريخ التعاقد
+              </div>
+              <div class="fsh-tval" id="sheet-order-created">—</div>
+            </div>
+            <div class="fsh-titem">
+              <div class="fsh-tlbl">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 8v4l3 3" />
+                </svg>
+                تاريخ التسليم
+              </div>
+              <div class="fsh-tval" id="sheet-order-target">—</div>
+            </div>
+            <div class="fsh-titem">
+              <div class="fsh-tlbl">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                المدة الزمنية
+              </div>
+              <div class="fsh-tval hl" id="sheet-order-days">—</div>
+            </div>
+          </div>
+
+          <!-- 1. Materials -->
+          <div class="fsh-sec">
+            <div class="fsh-sec-hdr">
+              <div class="fsh-sec-icon green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                  <path d="M2 17l10 5 10-5" />
+                  <path d="M2 12l10 5 10-5" />
+                </svg>
+              </div>
+              <div class="fsh-sec-title">الخامات المستخدمة وتكاليفها</div>
+              <div class="fsh-sec-total" style="color:#059669;">إجمالي: <strong id="sheet-materials-total">0
+                  ج.م</strong></div>
+            </div>
+            <div class="fsh-tbl-wrap">
+              <table class="fsh-tbl">
+                <thead>
+                  <tr>
+                    <th>الخامة</th>
+                    <th>المصدر</th>
+                    <th>الكمية</th>
+                    <th>سعر الوحدة</th>
+                    <th>التكلفة</th>
+                    <th>الحالة</th>
+                  </tr>
+                </thead>
+                <tbody id="sheet-materials-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 2. Operating Expenses -->
+          <div class="fsh-sec">
+            <div class="fsh-sec-hdr">
+              <div class="fsh-sec-icon amber">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <rect x="1" y="4" width="22" height="16" rx="2" />
+                  <line x1="1" y1="10" x2="23" y2="10" />
+                </svg>
+              </div>
+              <div class="fsh-sec-title">المصاريف التشغيلية الإضافية</div>
+              <div class="fsh-sec-total" style="color:#d97706;">إجمالي: <strong id="sheet-expenses-total">0 ج.م</strong>
+              </div>
+            </div>
+            <div class="fsh-tbl-wrap">
+              <table class="fsh-tbl">
+                <thead>
+                  <tr>
+                    <th>التاريخ</th>
+                    <th>البند / الوصف</th>
+                    <th>القيمة</th>
+                  </tr>
+                </thead>
+                <tbody id="sheet-expenses-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 3. Supplier Payables -->
+          <div class="fsh-sec">
+            <div class="fsh-sec-hdr">
+              <div class="fsh-sec-icon red">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+              </div>
+              <div class="fsh-sec-title">ديون وفواتير الموردين</div>
+              <div class="fsh-sec-total" style="color:#dc2626;">متبقي: <strong id="sheet-payables-total">0 ج.م</strong>
+              </div>
+            </div>
+            <div class="fsh-tbl-wrap">
+              <table class="fsh-tbl">
+                <thead>
+                  <tr>
+                    <th>المورد</th>
+                    <th>البيان</th>
+                    <th>الإجمالي</th>
+                    <th>المسدد</th>
+                    <th>المتبقي</th>
+                  </tr>
+                </thead>
+                <tbody id="sheet-payables-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 4. Client Account -->
+          <div class="fsh-sec">
+            <div class="fsh-sec-hdr">
+              <div class="fsh-sec-icon blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </div>
+              <div class="fsh-sec-title">حساب العميل والدفعات</div>
+            </div>
+            <div class="cli-sum">
+              <div class="cli-sum-item" style="background:rgba(5,150,105,0.07);border:1px solid rgba(5,150,105,0.15);">
+                <div class="cli-sum-lbl">القيمة الكلية</div>
+                <div class="cli-sum-val" style="color:#059669;" id="sheet-client-total">—</div>
+              </div>
+              <div class="cli-sum-item" style="background:rgba(79,70,229,0.06);border:1px solid rgba(79,70,229,0.12);">
+                <div class="cli-sum-lbl">المقبوض</div>
+                <div class="cli-sum-val" style="color:var(--primary);" id="sheet-client-paid">—</div>
+              </div>
+              <div class="cli-sum-item" style="background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.15);">
+                <div class="cli-sum-lbl">المتبقي (ليا كام)</div>
+                <div class="cli-sum-val" style="color:#dc2626;" id="sheet-client-remaining">—</div>
+              </div>
+            </div>
+            <div class="fsh-tbl-wrap">
+              <table class="fsh-tbl">
+                <thead>
+                  <tr>
+                    <th>الدفعة</th>
+                    <th>القيمة</th>
+                    <th>التاريخ</th>
+                  </tr>
+                </thead>
+                <tbody id="sheet-client-installments-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 5. Profit Summary -->
+          <div class="fsh-sec">
+            <div class="fsh-sec-hdr">
+              <div class="fsh-sec-icon purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                  <polyline points="17 6 23 6 23 12" />
+                </svg>
+              </div>
+              <div class="fsh-sec-title">التحليل المالي وصافي الربح</div>
+            </div>
+            <div class="psum-grid">
+              <div class="psum-row">
+                <div class="psum-lbl">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <line x1="12" y1="1" x2="12" y2="23" />
+                    <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+                  </svg>
+                  الإيرادات
+                </div>
+                <div class="psum-val neutral" id="sheet-profit-rev">—</div>
+              </div>
+              <div class="psum-row">
+                <div class="psum-lbl">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                    <path d="M2 17l10 5 10-5" />
+                    <path d="M2 12l10 5 10-5" />
+                  </svg>
+                  تكلفة الخامات
+                </div>
+                <div class="psum-val neg" id="sheet-profit-mats">—</div>
+              </div>
+              <div class="psum-row">
+                <div class="psum-lbl">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <rect x="1" y="4" width="22" height="16" rx="2" />
+                    <line x1="1" y1="10" x2="23" y2="10" />
+                  </svg>
+                  المصاريف التشغيلية
+                </div>
+                <div class="psum-val neg" id="sheet-profit-exps">—</div>
+              </div>
+              <div class="psum-row">
+                <div class="psum-lbl">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                  </svg>
+                  ديون موردين معلقة
+                </div>
+                <div class="psum-val neg" id="sheet-profit-pay">—</div>
+              </div>
+              <div class="psum-final" id="psum-final-row">
+                <div class="psum-final-lbl">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                    <polyline points="17 6 23 6 23 12" />
+                  </svg>
+                  <span id="psum-final-lbl-text">صافي الربح</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                  <div class="psum-final-pct" id="sheet-profit-pct">—</div>
+                  <div class="psum-final-val" id="sheet-profit-net" style="color:#10b981;">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /fsh-body -->
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeFinancialSheet()">إغلاق</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    /* ════════════════════════════
+       STATE
+    ════════════════════════════ */
+    let rawOrders = [];
+    let rawExpenses = [];
+    let rawPayables = [];
+    let rawPrices = [];
+    let rawInventory = [];
+    let activeFilter = 'all';
+    let searchQuery = '';
+    let currentSort = 'created_desc';
+
+    /* ════════════════════════════
+       INIT
+    ════════════════════════════ */
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initAuth();
+      await loadData();
+      const sb = getSupabase();
+      ['client_orders', 'order_expenses', 'accounts', 'prices', 'inventory'].forEach(t => {
+        sb.channel('h-' + t).on('postgres_changes', { event: '*', schema: 'public', table: t }, () => loadData()).subscribe();
+      });
+    });
+
+    async function loadData() {
+      const sb = getSupabase();
+      try {
+        const [oR, eR, pR, prR, iR] = await Promise.all([
+          sb.from('client_orders').select('*'),
+          sb.from('order_expenses').select('*'),
+          sb.from('accounts').select('*').eq('account_type', 'payable'),
+          sb.from('prices').select('*'),
+          sb.from('inventory').select('*')
+        ]);
+        if (oR.error) throw oR.error;
+        rawOrders = oR.data || [];
+        rawExpenses = eR.data || [];
+        rawPayables = pR.data || [];
+        rawPrices = prR.data || [];
+        rawInventory = iR.data || [];
+        render();
+      } catch (err) {
+        document.getElementById('orders-grid').innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <h3>فشل تحميل البيانات</h3><p>${err.message}</p>
+      </div>`;
+      }
+    }
+
+    /* ════════════════════════════
+       PARSE TRACKED
+    ════════════════════════════ */
+    function parseMats(notes) {
+      if (!notes) return [];
+      const out = [];
+      const rx = /<!--TRACK:([a-zA-Z0-9\-]+):([0-9.]+)(?::([a-zA-Z0-9_]+):([a-zA-Z]+):([0-9.]+))?-->/g;
+        let m;
+      while ((m = rx.exec(notes)) !== null) {
+        out.push({ itemId: m[1], qty: +m[2], wh: m[3] || 'wh_1_qty', source: m[4] || 'inventory', deductedQty: +(m[5] || m[2]) });
+      }
+      return out;
+    }
+
+    /* ════════════════════════════
+       FINANCIALS
+    ════════════════════════════ */
+    function calcFin(order) {
+      const dn = order.order_display_name || order.client_name || '';
+      const costM = (order.material_notes || '').match(/\| إجمالي تكلفة التصنيع:\s*(\d+(?:\.\d+)?)\s*جنيه/);
+      const materialCost = costM ? +costM[1] : 0;
+      const additionalExps = rawExpenses.filter(e => e.order_id === order.id).reduce((s, e) => s + (e.amount || 0), 0);
+      const orderPayables = rawPayables.filter(a => {
+        const n = a.notes || '';
+        const hd = dn && dn.trim() !== '-';
+        const hc = order.client_name && order.client_name.trim() !== '-';
+        return (hd && n.includes(dn)) || (hc && n.includes(order.client_name));
+      });
+      const supplierDebt = orderPayables.reduce((s, a) => s + Math.max(0, (a.total_amount || 0) - (a.paid_amount || 0)), 0);
+      const totalCost = materialCost + additionalExps;
+      const netProfit = (order.total_price || 0) - totalCost;
+      const profitPercentage = order.total_price > 0 ? Math.round((netProfit / order.total_price) * 100) : 0;
+      const clientReceivable = Math.max(0, (order.total_price || 0) - (order.paid_amount || 0));
+      let daysTaken = 0;
+      if (order.created_at) {
+        const s = new Date(order.created_at);
+        const e = order.stage === 'تم التسليم للزبون' && order.delivery_date ? new Date(order.delivery_date) : new Date();
+        daysTaken = Math.max(0, Math.ceil((e - s) / 86400000));
+      }
+      return { materialCost, additionalExps, supplierDebt, totalCost, netProfit, profitPercentage, clientReceivable, daysTaken, orderPayables };
+    }
+
+    /* ════════════════════════════
+       RENDER
+    ════════════════════════════ */
+    function render() {
+      const cnts = {
+        all: rawOrders.length,
+        active: rawOrders.filter(o => !o.archived && o.stage !== 'تم التسليم للزبون').length,
+        delivered: rawOrders.filter(o => o.stage === 'تم التسليم للزبون').length,
+        archived: rawOrders.filter(o => o.archived).length
+      };
+      ['all', 'active', 'delivered', 'archived'].forEach(k => {
+        const el = document.getElementById('cnt-' + k);
+        if (el) el.textContent = cnts[k];
+      });
+
+      let filtered = rawOrders;
+      if (activeFilter === 'active') filtered = rawOrders.filter(o => !o.archived && o.stage !== 'تم التسليم للزبون');
+      else if (activeFilter === 'delivered') filtered = rawOrders.filter(o => o.stage === 'تم التسليم للزبون');
+      else if (activeFilter === 'archived') filtered = rawOrders.filter(o => o.archived);
+
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(o => (o.client_name || '').toLowerCase().includes(q) || (o.order_display_name || '').toLowerCase().includes(q));
+      }
+
+      const mapped = filtered.map(o => ({ order: o, fin: calcFin(o) }));
+      if (currentSort === 'created_desc') mapped.sort((a, b) => new Date(b.order.created_at || 0) - new Date(a.order.created_at || 0));
+      else if (currentSort === 'created_asc') mapped.sort((a, b) => new Date(a.order.created_at || 0) - new Date(b.order.created_at || 0));
+      else if (currentSort === 'revenue_desc') mapped.sort((a, b) => (b.order.total_price || 0) - (a.order.total_price || 0));
+      else if (currentSort === 'profit_desc') mapped.sort((a, b) => b.fin.netProfit - a.fin.netProfit);
+      else if (currentSort === 'days_desc') mapped.sort((a, b) => b.fin.daysTaken - a.fin.daysTaken);
+
+      // Global KPIs
+      let gR = 0, gE = 0, gRc = 0, gP = 0;
+      rawOrders.forEach(o => { const f = calcFin(o); gR += (o.total_price || 0); gE += f.totalCost; gRc += f.clientReceivable; gP += f.supplierDebt; });
+      const gN = gR - gE, gPct = gR > 0 ? Math.round((gN / gR) * 100) : 0;
+      document.getElementById('stat-total-orders').textContent = rawOrders.length;
+      document.getElementById('stat-total-revenue').textContent = fmt(gR) + ' ج.م';
+      document.getElementById('stat-total-expenses').textContent = fmt(gE) + ' ج.م';
+      document.getElementById('stat-total-receivables').textContent = fmt(gRc) + ' ج.م';
+      document.getElementById('stat-total-payables').textContent = fmt(gP) + ' ج.م';
+      const netEl = document.getElementById('stat-total-net-profit');
+      netEl.textContent = fmt(gN) + ' ج.م';
+      netEl.className = 'kpi-value ' + (gN >= 0 ? 'profit-pos' : 'profit-neg');
+      document.getElementById('stat-profit-pct').textContent = 'نسبة الربح: ' + gPct + '%';
+
+      // Cards
+      const grid = document.getElementById('orders-grid');
+      if (mapped.length === 0) {
+        grid.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" width="72" height="72" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <h3>لا توجد طلبيات مطابقة</h3><p>جرّب تغيير الفلتر أو كلمة البحث</p>
+    </div>`;
+        return;
+      }
+      grid.innerHTML = '';
+      mapped.forEach(({ order, fin }) => grid.appendChild(buildCard(order, fin)));
+    }
+
+    function stageClass(s) {
+      if (!s) return 'sp-default';
+      if (s === 'تم التسليم للزبون') return 'sp-done';
+      if (s.includes('عربون') || s.includes('تعاقد')) return 'sp-contract';
+      if (s.includes('تنفيذ') || s.includes('تصنيع') || s.includes('التجهيز') || s.includes('خامات')) return 'sp-production';
+      if (s.includes('شحن') || s.includes('تسليم') || s.includes('جاهز') || s.includes('توصيل')) return 'sp-delivery';
+      return 'sp-default';
+    }
+
+    function buildCard(order, fin) {
+      const dn = order.order_display_name || order.client_name || '—';
+      const isDel = order.stage === 'تم التسليم للزبون';
+      const isArch = order.archived;
+      const cardCls = isDel ? 'c-delivered' : isArch ? 'c-archived' : '';
+      const spCls = isArch ? 'sp-archived' : stageClass(order.stage);
+      const negProfit = fin.netProfit < 0;
+      const dateStr = order.created_at ? new Date(order.created_at).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+
+      const div = document.createElement('div');
+      div.className = `order-card ${cardCls}`;
+      div.innerHTML = `
+    <div class="card-top">
+      <div style="flex:1;min-width:0;">
+        <div class="card-client-name">${dn}</div>
+        <div class="card-meta">
+          <span class="stage-pill ${spCls}">${order.stage || '—'}</span>
+          ${isArch ? '<span class="archived-tag">مؤرشف</span>' : ''}
+          <span class="card-date">${dateStr}</span>
+        </div>
+      </div>
+      <div class="days-tag">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        ${fin.daysTaken} يوم
+      </div>
+    </div>
+
+    <div class="card-fins">
+      <div class="fin-box">
+        <div class="fin-box-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          قيمة الطلبية
+        </div>
+        <div class="fin-box-val green">${fmt(order.total_price || 0)} ج.م</div>
+      </div>
+      <div class="fin-box">
+        <div class="fin-box-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+          إجمالي التكاليف
+        </div>
+        <div class="fin-box-val red">${fmt(fin.totalCost)} ج.م</div>
+      </div>
+      <div class="fin-box">
+        <div class="fin-box-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ليا كام (العميل)
+        </div>
+        <div class="fin-box-val blue">${fin.clientReceivable > 0 ? fmt(fin.clientReceivable) + ' ج.م' : '✓ خالص'}</div>
+      </div>
+      <div class="fin-box">
+        <div class="fin-box-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          عليا كام (موردين)
+        </div>
+        <div class="fin-box-val amber">${fin.supplierDebt > 0 ? fmt(fin.supplierDebt) + ' ج.م' : '✓ لا يوجد'}</div>
+      </div>
+    </div>
+
+    <div class="profit-strip ${negProfit ? 'loss' : ''}">
+      <div class="profit-lbl">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        صافي الربح
+      </div>
+      <div style="display:flex;align-items:center;gap:0.45rem;">
+        <div class="profit-amt">${negProfit ? '' : '+'}${fmt(fin.netProfit)} ج.م</div>
+        <div class="profit-pct-badge">${fin.profitPercentage}%</div>
+      </div>
+    </div>
+
+    <div class="status-row">
+      ${fin.clientReceivable > 0
+          ? `<span class="st-badge sb-rec-owed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>متبقي: ${fmt(fin.clientReceivable)} ج.م</span>`
+          : `<span class="st-badge sb-rec-clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>العميل خالص</span>`}
+      ${fin.supplierDebt > 0
+          ? `<span class="st-badge sb-pay-owed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>مورد: ${fmt(fin.supplierDebt)} ج.م</span>`
+          : `<span class="st-badge sb-pay-clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>لا ديون موردين</span>`}
+    </div>
+
+    <button class="card-btn" onclick="openSheet('${order.id}')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      كشف الحساب التفصيلي
+    </button>
+  `;
+      return div;
+    }
+
+    /* ════════════════════════════
+       CONTROLS
+    ════════════════════════════ */
+    function setFilter(f) {
+      activeFilter = f;
+      ['all', 'active', 'delivered', 'archived'].forEach(k => {
+        document.getElementById('chip-' + k)?.classList.toggle('active', k === f);
+      });
+      render();
+    }
+    function handleSearch(v) { searchQuery = v; render(); }
+    function handleSort(v, btn) {
+      currentSort = v;
+      document.querySelectorAll('.sort-pill').forEach(b => b.classList.remove('active'));
+      btn?.classList.add('active');
+      render();
+    }
+
+    /* ════════════════════════════
+       FINANCIAL SHEET
+    ════════════════════════════ */
+    function openSheet(id) {
+      const order = rawOrders.find(o => o.id === id);
+      if (!order) return;
+      const fin = calcFin(order);
+      const dn = order.order_display_name || order.client_name || '—';
+
+      document.getElementById('sheet-modal-title').textContent = `كشف حساب: ${dn}`;
+      document.getElementById('sheet-modal-sub').textContent = `${order.stage || ''}  —  ${fin.daysTaken} يوم`;
+      document.getElementById('fkpi-total').textContent = fmt(order.total_price || 0) + ' ج.م';
+      document.getElementById('fkpi-cost').textContent = fmt(fin.totalCost) + ' ج.م';
+      document.getElementById('fkpi-rec').textContent = fmt(fin.clientReceivable) + ' ج.م';
+      document.getElementById('fkpi-pay').textContent = fmt(fin.supplierDebt) + ' ج.م';
+      document.getElementById('sheet-order-created').textContent = order.created_at ? new Date(order.created_at).toLocaleDateString('ar-EG', { dateStyle: 'long' }) : '—';
+      document.getElementById('sheet-order-target').textContent = order.delivery_date || 'غير محدد';
+      document.getElementById('sheet-order-days').textContent = order.stage === 'تم التسليم للزبون' ? `مكتمل في ${fin.daysTaken} يوم ✅` : `جارٍ منذ ${fin.daysTaken} يوم`;
+
+      // Materials
+      const mTb = document.getElementById('sheet-materials-tbody');
+      mTb.innerHTML = '';
+      const mats = parseMats(order.material_notes);
+      const whN = { wh_1_qty: 'مخزن 1', wh_2_qty: 'مخزن 2', wh_3_qty: 'مخزن 3' };
+      if (!mats.length) { mTb.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:0.85rem;">لا توجد خامات مسجلة</td></tr>`; }
+      else mats.forEach(t => {
+        const inv = rawInventory.find(i => i.id === t.itemId);
+        const nm = inv ? inv.item_name : t.itemId;
+        const pr = rawPrices.find(p => p.item_name === nm);
+        const up = pr ? (pr.piece_price || 0) : 0;
+        const ul = pr ? (pr.unit || 'وحدة') : 'وحدة';
+        const tc = t.qty * up;
+        const def = t.qty - t.deductedQty;
+        const ok = order.material_notes?.includes(`[تم شراء عجز: ${def}] ✅`) || def <= 0;
+        const stHtml = ok
+          ? `<span style="background:#dcfce7;color:#15803d;border:1px solid #bbf7d0;padding:1px 7px;border-radius:20px;font-size:0.63rem;font-weight:700;">مؤمن ✓</span>`
+          : `<span style="background:#fee2e2;color:#dc2626;border:1px solid #fecaca;padding:1px 7px;border-radius:20px;font-size:0.63rem;font-weight:700;">عجز ${def}</span>`;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><strong style="color:var(--primary-dark);">${nm}</strong></td><td style="color:var(--text-muted);">${t.source === 'external' ? '🛒 خارجي' : whN[t.wh] || 'مخزن'}</td><td>${t.qty} ${ul} (سحب ${t.deductedQty})</td><td style="color:var(--text-muted);font-weight:600;">${fmt(up)} ج.م</td><td><strong>${fmt(tc)} ج.م</strong></td><td>${stHtml}</td>`;
+        mTb.appendChild(tr);
+      });
+      document.getElementById('sheet-materials-total').textContent = fmt(fin.materialCost) + ' ج.م';
+
+      // Expenses
+      const eTb = document.getElementById('sheet-expenses-tbody');
+      eTb.innerHTML = '';
+      const exps = rawExpenses.filter(e => e.order_id === order.id);
+      if (!exps.length) { eTb.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:0.85rem;">لا توجد مصاريف تشغيلية</td></tr>`; }
+      else exps.forEach(e => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td style="color:var(--text-muted);">${e.created_at ? new Date(e.created_at).toLocaleDateString('ar-EG') : '—'}</td><td>${e.description || '—'}</td><td><strong style="color:#dc2626;">${fmt(e.amount || 0)} ج.م</strong></td>`;
+        eTb.appendChild(tr);
+      });
+      document.getElementById('sheet-expenses-total').textContent = fmt(fin.additionalExps) + ' ج.م';
+
+      // Payables
+      const pTb = document.getElementById('sheet-payables-tbody');
+      pTb.innerHTML = '';
+      if (!fin.orderPayables.length) { pTb.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:0.85rem;">لا توجد ديون موردين مرتبطة</td></tr>`; }
+      else fin.orderPayables.forEach(a => {
+        const rem = Math.max(0, (a.total_amount || 0) - (a.paid_amount || 0));
+        const stH = rem <= 0
+          ? `<span style="background:#dcfce7;color:#15803d;border:1px solid #bbf7d0;padding:1px 7px;border-radius:20px;font-size:0.63rem;font-weight:700;">مسدد ✓</span>`
+          : `<span style="background:#fef3c7;color:#d97706;border:1px solid #fde68a;padding:1px 7px;border-radius:20px;font-size:0.63rem;font-weight:700;">${fmt(rem)} ج.م</span>`;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><strong>${a.person_name || '—'}</strong></td><td style="color:var(--text-muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.notes || '—'}</td><td>${fmt(a.total_amount || 0)} ج.م</td><td style="color:#059669;font-weight:700;">${fmt(a.paid_amount || 0)} ج.م</td><td>${stH}</td>`;
+        pTb.appendChild(tr);
+      });
+      document.getElementById('sheet-payables-total').textContent = fmt(fin.supplierDebt) + ' ج.م';
+
+      // Client
+      document.getElementById('sheet-client-total').textContent = fmt(order.total_price || 0) + ' ج.م';
+      document.getElementById('sheet-client-paid').textContent = fmt(order.paid_amount || 0) + ' ج.م';
+      document.getElementById('sheet-client-remaining').textContent = fmt(fin.clientReceivable) + ' ج.م';
+      const cTb = document.getElementById('sheet-client-installments-tbody');
+      cTb.innerHTML = '';
+      try {
+        const plan = JSON.parse(order.payment_plan || '[]');
+        if (Array.isArray(plan) && plan.length) {
+          plan.forEach((item, i) => { const tr = document.createElement('tr'); tr.innerHTML = `<td>الدفعة ${i + 1}</td><td><strong style="color:#059669;">${fmt(+item.amount || 0)} ج.م</strong></td><td style="color:var(--text-muted);">${item.date ? new Date(item.date).toLocaleDateString('ar-EG') : '—'}</td>`; cTb.appendChild(tr); });
+        } else { cTb.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:0.75rem;font-style:italic;">كاش أو لا توجد أقساط</td></tr>`; }
+      } catch { cTb.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:0.75rem;font-style:italic;">دفع كاش بالكامل</td></tr>`; }
+
+      // Profit
+      document.getElementById('sheet-profit-rev').textContent = fmt(order.total_price || 0) + ' ج.م';
+      document.getElementById('sheet-profit-mats').textContent = '− ' + fmt(fin.materialCost) + ' ج.م';
+      document.getElementById('sheet-profit-exps').textContent = '− ' + fmt(fin.additionalExps) + ' ج.م';
+      document.getElementById('sheet-profit-pay').textContent = fin.supplierDebt > 0 ? '− ' + fmt(fin.supplierDebt) + ' ج.م' : 'لا يوجد';
+      const pNet = document.getElementById('sheet-profit-net');
+      const pPct = document.getElementById('sheet-profit-pct');
+      const pRow = document.getElementById('psum-final-row');
+      const pLbl = document.getElementById('psum-final-lbl-text');
+      pNet.textContent = (fin.netProfit >= 0 ? '+ ' : '') + fmt(fin.netProfit) + ' ج.م';
+      pNet.style.color = fin.netProfit >= 0 ? '#10b981' : '#dc2626';
+      pPct.textContent = fin.profitPercentage + '%';
+      pPct.style.background = fin.netProfit >= 0 ? 'rgba(16,185,129,0.12)' : 'rgba(220,38,38,0.08)';
+      pPct.style.color = fin.netProfit >= 0 ? '#059669' : '#dc2626';
+      pRow.className = 'psum-final' + (fin.netProfit < 0 ? ' loss' : '');
+      pLbl.textContent = fin.netProfit >= 0 ? 'صافي الربح' : 'الخسارة';
+
+      document.getElementById('financial-sheet-modal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeFinancialSheet() {
+      document.getElementById('financial-sheet-modal').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('financial-sheet-modal').addEventListener('click', function (e) { if (e.target === this) closeFinancialSheet(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFinancialSheet(); });
+
+    function fmt(n) { return (+n || 0).toLocaleString('ar-EG'); }
+  </script>
+</body>
+
+</html>

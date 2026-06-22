@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الأرباح والمصروفات - نظام الإدارة</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/auth.js"></script>
+  <style>
+    .profit-positive {
+      color: var(--success);
+    }
+
+    .profit-negative {
+      color: var(--error);
+    }
+
+    .stat-card.primary-bg {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .stat-card.primary-bg h3,
+    .stat-card.primary-bg .value {
+      color: white;
+    }
+
+    .stat-card.clickable {
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .stat-card.clickable:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+
+<body>
+  <main class="main-content">
+    <div class="page-header" style="margin-bottom: 1rem;">
+      <h1 style="display:flex; align-items:center; gap:0.6rem;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:30px;height:30px;flex-shrink:0;"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/><rect x="1" y="20" width="22" height="2" rx="1" fill="var(--primary)" opacity="0.15"/></svg>
+        الأرباح والمصروفات
+      </h1>
+      <button class="btn btn-primary" onclick="openModal('create-expense-modal')" style="gap:0.5rem;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><path d="M12 5v14M5 12h14"/></svg>
+        مصروف جديد
+      </button>
+    </div>
+
+    <div style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.25rem 1.5rem; margin-bottom:1.75rem; display:flex; gap:1rem; align-items:center; flex-wrap:wrap; box-shadow:var(--shadow-sm);">
+      <div style="display:flex;align-items:center;gap:0.5rem;">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20" stroke-width="2" style="color:var(--primary)"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <label style="font-weight:700; color:var(--text-main); white-space:nowrap;">عرض التقرير عن:</label>
+      </div>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+        <button onclick="setPeriod('all')" id="btn-all" style="padding:0.5rem 1.1rem; border-radius:50px; border:1.5px solid var(--primary); background:var(--primary); color:#fff; font-weight:700; font-size:0.85rem; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:0.4rem;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          كل الأوقات
+        </button>
+        <button onclick="setPeriod('month')" id="btn-month" style="padding:0.5rem 1.1rem; border-radius:50px; border:1.5px solid var(--border); background:#fff; color:var(--text-main); font-weight:700; font-size:0.85rem; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:0.4rem;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          آخر 30 يوم
+        </button>
+        <button onclick="setPeriod('year')" id="btn-year" style="padding:0.5rem 1.1rem; border-radius:50px; border:1.5px solid var(--border); background:#fff; color:var(--text-main); font-weight:700; font-size:0.85rem; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:0.4rem;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg>
+          آخر سنة
+        </button>
+        <button onclick="setPeriod('custom')" id="btn-custom" style="padding:0.5rem 1.1rem; border-radius:50px; border:1.5px solid var(--border); background:#fff; color:var(--text-main); font-weight:700; font-size:0.85rem; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:0.4rem;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          فترة محددة
+        </button>
+      </div>
+      <div id="custom-date-range" class="hidden" style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <label style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">من:</label>
+          <input type="date" id="date-from" onchange="initProfitsPage()" style="padding:0.5rem 0.75rem; border-radius:var(--radius); border:1.5px solid var(--border); background:#fff; color:var(--text-main); font-family:inherit; font-size:0.9rem;">
+        </div>
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <label style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">إلى:</label>
+          <input type="date" id="date-to" onchange="initProfitsPage()" style="padding:0.5rem 0.75rem; border-radius:var(--radius); border:1.5px solid var(--border); background:#fff; color:var(--text-main); font-family:inherit; font-size:0.9rem;">
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 2rem;">
+      <div class="stat-card clickable" onclick="window.location.href='client_orders.html'"
+        title="الذهاب لصفحة طلبيات العملاء">
+        <h3 style="display:flex;align-items:center;gap:0.45rem;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg> إيرادات العملاء (+)</h3>
+        <div class="value" id="stat-revenues" style="color:var(--success)">0</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">إجمالي حسابات طلبيات العملاء</div>
+      </div>
+      <div class="stat-card clickable" onclick="window.location.href='orders_history.html'"
+        title="الذهاب لصفحة سجل الطلبيات">
+        <h3 style="display:flex;align-items:center;gap:0.45rem;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--error)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" opacity="0.5"/></svg>
+          خامات الطلبيات (-)
+        </h3>
+        <div class="value" id="stat-order-materials" style="color:var(--error)">0</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">تكلفة خامات الأوردرات المخصصة</div>
+      </div>
+      <div class="stat-card clickable" onclick="window.location.href='accounts.html'" title="الذهاب لصفحة الحسابات">
+        <h3 style="display:flex;align-items:center;gap:0.45rem;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--error)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg> مدفوعات الموردين (-)</h3>
+        <div class="value" id="stat-suppliers" style="color:var(--error)">0</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">المبالغ المسددة للموردين</div>
+      </div>
+      <div class="stat-card clickable"
+        onclick="document.getElementById('expenses-section').scrollIntoView({behavior: 'smooth'})"
+        title="عرض جدول المصروفات بالأسفل">
+        <h3 style="display:flex;align-items:center;gap:0.45rem;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--error)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg> إجمالي المصروفات (-)</h3>
+        <div class="value" id="stat-expenses" style="color:var(--error)">0</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">رواتب، إيجار، كهرباء...</div>
+      </div>
+      <div class="stat-card primary-bg">
+        <h3 style="display:flex;align-items:center;gap:0.45rem;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg> صافي الأرباح</h3>
+        <div class="value" id="stat-net-profit">0</div>
+        <div style="font-size:0.75rem;margin-top:0.5rem;opacity:0.8">الإيرادات - (الخامات + الموردين + المصروفات)</div>
+      </div>
+    </div>
+
+    <div class="card" id="expenses-section">
+      <div class="card-header">
+        <h2 style="display:flex;align-items:center;gap:0.5rem;">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+          سجل المصروفات
+        </h2>
+      </div>
+      <div class="card-body">
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>التاريخ</th>
+                <th>البند (التصنيف)</th>
+                <th>المبلغ (جنيه)</th>
+                <th>ملاحظات / تفاصيل</th>
+              </tr>
+            </thead>
+            <tbody id="expenses-table-body">
+              <tr>
+                <td colspan="4" style="text-align:center;color:var(--text-muted)">جاري التحميل...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    
+    <div id="create-expense-modal" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>تسجيل مصروف جديد</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('create-expense-modal')" style="padding:0.5rem">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="create-expense-form">
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label for="exp-date">تاريخ المصروف *</label>
+              <input type="date" id="exp-date" required>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label for="exp-category">اسم أو بند المصروف *</label>
+              <input type="text" id="exp-category" required placeholder="مثال: إيجار، كهرباء، رواتب، إلخ...">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label for="exp-amount">المبلغ (جنيه) *</label>
+              <input type="number" id="exp-amount" required min="1" placeholder="مثال: 3000">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <label for="exp-notes">ملاحظات وتفاصيل</label>
+              <input type="text" id="exp-notes" placeholder="اكتب لمن تم الدفع أو أي تفاصيل أخرى...">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="submitCreateExpense()">تسجيل المصروف</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('create-expense-modal')">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentPeriod = 'all';
+
+      function setPeriod(period) {
+        currentPeriod = period;
+
+        ['all','month','year','custom'].forEach(p => {
+          const btn = document.getElementById('btn-' + p);
+          if (btn) {
+            if (p === period) {
+              btn.style.background = 'var(--primary)';
+              btn.style.color = '#fff';
+              btn.style.borderColor = 'var(--primary)';
+            } else {
+              btn.style.background = '#fff';
+              btn.style.color = 'var(--text-main)';
+              btn.style.borderColor = 'var(--border)';
+            }
+          }
+        });
+        const customRange = document.getElementById('custom-date-range');
+        if (period === 'custom') {
+          customRange.classList.remove('hidden');
+          customRange.style.display = 'flex';
+        } else {
+          customRange.classList.add('hidden');
+          initProfitsPage();
+        }
+      }
+
+      function openModal(id) {
+        document.getElementById(id).classList.remove('hidden');
+      }
+
+      function closeModal(id) {
+        document.getElementById(id).classList.add('hidden');
+      }
+
+      document.addEventListener('DOMContentLoaded', async () => {
+        const today = new Date().toISOString().split('T')[0];
+        const dateInput = document.getElementById('exp-date');
+        if (dateInput) dateInput.value = today;
+        await initProfitsPage();
+
+        const sb = getSupabase();
+
+        sb.channel('profits-orders')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'client_orders' }, () => {
+            initProfitsPage();
+          })
+          .subscribe();
+
+        sb.channel('profits-accounts')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'accounts' }, () => {
+            initProfitsPage();
+          })
+          .subscribe();
+
+        sb.channel('profits-expenses')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, () => {
+            initProfitsPage();
+          })
+          .subscribe();
+
+        setInterval(initProfitsPage, 5000);
+      });
+
+      async function submitCreateExpense() {
+        const form = document.getElementById('create-expense-form');
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+
+        const date = document.getElementById('exp-date').value;
+        const category = document.getElementById('exp-category').value;
+        const amount = parseFloat(document.getElementById('exp-amount').value || 0);
+        const notes = document.getElementById('exp-notes').value;
+
+        try {
+          showAlert('جاري حفظ المصروف...', 'pending');
+          const sb = getSupabase();
+
+          const { error } = await sb.from('expenses').insert([{
+            expense_date: date,
+            category: category,
+            amount: amount,
+            notes: notes
+          }]);
+
+          if (error) throw error;
+
+          showAlert('تم تسجيل المصروف بنجاح!', 'success');
+          closeModal('create-expense-modal');
+          form.reset();
+
+          document.getElementById('exp-date').value = new Date().toISOString().split('T')[0];
+
+          await initProfitsPage();
+        } catch (e) {
+          showAlert('فشل التسجيل: ' + e.message, 'error');
+        }
+      }
+
+      function handlePeriodChange() {
+        const period = document.getElementById('period-selector').value;
+        const customRange = document.getElementById('custom-date-range');
+        if (period === 'custom') {
+          customRange.classList.remove('hidden');
+        } else {
+          customRange.classList.add('hidden');
+          initProfitsPage();
+        }
+      }
+
+      function parsePaymentHistory(text, defaultDate, defaultPaid) {
+        let purchaseDate = defaultDate ? (typeof defaultDate === 'string' ? defaultDate.substring(0, 10) : new Date(defaultDate).toISOString().substring(0, 10)) : '';
+        let history = [];
+        let cleanText = text || '';
+
+        const purchaseMatch = cleanText.match(/<!--PURCHASEDATE:(\d{4}-\d{2}-\d{2})-->/);
+        if (purchaseMatch) {
+          purchaseDate = purchaseMatch[1];
+          cleanText = cleanText.replace(/<!--PURCHASEDATE:\d{4}-\d{2}-\d{2}-->/g, '');
+        }
+
+        const historyMatch = cleanText.match(/<!--PAYHISTORY:(.*?)-->/);
+        if (historyMatch) {
+          try {
+            history = JSON.parse(historyMatch[1]);
+          } catch (e) {
+            console.error("Failed to parse pay history", e);
+          }
+          cleanText = cleanText.replace(/<!--PAYHISTORY:.*?-->/g, '');
+        } else {
+          let isRawInstallments = false;
+          try {
+            const rawPlan = JSON.parse(cleanText);
+            if (Array.isArray(rawPlan)) {
+              isRawInstallments = true;
+              let instSum = 0;
+              rawPlan.forEach(item => {
+                const amt = parseFloat(item.amount || 0);
+                const dt = item.date || purchaseDate || new Date().toISOString().substring(0, 10);
+                if (amt > 0) {
+                  history.push({ date: dt, amount: amt });
+                  instSum += amt;
+                }
+              });
+
+              const difference = defaultPaid - instSum;
+              if (difference > 0.01) {
+                history.push({
+                  date: purchaseDate || new Date().toISOString().substring(0, 10),
+                  amount: difference
+                });
+              }
+              cleanText = '';
+            }
+          } catch (e) {}
+
+          if (!isRawInstallments && defaultPaid > 0) {
+            history = [{
+              date: purchaseDate || new Date().toISOString().substring(0, 10),
+              amount: defaultPaid
+            }];
+          }
+        }
+
+        history.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        return {
+          purchaseDate: purchaseDate,
+          history: history,
+          cleanText: cleanText.trim()
+        };
+      }
+
+      async function initProfitsPage() {
+        await initAuth();
+        const sb = getSupabase();
+
+        const period = currentPeriod || 'all';
+        let dateFrom = null;
+        let dateTo = new Date();
+
+        if (period === 'month') {
+          dateFrom = new Date();
+          dateFrom.setDate(dateFrom.getDate() - 30);
+        } else if (period === 'year') {
+          dateFrom = new Date();
+          dateFrom.setFullYear(dateFrom.getFullYear() - 1);
+        } else if (period === 'custom') {
+          const fromInput = document.getElementById('date-from').value;
+          const toInput = document.getElementById('date-to').value;
+          if (fromInput) dateFrom = new Date(fromInput);
+          if (toInput) dateTo = new Date(toInput);
+        }
+
+        try {
+
+          let orderQuery = sb.from('client_orders').select('total_price, created_at, material_notes, order_display_name, client_name');
+          if (dateFrom) orderQuery = orderQuery.gte('created_at', dateFrom.toISOString());
+          if (dateTo) orderQuery = orderQuery.lte('created_at', dateTo.toISOString());
+
+          const { data: clients } = await orderQuery;
+          let totalRevenues = 0;
+          let totalOrdersMaterialCost = 0;
+          let allOutflows = [];
+
+          if (clients) {
+            clients.forEach(c => {
+              totalRevenues += (parseFloat(c.total_price) || 0);
+
+              const costM = (c.material_notes || '').match(/\| إجمالي تكلفة التصنيع:\s*(\d+(?:\.\d+)?)\s*جنيه/);
+              const materialCost = costM ? parseFloat(costM[1]) : 0;
+              totalOrdersMaterialCost += materialCost;
+
+              if (materialCost > 0) {
+                const orderDate = c.created_at ? c.created_at.split('T')[0] : new Date().toISOString().split('T')[0];
+                allOutflows.push({
+                  date: orderDate,
+                  category: `خامات طلبية (${c.order_display_name || c.client_name || '-'})`,
+                  amount: materialCost,
+                  notes: `تكلفة الخامات المخصصة للطلبية (سحب من المخزن + عجز بعد الشراء)`,
+                  isExpense: true,
+                  isOrderMaterial: true,
+                  timestamp: c.created_at ? new Date(c.created_at).getTime() : new Date().getTime()
+                });
+              }
+            });
+          }
+
+          let payQuery = sb.from('accounts').select('*').eq('account_type', 'payable');
+          if (dateFrom) payQuery = payQuery.gte('created_at', dateFrom.toISOString());
+          if (dateTo) payQuery = payQuery.lte('created_at', dateTo.toISOString());
+
+          const { data: payables } = await payQuery;
+          let totalSuppliersPaid = 0;
+          let activePayables = [];
+          if (payables) {
+            // Exclude settled supplier debts (archive where remaining <= 0)
+            activePayables = payables.filter(p => {
+              const remaining = (p.total_amount || 0) - (p.paid_amount || 0);
+              return remaining > 0;
+            });
+            totalSuppliersPaid = activePayables.reduce((sum, p) => sum + (p.paid_amount || 0), 0);
+          }
+
+          let expQuery = sb.from('expenses').select('*');
+
+          if (dateFrom) {
+            const dateStr = dateFrom.toISOString().split('T')[0];
+            expQuery = expQuery.gte('expense_date', dateStr);
+          }
+          if (dateTo) {
+            const dateStr = dateTo.toISOString().split('T')[0];
+            expQuery = expQuery.lte('expense_date', dateStr);
+          }
+
+          const { data: expenses, error: expError } = await expQuery.order('expense_date', { ascending: false });
+          if (expError) throw expError;
+
+          let totalExpenses = 0;
+
+          // 1. Add general expenses
+          if (expenses) {
+            expenses.forEach(exp => {
+              totalExpenses += (exp.amount || 0);
+              allOutflows.push({
+                date: exp.expense_date,
+                category: exp.category,
+                amount: exp.amount,
+                notes: exp.notes || '-',
+                isExpense: true,
+                isOrderMaterial: false,
+                timestamp: exp.created_at ? new Date(exp.created_at).getTime() : new Date(exp.expense_date).getTime()
+              });
+            });
+          }
+
+          // 2. Add supplier payments (from accounts payable history)
+          if (activePayables) {
+            activePayables.forEach(acc => {
+              const parsed = parsePaymentHistory(acc.notes, acc.created_at, acc.paid_amount || 0);
+              
+              if (parsed.history && parsed.history.length > 0) {
+                parsed.history.forEach(p => {
+                  let inRange = true;
+                  if (dateFrom && new Date(p.date) < dateFrom) inRange = false;
+                  if (dateTo && new Date(p.date) > dateTo) inRange = false;
+
+                  if (inRange) {
+                    allOutflows.push({
+                      date: p.date,
+                      category: `شراء خامات (${acc.person_name})`,
+                      amount: p.amount,
+                      notes: parsed.cleanText || `شراء خامات من المورد: ${acc.person_name}`,
+                      isExpense: false,
+                      isOrderMaterial: false,
+                      timestamp: acc.created_at ? new Date(acc.created_at).getTime() : new Date(p.date).getTime()
+                    });
+                  }
+                });
+              } else if (acc.paid_amount > 0) {
+                const payDate = acc.created_at ? acc.created_at.split('T')[0] : new Date().toISOString().split('T')[0];
+                let inRange = true;
+                if (dateFrom && new Date(payDate) < dateFrom) inRange = false;
+                if (dateTo && new Date(payDate) > dateTo) inRange = false;
+
+                if (inRange) {
+                  allOutflows.push({
+                    date: payDate,
+                    category: `شراء خامات (${acc.person_name})`,
+                    amount: acc.paid_amount,
+                    notes: parsed.cleanText || `شراء خامات من المورد: ${acc.person_name}`,
+                    isExpense: false,
+                    isOrderMaterial: false,
+                    timestamp: acc.created_at ? new Date(acc.created_at).getTime() : new Date(payDate).getTime()
+                  });
+                }
+              }
+            });
+          }
+
+          // Sort chronological descending (newest first based on exact time of entry)
+          allOutflows.sort((a, b) => {
+            const timeA = a.timestamp || new Date(a.date).getTime();
+            const timeB = b.timestamp || new Date(b.date).getTime();
+            return timeB - timeA;
+          });
+
+          const tbody = document.getElementById('expenses-table-body');
+          tbody.innerHTML = '';
+
+          if (allOutflows.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">لا يوجد مصروفات أو مدفوعات في هذه الفترة</td></tr>`;
+          } else {
+            allOutflows.forEach(outflow => {
+              const tr = document.createElement('tr');
+              let categoryColor = 'background:var(--bg-card);color:var(--text-main);border:1px solid var(--border)';
+              if (outflow.isOrderMaterial) {
+                categoryColor = 'background:rgba(245, 158, 11, 0.08);color:#d97706;border:1px solid rgba(245, 158, 11, 0.15)';
+              } else if (!outflow.isExpense) {
+                categoryColor = 'background:rgba(79, 70, 229, 0.08);color:var(--primary);border:1px solid rgba(79, 70, 229, 0.15)';
+              }
+              tr.innerHTML = `
+                <td style="direction:ltr; text-align:right;">${outflow.date ? new Date(outflow.date).toLocaleDateString('ar-EG') : '-'}</td>
+                <td><span class="badge" style="${categoryColor}">${outflow.category}</span></td>
+                <td><strong style="color:var(--error)">${outflow.amount.toLocaleString()} ج.م</strong></td>
+                <td>${outflow.notes || '-'}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+          }
+
+          document.getElementById('stat-revenues').textContent = totalRevenues.toLocaleString('en-US');
+          document.getElementById('stat-suppliers').textContent = totalSuppliersPaid.toLocaleString('en-US');
+          document.getElementById('stat-expenses').textContent = totalExpenses.toLocaleString('en-US');
+          document.getElementById('stat-order-materials').textContent = totalOrdersMaterialCost.toLocaleString('en-US');
+
+          const netProfit = totalRevenues - totalSuppliersPaid - totalExpenses - totalOrdersMaterialCost;
+          const profitEl = document.getElementById('stat-net-profit');
+          profitEl.textContent = netProfit.toLocaleString('en-US');
+
+        } catch (e) {
+          console.error(e);
+          document.getElementById('expenses-table-body').innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--error)">حدث خطأ أثناء جلب البيانات: ${e.message}</td></tr>`;
+        }
+      }
+    </script>
+</body>
+
+</html>

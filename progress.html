@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>متابعة تقدم الأوردرات - نظام الإدارة</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/auth.js"></script>
+  <style>
+    .progress-container {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+      margin-top: 1.5rem;
+    }
+    @media (max-width: 900px) {
+      .progress-container { grid-template-columns: 1fr; }
+      .orders-panel { position: static !important; }
+    }
+
+    /* ── Orders panel ── */
+    .orders-panel {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 1.25rem;
+      box-shadow: var(--shadow-sm); position: sticky; top: 1.5rem;
+    }
+    .details-panel {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 1.75rem;
+      box-shadow: var(--shadow-sm); min-height: 60vh;
+    }
+
+    .orders-search {
+      width: 100%; padding: 0.6rem 1rem; border-radius: 8px;
+      border: 1.5px solid var(--border); background: var(--bg-color);
+      font-family: inherit; font-size: 0.85rem; color: var(--text-main);
+      margin-top: 0.85rem; transition: border-color 0.2s; outline: none;
+    }
+    .orders-search:focus { border-color: var(--primary-light); }
+    .orders-list { max-height: calc(100vh - 320px); overflow-y: auto; margin-top: 0.85rem; }
+    .orders-list::-webkit-scrollbar { width: 4px; }
+    .orders-list::-webkit-scrollbar-thumb { background: #dde1e9; border-radius: 8px; }
+
+    .prog-order-item {
+      background: var(--bg-color); border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 0.85rem 1rem;
+      margin-bottom: 0.6rem; cursor: pointer; transition: var(--transition);
+      position: relative; overflow: hidden;
+    }
+    .prog-order-item::before {
+      content:''; position:absolute; right:0; top:0; bottom:0; width:3px;
+      background:transparent; border-radius:0 3px 3px 0; transition:background 0.2s;
+    }
+    .prog-order-item:hover { box-shadow:var(--shadow-md); border-color:#c7d2fe; transform:translateY(-1px); }
+    .prog-order-item:hover::before { background:var(--primary-light); }
+    .prog-order-item.active { background:var(--primary-bg); border-color:rgba(79,70,229,0.2); }
+    .prog-order-item.active::before { background:var(--primary); }
+
+    /* ── Note input card ── */
+    .note-input-card {
+      background: linear-gradient(135deg, var(--primary-bg) 0%, rgba(99,102,241,0.02) 100%);
+      border: 1.5px solid rgba(79,70,229,0.15);
+      border-radius: var(--radius-lg); padding: 1.4rem 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .note-input-card h4 {
+      font-size: 0.9rem; font-weight: 800; color: var(--primary);
+      display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;
+    }
+
+    .date-input-row { display: flex; gap: 0.75rem; align-items: flex-end; margin-bottom: 1rem; }
+    .date-input-row .form-group { margin: 0; flex: 1; }
+
+    .note-textarea {
+      width: 100%; padding: 0.9rem 1rem; border-radius: var(--radius);
+      border: 1.5px solid rgba(79,70,229,0.2); font-family: inherit; font-size: 0.9rem;
+      color: var(--text-main); background: #fff; resize: vertical; min-height: 90px;
+      transition: border-color 0.2s; outline: none; line-height: 1.6;
+    }
+    .note-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79,70,229,0.08); }
+    .note-textarea::placeholder { color: #b0b7c3; }
+
+    /* ── Timeline ── */
+    .timeline-wrap { position: relative; }
+    .timeline-wrap::before {
+      content: ''; position: absolute; right: 24px; top: 0; bottom: 0; width: 2px;
+      background: linear-gradient(180deg, var(--primary), transparent);
+      opacity: 0.12;
+    }
+
+    .timeline-entry {
+      display: flex; gap: 1rem; align-items: flex-start;
+      margin-bottom: 1.25rem; position: relative;
+    }
+
+    .timeline-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--primary); border: 2px solid #fff;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+      flex-shrink: 0; margin-top: 0.45rem;
+      position: relative; z-index: 1;
+    }
+
+    .timeline-date-col {
+      min-width: 52px; text-align: center; flex-shrink: 0;
+    }
+    .timeline-day { font-size: 1.35rem; font-weight: 900; color: var(--primary); line-height: 1; }
+    .timeline-month { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+
+    .timeline-card {
+      flex: 1; background: var(--bg-color); border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg); padding: 0.9rem 1.1rem;
+      transition: var(--transition); position: relative;
+    }
+    .timeline-card:hover { border-color: #c7d2fe; box-shadow: var(--shadow-sm); }
+    .timeline-card::before {
+      content: ''; position: absolute; right: -7px; top: 14px;
+      width: 12px; height: 12px; background: var(--bg-color);
+      border-top: 1.5px solid var(--border); border-right: 1.5px solid var(--border);
+      transform: rotate(45deg); border-radius: 1px;
+    }
+    .timeline-card:hover::before { border-color: #c7d2fe; }
+
+    .timeline-note-text { font-size: 0.88rem; color: var(--text-main); line-height: 1.6; font-weight: 500; }
+    .timeline-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 0.6rem; }
+    .timeline-meta-date { font-size: 0.72rem; color: var(--text-muted); }
+
+    .btn-delete-log {
+      background: transparent; border: none; cursor: pointer;
+      color: #cbd5e1; font-size: 0.7rem; padding: 2px 8px;
+      border-radius: 6px; transition: all 0.15s; font-family: inherit; font-weight: 600;
+    }
+    .btn-delete-log:hover { color: #ef4444; background: #fee2e2; }
+
+    .empty-timeline {
+      text-align: center; padding: 3rem 1rem;
+      border: 2px dashed var(--border); border-radius: var(--radius-lg);
+      color: var(--text-light); font-size: 0.85rem;
+    }
+
+    /* Badge */
+    .badge-stage { padding: 0.2rem 0.6rem; font-size: 0.68rem; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; white-space: nowrap; }
+    .stage-contract { background: rgba(5,150,105,0.08); color: #047857; border: 1px solid rgba(5,150,105,0.15); }
+    .stage-production { background: rgba(124,58,237,0.08); color: #6d28d9; border: 1px solid rgba(124,58,237,0.15); }
+    .stage-delivery { background: rgba(217,119,6,0.08); color: #b45309; border: 1px solid rgba(217,119,6,0.15); }
+    .stage-default { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+
+    /* History header */
+    .history-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.25rem; padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .history-title {
+      font-size: 0.82rem; font-weight: 800; color: var(--text-muted);
+      letter-spacing: 0.05em; text-transform: uppercase;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="main-content">
+    <div class="page-header">
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px;flex-shrink:0;">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+        <div>
+          <h1 style="font-size:1.4rem;margin:0;">متابعة تقدم الأوردرات</h1>
+          <p style="font-size:0.82rem;color:var(--text-muted);margin-top:0.1rem;">سجّل ملاحظاتك اليومية لكل أوردر في سجل منظم</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="progress-container">
+      <!-- Orders Panel -->
+      <div class="orders-panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:0.9rem;font-weight:800;color:var(--text-main);">الطلبيات النشطة</span>
+          <span id="orders-badge" class="badge-stage stage-contract">0 طلبية</span>
+        </div>
+        <input class="orders-search" type="text" id="search-orders" placeholder="🔍 ابحث..." oninput="filterOrdersList()">
+        
+        <button class="btn btn-secondary" id="btn-daily-report" onclick="showDailyReportView()" style="width:100%; margin-top:0.75rem; justify-content:center; gap:0.5rem; background:linear-gradient(135deg, var(--primary-bg) 0%, rgba(99,102,241,0.05) 100%); border:1.5px solid rgba(79,70,229,0.15); color:var(--primary); font-weight:800;">
+          📅 تقرير الإنجاز اليومي
+        </button>
+
+        <div class="orders-list" id="orders-list-container" style="margin-top: 0.75rem;">
+          <div style="text-align:center;padding:2.5rem 1rem;color:var(--text-light);font-size:0.85rem;">جاري التحميل...</div>
+        </div>
+      </div>
+
+      <!-- Details Panel -->
+      <div class="details-panel">
+        <!-- Placeholder -->
+        <div id="select-order-placeholder" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;text-align:center;color:var(--text-light);">
+          <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1" style="opacity:0.25;margin-bottom:1.25rem;">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
+          <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-muted);margin-bottom:0.35rem;">اختر طلبية</h3>
+          <p style="font-size:0.83rem;">اضغط على أي طلبية لتسجيل ملاحظاتك</p>
+        </div>
+
+        <!-- Selected view -->
+        <div id="selected-order-view" class="hidden">
+          <!-- Header -->
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;padding-bottom:1.25rem;margin-bottom:1.5rem;border-bottom:1px solid var(--border);">
+            <div>
+              <h2 id="view-order-name" style="font-size:1.2rem;color:var(--primary);font-weight:800;margin-bottom:0.25rem;">-</h2>
+              <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                <span id="view-order-stage"></span>
+                <span style="font-size:0.78rem;color:var(--text-muted);">📅 تسليم: <strong id="view-delivery-date">-</strong></span>
+              </div>
+            </div>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+              <div id="log-days-chip" style="background:#fff7ed;color:#c2410c;padding:0.3rem 0.9rem;border-radius:20px;font-size:0.78rem;font-weight:800;border:1px solid #fed7aa;">👷 0 يوم شغل</div>
+              <div id="log-count-chip" style="background:var(--primary-bg);color:var(--primary);padding:0.3rem 0.9rem;border-radius:20px;font-size:0.78rem;font-weight:800;border:1px solid rgba(79,70,229,0.15);">0 ملاحظة</div>
+            </div>
+          </div>
+
+          <!-- Note Input -->
+          <div class="note-input-card">
+            <h4>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              أضف ملاحظة اليوم
+            </h4>
+            <div class="date-input-row" style="display:flex; gap:1rem; flex-wrap:wrap;">
+              <div class="form-group" style="flex: 1; min-width: 150px;">
+                <label for="log-date" style="font-size:0.78rem;">التاريخ</label>
+                <input type="date" id="log-date" style="width:100%;">
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label for="log-notes" style="font-size:0.78rem;">الملاحظة / ما تم إنجازه اليوم</label>
+              <textarea class="note-textarea" id="log-notes" placeholder="اكتب ملاحظاتك هنا... مثال: تم الانتهاء من طباعة 200 نموذج وبدأنا التجهيز"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="saveProgressLog()" style="width:100%;justify-content:center;gap:0.5rem;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              حفظ الملاحظة
+            </button>
+          </div>
+
+          <!-- Timeline History -->
+          <div>
+            <div class="history-header">
+              <div class="history-title">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                سجل الملاحظات
+              </div>
+              <span id="history-count" style="font-size:0.72rem;color:var(--text-muted);"></span>
+            </div>
+            <div class="timeline-wrap" id="progress-history-list">
+              <div class="empty-timeline">لا يوجد ملاحظات بعد 📋</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Report View -->
+        <div id="daily-report-view" class="hidden">
+          <!-- Header -->
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;padding-bottom:1.25rem;margin-bottom:1.5rem;border-bottom:1px solid var(--border);">
+            <div>
+              <h2 style="font-size:1.2rem;color:var(--primary);font-weight:800;margin-bottom:0.25rem; display:flex; align-items:center; gap:0.5rem;">
+                📅 تقرير الإنجاز اليومي العام
+              </h2>
+              <p style="font-size:0.82rem;color:var(--text-muted);margin:0;">اعرض كل ما تم إنجازه وتدوينه في ورشة العمل ليوم محدد</p>
+            </div>
+            <div>
+              <input type="date" id="report-date" onchange="loadDailyReport()" style="padding:0.4rem 0.8rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; font-size:0.9rem; font-weight:700; outline:none; cursor:pointer;">
+            </div>
+          </div>
+
+          <!-- Summary stats chips -->
+          <div style="display:flex; gap:0.75rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+            <div id="report-total-orders-chip" style="background:var(--primary-bg);color:var(--primary);padding:0.35rem 1rem;border-radius:20px;font-size:0.8rem;font-weight:800;border:1px solid rgba(79,70,229,0.15);">📋 0 طلبيات تم العمل عليها</div>
+            <div id="report-total-logs-chip" style="background:#f0fdf4;color:#166534;padding:0.35rem 1rem;border-radius:20px;font-size:0.8rem;font-weight:800;border:1px solid #bbf7d0;">✅ 0 إنجازات مسجلة</div>
+          </div>
+
+          <!-- Report timeline/list list -->
+          <div class="timeline-wrap" id="daily-report-list">
+            <div class="empty-timeline">الرجاء اختيار تاريخ لعرض الإنجازات 📅</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let activeOrders = [];
+    let selectedOrder = null;
+    let selectedOrderLogs = [];
+    let searchFilter = '';
+
+    function getOrderDisplayName(order) {
+      return order.order_display_name || order.client_name || '-';
+    }
+
+    function getStageBadgeHTML(stage) {
+      if (!stage) return `<span class="badge-stage stage-default">مجهول</span>`;
+      let cls = 'stage-default';
+      if (stage.includes('عربون') || stage.includes('تعاقد')) cls = 'stage-contract';
+      else if (stage.includes('تنفيذ') || stage.includes('خامات') || stage.includes('تصنيع')) cls = 'stage-production';
+      else if (stage.includes('شحن') || stage.includes('توصيل') || stage.includes('تسليم') || stage.includes('جاهز')) cls = 'stage-delivery';
+      return `<span class="badge-stage ${cls}">${stage}</span>`;
+    }
+
+    // Helper to parse notes and extract clean text (stripping old work days metadata tags)
+    function parseLogNotes(rawNotes) {
+      if (!rawNotes) return '';
+      return rawNotes.replace(/<!--DAYS:[0-9.]+-->/, '');
+    }
+
+    // ─── Render Orders ───
+    function renderOrdersList() {
+      const container = document.getElementById('orders-list-container');
+      const badge = document.getElementById('orders-badge');
+      const filtered = activeOrders.filter(o => !searchFilter || getOrderDisplayName(o).toLowerCase().includes(searchFilter));
+      badge.textContent = `${filtered.length} طلبية`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:3rem 1rem;color:var(--text-light);font-size:0.85rem;">لا توجد طلبيات</div>`;
+        return;
+      }
+
+      container.innerHTML = '';
+      filtered.forEach(order => {
+        const displayName = getOrderDisplayName(order);
+        const itemDiv = document.createElement('div');
+        itemDiv.className = `prog-order-item ${selectedOrder && selectedOrder.id === order.id ? 'active' : ''}`;
+        itemDiv.onclick = () => selectOrder(order);
+        itemDiv.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <strong style="color:var(--text-main);font-size:0.9rem;font-weight:800;">${displayName}</strong>
+            ${getStageBadgeHTML(order.stage)}
+          </div>
+          <div style="font-size:0.73rem;color:var(--text-muted);margin-top:0.15rem;">
+            تسليم: <strong>${order.delivery_date || 'غير محدد'}</strong>
+          </div>
+        `;
+        container.appendChild(itemDiv);
+      });
+    }
+
+    function filterOrdersList() {
+      searchFilter = document.getElementById('search-orders').value.trim().toLowerCase();
+      renderOrdersList();
+    }
+
+    // ─── Select Order ───
+    async function selectOrder(order) {
+      selectedOrder = order;
+      document.getElementById('select-order-placeholder').classList.add('hidden');
+      document.getElementById('selected-order-view').classList.remove('hidden');
+      document.getElementById('daily-report-view').classList.add('hidden');
+      renderOrdersList();
+
+      document.getElementById('view-order-name').textContent = getOrderDisplayName(order);
+      document.getElementById('view-order-stage').innerHTML = getStageBadgeHTML(order.stage);
+      document.getElementById('view-delivery-date').textContent = order.delivery_date || 'غير محدد';
+
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('log-date').value = today;
+      document.getElementById('log-notes').value = '';
+
+      await loadOrderLogs(order.id);
+    }
+
+    // ─── Load Logs ───
+    async function loadOrderLogs(orderId) {
+      const sb = getSupabase();
+      try {
+        const { data, error } = await sb
+          .from('order_progress')
+          .select('*')
+          .eq('order_id', orderId)
+          .order('progress_date', { ascending: false });
+        if (error) throw error;
+        selectedOrderLogs = data || [];
+        renderProgressHistory();
+      } catch (e) {
+        showAlert('فشل تحميل السجل: ' + e.message, 'error');
+      }
+    }
+
+    // ─── Render Timeline ───
+    function renderProgressHistory() {
+      const container = document.getElementById('progress-history-list');
+      const countChip = document.getElementById('log-count-chip');
+      const historyCount = document.getElementById('history-count');
+      const daysChip = document.getElementById('log-days-chip');
+
+      const count = selectedOrderLogs.length;
+      countChip.textContent = `${count} ملاحظة`;
+      historyCount.textContent = count > 0 ? `${count} إدخال` : '';
+
+      if (count === 0) {
+        if (daysChip) daysChip.textContent = `👷 0 يوم شغل`;
+        container.innerHTML = `<div class="empty-timeline">لا يوجد ملاحظات بعد — سجّل أول ملاحظة اليوم 📋</div>`;
+        return;
+      }
+
+      // Count unique dates where progress notes are logged
+      const uniqueDates = new Set();
+      selectedOrderLogs.forEach(log => {
+        if (log.progress_date) {
+          uniqueDates.add(log.progress_date);
+        }
+      });
+      const totalDays = uniqueDates.size;
+
+      container.innerHTML = '';
+      
+      selectedOrderLogs.forEach(log => {
+        const cleanText = parseLogNotes(log.notes);
+
+        const date = new Date(log.progress_date + 'T00:00:00');
+        const dayNum = date.getDate();
+        const monthName = date.toLocaleDateString('ar-EG', { month: 'short' });
+        const weekday = date.toLocaleDateString('ar-EG', { weekday: 'long' });
+        const fullDate = date.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        const noteTextHtml = cleanText ? cleanText : '<span style="color:var(--text-muted);font-style:italic;">لا توجد ملاحظة</span>';
+
+        const entry = document.createElement('div');
+        entry.className = 'timeline-entry';
+        entry.innerHTML = `
+          <div class="timeline-date-col">
+            <div class="timeline-day">${dayNum}</div>
+            <div class="timeline-month">${monthName}</div>
+          </div>
+          <div class="timeline-dot"></div>
+          <div class="timeline-card">
+            <div class="timeline-note-text" style="white-space: pre-line;">${noteTextHtml}</div>
+            <div class="timeline-meta">
+              <span class="timeline-meta-date">📅 ${weekday} ${fullDate}</span>
+              <button class="btn-delete-log" onclick="deleteLog('${log.id}')">🗑 حذف</button>
+            </div>
+          </div>
+        `;
+        container.appendChild(entry);
+      });
+
+      if (daysChip) {
+        daysChip.textContent = `👷 ${totalDays} يوم شغل`;
+      }
+    }
+
+    // ─── Save Log ───
+    async function saveProgressLog() {
+      if (!selectedOrder) return;
+      const date  = document.getElementById('log-date').value;
+      const notes = document.getElementById('log-notes').value.trim();
+
+      if (!date) { showAlert('يرجى اختيار التاريخ', 'error'); return; }
+      if (!notes) { showAlert('يرجى كتابة ملاحظة', 'error'); return; }
+
+      try {
+        showAlert('جاري الحفظ...', 'pending');
+        const sb = getSupabase();
+        const { error } = await sb.from('order_progress').insert([{
+          order_id: selectedOrder.id,
+          progress_date: date,
+          progress_percent: 0,
+          notes: notes,
+          created_by: currentUser ? currentUser.id : null
+        }]);
+        if (error) throw error;
+        showAlert('تم حفظ الملاحظة ✅', 'success');
+        document.getElementById('log-notes').value = '';
+        await loadOrderLogs(selectedOrder.id);
+      } catch (e) {
+        showAlert('فشل الحفظ: ' + e.message, 'error');
+      }
+    }
+
+    // ─── Delete Log ───
+    async function deleteLog(logId) {
+      if (!(await customConfirm('هل تريد حذف هذه الملاحظة؟'))) return;
+      try {
+        const sb = getSupabase();
+        const { error } = await sb.from('order_progress').delete().eq('id', logId);
+        if (error) throw error;
+        showAlert('تم الحذف', 'success');
+        await loadOrderLogs(selectedOrder.id);
+      } catch (e) {
+        showAlert('فشل الحذف: ' + e.message, 'error');
+      }
+    }
+
+    // ─── Load Orders ───
+    async function loadActiveOrders() {
+      const sb = getSupabase();
+      try {
+        const { data, error } = await sb
+          .from('client_orders')
+          .select('id, client_name, order_display_name, stage, delivery_date, created_at')
+          .eq('archived', false)
+          .not('stage', 'eq', 'تم التسليم للزبون')
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        activeOrders = data || [];
+        renderOrdersList();
+      } catch (err) {
+        showAlert('فشل تحميل الطلبيات: ' + err.message, 'error');
+      }
+    }
+
+    async function showDailyReportView() {
+      selectedOrder = null;
+      document.getElementById('select-order-placeholder').classList.add('hidden');
+      document.getElementById('selected-order-view').classList.add('hidden');
+      document.getElementById('daily-report-view').classList.remove('hidden');
+      renderOrdersList();
+
+      const reportDateInput = document.getElementById('report-date');
+      if (!reportDateInput.value) {
+        reportDateInput.value = new Date().toISOString().split('T')[0];
+      }
+      await loadDailyReport();
+    }
+
+    async function loadDailyReport() {
+      const selectedDate = document.getElementById('report-date').value;
+      if (!selectedDate) return;
+
+      const container = document.getElementById('daily-report-list');
+      container.innerHTML = `<div style="text-align:center;padding:3rem 1rem;color:var(--text-light);font-size:0.85rem;">جاري تحميل التقرير... 📅</div>`;
+
+      const sb = getSupabase();
+      try {
+        // 1. Fetch progress logs for this date
+        const { data: logs, error: logsErr } = await sb
+          .from('order_progress')
+          .select('*')
+          .eq('progress_date', selectedDate);
+        if (logsErr) throw logsErr;
+
+        // 2. Fetch all orders to map their display names and stages
+        const { data: ordersList, error: ordersErr } = await sb
+          .from('client_orders')
+          .select('id, client_name, order_display_name, stage, delivery_date');
+        if (ordersErr) throw ordersErr;
+
+        const ordersMap = {};
+        (ordersList || []).forEach(o => {
+          ordersMap[o.id] = o;
+        });
+
+        // 3. Render report
+        const totalLogs = logs ? logs.length : 0;
+        const uniqueOrders = new Set();
+        if (logs) {
+          logs.forEach(l => uniqueOrders.add(l.order_id));
+        }
+
+        document.getElementById('report-total-orders-chip').textContent = `📋 ${uniqueOrders.size} طلبيات تم العمل عليها`;
+        document.getElementById('report-total-logs-chip').textContent = `✅ ${totalLogs} إنجازات مسجلة`;
+
+        if (totalLogs === 0) {
+          container.innerHTML = `<div class="empty-timeline">لم يتم تسجيل أي إنجازات أو ملاحظات في هذا اليوم (${selectedDate}) 📭</div>`;
+          return;
+        }
+
+        container.innerHTML = '';
+        logs.forEach(log => {
+          const order = ordersMap[log.order_id];
+          const orderName = order ? (order.order_display_name || order.client_name || 'أوردر مجهول') : 'طلبية غير موجودة';
+          const orderStage = order ? order.stage : null;
+          const cleanText = parseLogNotes(log.notes);
+          
+          const entry = document.createElement('div');
+          entry.className = 'timeline-entry';
+          
+          entry.innerHTML = `
+            <div class="timeline-dot" style="margin-top: 1rem; background: var(--success); box-shadow: 0 0 0 3px rgba(34,197,94,0.15);"></div>
+            <div class="timeline-card" style="margin-right: 1.5rem; border-right: 3px solid var(--success);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.5rem;">
+                <span onclick="goToOrderFromReport('${log.order_id}')" style="font-weight:900; color:var(--primary); cursor:pointer; font-size:0.95rem; text-decoration:underline;" title="اضغط للانتقال لمتابعة الطلبية">
+                  📦 ${orderName}
+                </span>
+                ${getStageBadgeHTML(orderStage)}
+              </div>
+              <div class="timeline-note-text" style="white-space: pre-line; background:rgba(0,0,0,0.015); padding:0.75rem 1rem; border-radius:8px; border:1px solid var(--border-light); margin-bottom:0.5rem;">${cleanText}</div>
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.7rem; color:var(--text-muted);">
+                <span>📅 تسليم الطلب: ${order ? (order.delivery_date || 'غير محدد') : '-'}</span>
+                <button class="btn-delete-log" onclick="deleteLogFromReport('${log.id}', '${log.order_id}')">🗑 حذف</button>
+              </div>
+            </div>
+          `;
+          container.appendChild(entry);
+        });
+
+      } catch (e) {
+        showAlert('فشل تحميل التقرير اليومي: ' + e.message, 'error');
+      }
+    }
+
+    async function goToOrderFromReport(orderId) {
+      const order = activeOrders.find(o => o.id === orderId);
+      if (order) {
+        document.getElementById('daily-report-view').classList.add('hidden');
+        await selectOrder(order);
+      } else {
+        const sb = getSupabase();
+        try {
+          const { data, error } = await sb.from('client_orders').select('*').eq('id', orderId).single();
+          if (error) throw error;
+          document.getElementById('daily-report-view').classList.add('hidden');
+          await selectOrder(data);
+        } catch (e) {
+          showAlert('لا يمكن العثور على الطلبية أو ربما تم حذفها', 'error');
+        }
+      }
+    }
+
+    async function deleteLogFromReport(logId, orderId) {
+      if (!(await customConfirm('هل تريد حذف هذه الملاحظة؟'))) return;
+      try {
+        const sb = getSupabase();
+        const { error } = await sb.from('order_progress').delete().eq('id', logId);
+        if (error) throw error;
+        showAlert('تم الحذف', 'success');
+        await loadDailyReport();
+      } catch (e) {
+        showAlert('فشل الحذف: ' + e.message, 'error');
+      }
+    }
+
+    // ─── Init ───
+    async function initProgressPage() {
+      await initAuth();
+      await loadActiveOrders();
+
+      const sb = getSupabase();
+      sb.channel('progress-realtime').on('postgres_changes', { event: '*', schema: 'public', table: 'order_progress' }, () => {
+        if (selectedOrder) {
+          loadOrderLogs(selectedOrder.id);
+        } else if (!document.getElementById('daily-report-view').classList.contains('hidden')) {
+          loadDailyReport();
+        }
+      }).subscribe();
+    }
+
+    document.addEventListener('DOMContentLoaded', initProgressPage);
+  </script>
+</body>
+</html>

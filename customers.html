@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>العملاء - نظام الإدارة</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/auth.js"></script>
+</head>
+
+<body>
+  <main class="main-content">
+    <div class="page-header">
+      <h1 style="display:flex; align-items:center; gap:0.6rem;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round"
+          stroke-linejoin="round" style="width:28px;height:28px;flex-shrink:0;">
+          <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" opacity="0.4" />
+        </svg>
+        إدارة العملاء
+      </h1>
+      <button class="btn btn-primary" onclick="openModal('create-customer-modal')" style="gap:0.5rem;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round" style="width:18px;height:18px;">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        عميل جديد
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-header"
+        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+        <h2 style="margin:0;">قائمة العملاء</h2>
+        <div style="position:relative; flex:1; max-width:350px;">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18" stroke-width="2"
+            style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--text-light);">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input type="text" id="customer-search-input" placeholder="بحث بالاسم أو رقم التليفون..."
+            onkeyup="filterCustomers()"
+            style="width:100%; padding:0.6rem 2.5rem 0.6rem 1rem; border:2px solid var(--border); border-radius:var(--radius); font-size:0.95rem; font-family:inherit; transition:border-color 0.2s;"
+            onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>اسم العميل</th>
+                <th>رقم الهاتف</th>
+                <th>إجمالي الطلبيات</th>
+                <th>الوضع المالي</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="customers-table-body">
+              <tr>
+                <td colspan="5" style="text-align:center;color:var(--text-muted)">جاري التحميل...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="create-customer-modal" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>إضافة عميل جديد</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('create-customer-modal')" style="padding:0.5rem">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="create-customer-form">
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label for="cust-name">اسم العميل *</label>
+              <input type="text" id="cust-name" required placeholder="مثال: شركة النور">
+            </div>
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label for="cust-phone">رقم الهاتف</label>
+              <input type="text" id="cust-phone" placeholder="مثال: 01012345678">
+            </div>
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label style="display:block; margin-bottom:0.35rem; font-weight:700;">نوع العميل *</label>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.4rem;">
+                <label class="cust-type-option">
+                  <input type="radio" name="cust_type" value="regular" checked>
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 0.45rem;"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M12 2v3" opacity="0.6"/><path d="m9 3 3-1 3 1" opacity="0.6"/></svg>
+                  <span style="font-weight: 800; font-size: 0.82rem; color: var(--text-main);">عميل ثابت (مستمر)</span>
+                </label>
+                <label class="cust-type-option">
+                  <input type="radio" name="cust_type" value="temporary">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--error)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 0.45rem;"><path d="M5 2h14M5 22h14M19 2v4a7 7 0 0 1-7 7v0a7 7 0 0 1-7-7V2M5 22v-4a7 7 0 0 1 7-7v0a7 7 0 0 1 7 7v4"/></svg>
+                  <span style="font-weight: 800; font-size: 0.82rem; color: var(--text-main);">عميل مؤقت (أوردر واحد)</span>
+                </label>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="submitCreateCustomer()">حفظ العميل</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('create-customer-modal')">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="customer-history-modal" class="modal-overlay hidden">
+      <div class="modal" style="max-width: 800px;">
+        <div class="modal-header">
+          <h3 id="history-customer-name">تاريخ طلبيات العميل</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('customer-history-modal')"
+            style="padding:0.5rem">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>تاريخ الطلبية</th>
+                  <th>إجمالي المبلغ</th>
+                  <th>المدفوع</th>
+                  <th>المتبقي</th>
+                  <th>المرحلة</th>
+                </tr>
+              </thead>
+              <tbody id="history-table-body">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function openModal(id) {
+        document.getElementById(id).classList.remove('hidden');
+      }
+
+      function closeModal(id) {
+        document.getElementById(id).classList.add('hidden');
+      }
+
+      async function submitCreateCustomer() {
+        const form = document.getElementById('create-customer-form');
+        const nameInput = document.getElementById('cust-name');
+        const phoneInput = document.getElementById('cust-phone');
+        const typeInput = document.querySelector('input[name="cust_type"]:checked');
+
+        const name = nameInput.value.trim();
+        const phone = phoneInput.value.trim();
+        const type = typeInput.value;
+
+        if (!name) {
+          showAlert('يرجى إدخال اسم العميل', 'error');
+          return;
+        }
+
+        const finalName = name;
+        const finalPhone = type === 'temporary' ? `${phone} [مؤقت]` : phone;
+
+        try {
+          showAlert('جاري حفظ العميل...', 'pending');
+          const sb = getSupabase();
+
+          const { error } = await sb.from('customers').insert([{
+            name: finalName,
+            phone: finalPhone
+          }]);
+
+          if (error) throw error;
+
+          showAlert('تم حفظ العميل بنجاح!', 'success');
+          closeModal('create-customer-modal');
+          form.reset();
+          await initCustomersPage();
+        } catch (e) {
+          showAlert('فشل الحفظ: ' + e.message, 'error');
+        }
+      }
+
+      function filterCustomers() {
+        const query = document.getElementById('customer-search-input').value.toLowerCase();
+        const rows = document.querySelectorAll('#customers-table-body tr');
+
+        rows.forEach(row => {
+          if (row.children.length < 5) return;
+          const name = row.children[0].textContent.toLowerCase();
+          const phone = row.children[1].textContent.toLowerCase();
+          if (name.includes(query) || phone.includes(query)) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      }
+
+      async function initCustomersPage() {
+        await initAuth();
+        const sb = getSupabase();
+        const tbody = document.getElementById('customers-table-body');
+
+        try {
+          const { data: customers, error } = await sb.from('customers').select('*').order('name');
+          if (error) throw error;
+
+          const { data: orders } = await sb.from('client_orders').select('*');
+
+          if (!customers || customers.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">لا يوجد عملاء حالياً</td></tr>`;
+            return;
+          }
+
+          tbody.innerHTML = '';
+          customers.forEach(cust => {
+            const custOrders = orders ? orders.filter(o => o.client_name === cust.name) : [];
+            const totalOrders = custOrders.length;
+            const totalRemaining = custOrders.reduce((sum, o) => sum + ((o.total_price || 0) - (o.paid_amount || 0)), 0);
+
+            const isTemp = cust.phone && cust.phone.includes('[مؤقت]');
+            const cleanPhone = cust.phone ? cust.phone.replace(' [مؤقت]', '').replace('[مؤقت]', '') : '';
+            const typeBadge = isTemp 
+              ? `<span style="background:#fee2e2; color:#ef4444; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:700; margin-right:8px; display:inline-block;">مؤقت ⏳</span>` 
+              : `<span style="background:#e0e7ff; color:#4f46e5; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:700; margin-right:8px; display:inline-block;">ثابت 📌</span>`;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>
+                <div style="display:flex; align-items:center;">
+                  <strong>${cust.name}</strong>
+                  ${typeBadge}
+                </div>
+              </td>
+              <td>${cleanPhone || '-'}</td>
+              <td>${totalOrders} طلبية</td>
+              <td>
+                ${totalRemaining > 0 ? `<span style="color:var(--error)">باقي عليه: ${totalRemaining.toLocaleString()} جنيه</span>` : `<span style="color:var(--success)">خالص تماماً</span>`}
+              </td>
+              <td>
+                <div style="display:flex;gap:0.4rem;justify-content:center;flex-wrap:wrap;">
+                  <button onclick="viewHistory('${cust.name}')"
+                    style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:0.4rem 0.75rem;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:0.3rem;">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    السجل
+                  </button>
+                  <button onclick="deleteCustomer('${cust.id}')"
+                    style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:0.4rem 0.75rem;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:0.3rem;">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                    حذف
+                  </button>
+                </div>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } catch (e) {
+          console.error(e);
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--error)">تأكد من إنشاء جدول customers في قاعدة البيانات: ${e.message}</td></tr>`;
+        }
+      }
+
+      async function viewHistory(customerName) {
+        document.getElementById('history-customer-name').textContent = `تاريخ طلبيات العميل: ${customerName}`;
+        const tbody = document.getElementById('history-table-body');
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">جاري التحميل...</td></tr>';
+
+        openModal('customer-history-modal');
+
+        const sb = getSupabase();
+        const { data: orders } = await sb.from('client_orders').select('*').eq('client_name', customerName).order('created_at', { ascending: false });
+
+        if (!orders || orders.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">لا يوجد طلبيات سابقة</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = '';
+        orders.forEach(o => {
+          const remaining = (o.total_price || 0) - (o.paid_amount || 0);
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${new Date(o.created_at).toLocaleDateString('ar-EG')}</td>
+            <td>${o.total_price.toLocaleString()}</td>
+            <td>${o.paid_amount.toLocaleString()}</td>
+            <td>${remaining.toLocaleString()}</td>
+            <td><span class="badge badge-${o.stage === 'تم التسليم للزبون' ? 'success' : 'pending'}">${o.stage}</span></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      async function deleteCustomer(id) {
+        if (!(await customConfirm('هل أنت متأكد من حذف هذا العميل؟ لن يتم حذف طلبياته السابقة.'))) return;
+        try {
+          const sb = getSupabase();
+          const { error } = await sb.from('customers').delete().eq('id', id);
+          if (error) throw error;
+          showAlert('تم الحذف بنجاح', 'success');
+          await initCustomersPage();
+        } catch (e) {
+          showAlert('فشل الحذف: ' + e.message, 'error');
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', async () => {
+        await initCustomersPage();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchName = urlParams.get('search');
+        if (searchName) {
+          viewHistory(searchName);
+        }
+      });
+    </script>
+</body>
+
+</html>

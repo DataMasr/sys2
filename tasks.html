@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>قائمة المهام - نظام الإدارة</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/auth.js"></script>
+  <style>
+    .tasks-container {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+      margin-top: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .tasks-container {
+        grid-template-columns: 1fr;
+      }
+
+      .orders-panel {
+        position: static !important;
+      }
+
+      .orders-list {
+        max-height: 240px;
+      }
+    }
+
+    .orders-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-sm);
+      position: sticky;
+      top: 1.5rem;
+    }
+
+    .details-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+      min-height: 60vh;
+    }
+
+    .orders-search {
+      width: 100%;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: var(--bg-color);
+      font-family: inherit;
+      font-size: 0.85rem;
+      color: var(--text-main);
+      margin-top: 0.85rem;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    .orders-search:focus {
+      border-color: var(--primary-light);
+    }
+
+    .orders-list {
+      max-height: calc(100vh - 330px);
+      overflow-y: auto;
+      margin-top: 0.85rem;
+    }
+
+    .orders-list::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .orders-list::-webkit-scrollbar-thumb {
+      background: #dde1e9;
+      border-radius: 8px;
+    }
+
+    .task-order-item {
+      background: var(--bg-color);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.6rem;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .task-order-item::before {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: transparent;
+      border-radius: 0 3px 3px 0;
+      transition: background 0.2s;
+    }
+
+    .task-order-item:hover {
+      box-shadow: var(--shadow-md);
+      border-color: #c7d2fe;
+      transform: translateY(-1px);
+    }
+
+    .task-order-item:hover::before {
+      background: var(--primary-light);
+    }
+
+    .task-order-item.active {
+      background: var(--primary-bg);
+      border-color: rgba(79, 70, 229, 0.2);
+    }
+
+    .task-order-item.active::before {
+      background: var(--primary);
+    }
+
+    .order-progress-track {
+      width: 100%;
+      height: 4px;
+      background: #e8ecf2;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 0.5rem;
+    }
+
+    .order-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), #818cf8);
+      border-radius: 10px;
+      transition: width 0.4s;
+    }
+
+    .lanes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    @media (max-width: 1100px) {
+      .lanes-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .lane-card {
+      border-radius: var(--radius-lg);
+      border: 1.5px solid var(--border);
+      overflow: hidden;
+      transition: var(--transition);
+    }
+
+    .lane-header {
+      padding: 0.85rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 800;
+      font-size: 0.9rem;
+    }
+
+    .lane-body {
+      padding: 0.75rem;
+    }
+
+    .lane-production .lane-header {
+      background: rgba(124, 58, 237, 0.07);
+      color: #6d28d9;
+      border-bottom: 1.5px solid rgba(124, 58, 237, 0.12);
+    }
+
+    .lane-production {
+      border-color: rgba(124, 58, 237, 0.2);
+    }
+
+    .lane-inventory .lane-header {
+      background: rgba(5, 150, 105, 0.07);
+      color: #047857;
+      border-bottom: 1.5px solid rgba(5, 150, 105, 0.12);
+    }
+
+    .lane-inventory {
+      border-color: rgba(5, 150, 105, 0.2);
+    }
+
+    .lane-purchasing .lane-header {
+      background: rgba(217, 119, 6, 0.07);
+      color: #b45309;
+      border-bottom: 1.5px solid rgba(217, 119, 6, 0.12);
+    }
+
+    .lane-purchasing {
+      border-color: rgba(217, 119, 6, 0.2);
+    }
+
+    .lane-locked .lane-body {
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    .locked-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: #f1f5f9;
+      color: #64748b;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      border: 1px solid #e2e8f0;
+    }
+
+    .completed-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: #dcfce7;
+      color: #15803d;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      border: 1px solid #bbf7d0;
+    }
+
+    .task-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      padding: 0.65rem 0.75rem;
+      background: var(--bg-color);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 0.5rem;
+      transition: var(--transition);
+    }
+
+    .task-row:hover {
+      border-color: #c7d2fe;
+    }
+
+    .task-row.completed {
+      background: rgba(5, 150, 105, 0.03);
+      border-color: rgba(5, 150, 105, 0.15);
+    }
+
+    .task-row.completed .task-text {
+      text-decoration: line-through;
+      color: var(--text-light);
+    }
+
+    .custom-checkbox {
+      width: 20px;
+      height: 20px;
+      min-width: 20px;
+      border: 2px solid #c7d2fe;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      background: #fff;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .task-row.completed .custom-checkbox {
+      background: var(--success);
+      border-color: var(--success);
+    }
+
+    .custom-checkbox svg {
+      width: 11px;
+      height: 11px;
+      fill: none;
+      stroke: #fff;
+      stroke-width: 3;
+      opacity: 0;
+      transition: opacity 0.15s;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .task-row.completed .custom-checkbox svg {
+      opacity: 1;
+    }
+
+    .task-text {
+      font-size: 0.85rem;
+      font-weight: 600;
+      flex: 1;
+      line-height: 1.4;
+      padding-top: 2px;
+    }
+
+    .btn-task-action {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 3px;
+      border-radius: 5px;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .btn-task-action:hover {
+      background: #f1f5f9;
+    }
+
+    .btn-task-delete:hover {
+      background: #fee2e2;
+      color: #ef4444;
+    }
+
+    /* Purchase details */
+    .purchase-details-strip {
+      margin-top: 0.4rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .purchase-chip {
+      background: rgba(217, 119, 6, 0.1);
+      color: #92400e;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 0.71rem;
+      font-weight: 700;
+      border: 1px solid rgba(217, 119, 6, 0.2);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .add-task-form {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      background: var(--bg-color);
+      border: 1.5px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 0.6rem;
+    }
+
+    .add-task-form:focus-within {
+      border-color: var(--primary-light);
+      border-style: solid;
+    }
+
+    .add-task-input {
+      flex: 1;
+      padding: 0.55rem 0.8rem;
+      border-radius: 7px;
+      border: 1.5px solid var(--border);
+      font-family: inherit;
+      font-size: 0.85rem;
+      background: #fff;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .add-task-input:focus {
+      border-color: var(--primary-light);
+    }
+
+    .lane-progress-wrap {
+      padding: 0.5rem 0.75rem 0.25rem;
+    }
+
+    .lane-progress-track {
+      height: 4px;
+      background: #e8ecf2;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .lane-progress-bar {
+      height: 100%;
+      border-radius: 10px;
+      transition: width 0.4s;
+    }
+
+    .lane-production .lane-progress-bar {
+      background: linear-gradient(90deg, #7c3aed, #a78bfa);
+    }
+
+    .lane-inventory .lane-progress-bar {
+      background: linear-gradient(90deg, #059669, #34d399);
+    }
+
+    .lane-purchasing .lane-progress-bar {
+      background: linear-gradient(90deg, #d97706, #fbbf24);
+    }
+
+    .purchase-modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 480px) {
+      .purchase-modal-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .badge-stage {
+      padding: 0.2rem 0.6rem;
+      font-size: 0.68rem;
+      font-weight: 700;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    .stage-contract {
+      background: rgba(5, 150, 105, 0.08);
+      color: #047857;
+      border: 1px solid rgba(5, 150, 105, 0.15);
+    }
+
+    .stage-production {
+      background: rgba(124, 58, 237, 0.08);
+      color: #6d28d9;
+      border: 1px solid rgba(124, 58, 237, 0.15);
+    }
+
+    .stage-delivery {
+      background: rgba(217, 119, 6, 0.08);
+      color: #b45309;
+      border: 1px solid rgba(217, 119, 6, 0.15);
+    }
+
+    .stage-default {
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+    }
+
+    .order-info-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .order-info-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="main-content">
+    <div class="page-header">
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round"
+          stroke-linejoin="round" style="width:28px;height:28px;flex-shrink:0;">
+          <path d="M9 11l3 3L22 4" />
+          <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+        </svg>
+        <div>
+          <h1 style="font-size:1.4rem;margin:0;">قائمة المهام</h1>
+          <p style="font-size:0.82rem;color:var(--text-muted);margin-top:0.1rem;">كل دور يرى مهامه ويضيف عليها — الترتيب
+            إلزامي</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tasks-container">
+      <div class="orders-panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:0.9rem;font-weight:800;color:var(--text-main);">الطلبيات النشطة</span>
+          <span id="orders-badge" class="badge-stage stage-contract">0 طلبية</span>
+        </div>
+        <input class="orders-search" type="text" id="search-orders" placeholder="🔍 ابحث..."
+          oninput="filterOrdersList()">
+        <div class="orders-list" id="orders-list-container">
+          <div style="text-align:center;padding:2.5rem 1rem;color:var(--text-light);font-size:0.85rem;">جاري التحميل...
+          </div>
+        </div>
+      </div>
+
+      <div class="details-panel" id="task-details-panel">
+        <div id="select-order-placeholder"
+          style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;text-align:center;color:var(--text-light);">
+          <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1"
+            stroke-linecap="round" stroke-linejoin="round" style="opacity:0.25;margin-bottom:1.25rem;">
+            <path d="M9 11l3 3L22 4" />
+            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+          </svg>
+          <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-muted);margin-bottom:0.35rem;">اختر طلبية للبدء
+          </h3>
+          <p style="font-size:0.83rem;">اضغط على أي طلبية من القائمة لعرض مراحلها</p>
+        </div>
+
+        <div id="selected-order-view" class="hidden">
+          <div
+            style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;padding-bottom:1.25rem;margin-bottom:1.25rem;border-bottom:1px solid var(--border);">
+            <div>
+              <h2 id="view-order-name"
+                style="font-size:1.25rem;color:var(--primary);font-weight:800;margin-bottom:0.3rem;">-</h2>
+              <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+                <span id="view-order-stage-container"></span>
+                <span style="font-size:0.78rem;color:var(--text-muted);">📅 تسليم: <strong id="view-delivery-date"
+                    style="color:var(--text-main);">-</strong></span>
+              </div>
+            </div>
+            <div style="text-align:center;min-width:80px;">
+              <div style="font-size:1.8rem;font-weight:900;color:var(--success);line-height:1;"
+                id="overall-progress-pct">0%</div>
+              <div style="font-size:0.7rem;color:var(--text-light);margin-top:0.2rem;">إجمالي الإنجاز</div>
+            </div>
+          </div>
+          
+          <!-- Order Info Grid -->
+          <div class="order-info-grid">
+            <!-- Order Details Box -->
+            <div id="order-details-box" style="background:var(--bg-light); border:1.5px solid var(--border); border-radius:12px; padding:1.25rem; margin-bottom:0;">
+              <h4 style="margin:0 0 0.6rem 0; color:var(--primary); font-weight:800; font-size:0.9rem; display:flex; align-items:center; gap:0.4rem;">
+                📝 تفاصيل ومواصفات الأوردر:
+              </h4>
+              <div id="order-details-text" style="font-size:0.85rem; color:var(--text-main); white-space:pre-wrap; line-height:1.6; font-weight:500;">-</div>
+            </div>
+
+            <!-- Order Expenses Box -->
+            <div id="order-expenses-box" style="background:var(--bg-light); border:1.5px solid var(--border); border-radius:12px; padding:1.25rem; margin-bottom:0; display:flex; flex-direction:column; min-height:120px;">
+              <h4 style="margin:0 0 0.6rem 0; color:#d97706; font-weight:800; font-size:0.9rem; display:flex; align-items:center; justify-content:space-between; gap:0.4rem; border-bottom:1px solid var(--border); padding-bottom:0.4rem;">
+                <span style="display:flex; align-items:center; gap:0.25rem;">💵 المصاريف الإضافية للأوردر:</span>
+                <span id="order-expenses-total" style="font-size: 0.8rem; background: rgba(217, 119, 6, 0.15); color: #d97706; padding: 2px 8px; border-radius: 6px; font-weight: bold; white-space:nowrap;">0 ج.م</span>
+              </h4>
+              <div id="order-expenses-list" style="font-size:0.82rem; color:var(--text-main); max-height:180px; overflow-y:auto; line-height:1.6; font-weight:500; flex:1;">
+                جاري تحميل المصاريف...
+              </div>
+            </div>
+          </div>
+
+          <div class="lanes-grid" id="lanes-grid-container"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+
+
+  <script>
+    let editingTaskNoteKey = null;
+    // ─── Constants ───
+    const LANES = [
+      { key: 'inventory_manager', label: 'مدير التجهيزات', emoji: '📦', cssClass: 'lane-inventory' },
+      { key: 'production_engineer', label: 'مهندس الإنتاج', emoji: '⚙️', cssClass: 'lane-production' },
+      { key: 'purchasing_manager', label: 'مدير المشتريات', emoji: '🛒', cssClass: 'lane-purchasing' }
+    ];
+
+    let activeOrders = [];
+    let selectedOrder = null;
+    let searchFilter = '';
+    let currentUserRole = null;
+
+    const IS_ADMIN_ROLE = (role) => ['admin', 'manager'].includes(role);
+
+    // ─── Task parsing ───
+    function parseAllTasks(order) {
+      if (!order || !order.pending_materials) return {};
+      const pm = order.pending_materials;
+      if (Array.isArray(pm)) return { production_engineer: pm, inventory_manager: [], purchasing_manager: [] };
+      return pm;
+    }
+
+    async function saveAllTasks(orderId, tasksObj) {
+      try {
+        const sb = getSupabase();
+        const { error } = await sb.from('client_orders').update({ pending_materials: tasksObj }).eq('id', orderId);
+        if (error) throw error;
+        const order = activeOrders.find(o => o.id === orderId);
+        if (order) order.pending_materials = tasksObj;
+      } catch (err) {
+        showAlert('فشل حفظ البيانات: ' + err.message, 'error');
+      }
+    }
+
+    function isLaneComplete(tasksObj, laneKey) {
+      const tasks = tasksObj[laneKey] || [];
+      return tasks.length > 0 && tasks.every(t => t.done);
+    }
+
+    function isLaneLocked(laneKey, tasksObj) {
+      return false;
+    }
+
+    function calcOverallProgress(tasksObj) {
+      let total = 0, done = 0;
+      LANES.forEach(l => { const t = tasksObj[l.key] || []; total += t.length; done += t.filter(x => x.done).length; });
+      return total > 0 ? Math.round((done / total) * 100) : 0;
+    }
+
+    function getStageBadgeHTML(stage) {
+      if (!stage) return `<span class="badge-stage stage-default">مجهول</span>`;
+      let cls = 'stage-default';
+      if (stage.includes('عربون') || stage.includes('تعاقد')) cls = 'stage-contract';
+      else if (stage.includes('تنفيذ') || stage.includes('خامات') || stage.includes('تصنيع')) cls = 'stage-production';
+      else if (stage.includes('شحن') || stage.includes('توصيل') || stage.includes('تسليم') || stage.includes('جاهز')) cls = 'stage-delivery';
+      return `<span class="badge-stage ${cls}">${stage}</span>`;
+    }
+
+    function getOrderDisplayName(order) {
+      return order.order_display_name || order.client_name || '-';
+    }
+
+    // ─── Render Orders List ───
+    function renderOrdersList() {
+      const container = document.getElementById('orders-list-container');
+      const badge = document.getElementById('orders-badge');
+      const filtered = activeOrders.filter(o => !searchFilter || getOrderDisplayName(o).toLowerCase().includes(searchFilter));
+      badge.textContent = `${filtered.length} طلبية`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:3rem 1rem;color:var(--text-light);font-size:0.85rem;">لا توجد طلبيات مطابقة</div>`;
+        return;
+      }
+
+      container.innerHTML = '';
+      filtered.forEach(order => {
+        const tasksObj = parseAllTasks(order);
+        let total = 0, done = 0;
+        LANES.forEach(l => { const t = tasksObj[l.key] || []; total += t.length; done += t.filter(x => x.done).length; });
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+        const displayName = getOrderDisplayName(order);
+
+        const itemDiv = document.createElement('div');
+        itemDiv.className = `task-order-item ${selectedOrder && selectedOrder.id === order.id ? 'active' : ''}`;
+        itemDiv.onclick = () => selectOrder(order);
+        itemDiv.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <strong style="color:var(--text-main);font-size:0.92rem;font-weight:800;">${displayName}</strong>
+            ${getStageBadgeHTML(order.stage)}
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:0.73rem;color:var(--text-muted);margin-top:0.15rem;">
+            <span>تسليم: <strong>${order.delivery_date || 'غير محدد'}</strong></span>
+            <span><strong>${done}/${total}</strong> مهمة (${pct}%)</span>
+          </div>
+          <div class="order-progress-track"><div class="order-progress-bar" style="width:${pct}%;"></div></div>
+        `;
+        container.appendChild(itemDiv);
+      });
+    }
+
+    function filterOrdersList() {
+      searchFilter = document.getElementById('search-orders').value.trim().toLowerCase();
+      renderOrdersList();
+    }
+
+    function selectOrder(order) {
+      selectedOrder = order;
+      document.getElementById('select-order-placeholder').classList.add('hidden');
+      document.getElementById('selected-order-view').classList.remove('hidden');
+      renderOrdersList();
+      renderSelectedOrderView();
+    }
+
+    function renderSelectedOrderView() {
+      if (!selectedOrder) return;
+      document.getElementById('view-order-name').textContent = getOrderDisplayName(selectedOrder);
+
+      const stages = [
+        'تم التعاقد (دفع عربون)',
+        'شراء الخامات',
+        'قيد التنفيذ',
+        'قيد التصنيع',
+        'التجهيز',
+        'جاهز للتسليم',
+        'تم التسليم للزبون'
+      ];
+      let optionsHTML = stages.map(s => `
+        <option value="${s}" ${selectedOrder.stage === s ? 'selected' : ''}>${s}</option>
+      `).join('');
+
+      document.getElementById('view-order-stage-container').innerHTML = `
+        <select id="view-order-stage-select" onchange="changeOrderStage(this.value)" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 700; border-radius: 8px; border: 1.5px solid var(--border); font-family: inherit; background: var(--bg-color); color: var(--text-main); outline: none; cursor: pointer; transition: border-color 0.2s;">
+          ${optionsHTML}
+        </select>
+      `;
+
+      document.getElementById('view-delivery-date').textContent = selectedOrder.delivery_date || 'غير محدد';
+
+      // Render Order Details
+      const rawNotes = selectedOrder.material_notes || '';
+      const cleanNotes = rawNotes.replace(/<!--.*?-->/g, '').trim() || 'لا توجد تفاصيل ومواصفات مسجلة.';
+      document.getElementById('order-details-text').innerHTML = cleanNotes.replace(/\n/g, '<br>');
+
+      // Load expenses dynamically
+      loadOrderExpenses(selectedOrder.id);
+
+      const tasksObj = parseAllTasks(selectedOrder);
+      document.getElementById('overall-progress-pct').textContent = calcOverallProgress(tasksObj) + '%';
+      renderLanes(tasksObj);
+    }
+
+    async function changeOrderStage(newStage) {
+      if (!selectedOrder) return;
+      try {
+        const sb = getSupabase();
+        const { error } = await sb.from('client_orders').update({ stage: newStage }).eq('id', selectedOrder.id);
+        if (error) throw error;
+        selectedOrder.stage = newStage;
+        const inList = activeOrders.find(o => o.id === selectedOrder.id);
+        if (inList) inList.stage = newStage;
+
+        renderOrdersList();
+        renderSelectedOrderView();
+        showAlert('تم تحديث مرحلة الطلبية بنجاح! ✅', 'success');
+
+        // Check and delete temporary customer
+        if (selectedOrder.client_name) {
+          await checkAndDeleteTemporaryCustomer(selectedOrder.client_name);
+        }
+      } catch (err) {
+        showAlert('فشل تحديث المرحلة: ' + err.message, 'error');
+      }
+    }
+
+    function renderLanes(tasksObj) {
+      const container = document.getElementById('lanes-grid-container');
+      container.innerHTML = '';
+
+      LANES.forEach((lane, laneIdx) => {
+        const tasks = tasksObj[lane.key] || [];
+        const doneTasks = tasks.filter(t => t.done).length;
+        const total = tasks.length;
+        const pct = total > 0 ? Math.round((doneTasks / total) * 100) : 0;
+        const locked = isLaneLocked(lane.key, tasksObj);
+        const allDone = total > 0 && doneTasks === total;
+
+        // Can edit: my lane OR admin/manager (see all, edit all)
+        const isMyLane = (currentUserRole === lane.key) || IS_ADMIN_ROLE(currentUserRole);
+        const canEdit = isMyLane && !locked;
+
+        // ── Header badge ──
+        let headerBadge = '';
+        if (locked) {
+          headerBadge = `<span class="locked-badge">🔒 بانتظار ${LANES[laneIdx - 1]?.label || ''}</span>`;
+        } else if (allDone) {
+          headerBadge = `<span class="completed-badge">✅ مكتمل</span>`;
+        } else {
+          headerBadge = `<span style="font-size:0.7rem;color:var(--text-muted);background:var(--border-light);padding:2px 8px;border-radius:6px;font-weight:700;">${doneTasks}/${total}</span>`;
+        }
+
+        // ── Task rows ──
+        let taskRowsHTML = '';
+        if (tasks.length === 0) {
+          taskRowsHTML = `<div style="text-align:center;padding:1.5rem 0.5rem;color:var(--text-muted);font-size:0.8rem;opacity:0.7;">${locked ? '🔒 مغلق' : 'لا توجد مهام. أضف من الأسفل.'}</div>`;
+        } else {
+          tasks.forEach((task, idx) => {
+            const checkboxClick = canEdit ? `onclick="toggleTask('${lane.key}', ${idx})"` : '';
+            const deleteBtn = canEdit ? `<button class="btn-task-action btn-task-delete" onclick="deleteTask('${lane.key}', ${idx})" title="حذف">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+            </button>` : '';
+
+            let noteContentHTML = '';
+            if (editingTaskNoteKey && editingTaskNoteKey.laneKey === lane.key && editingTaskNoteKey.idx === idx) {
+              noteContentHTML = `
+                <div class="inline-note-edit" style="display:flex; gap:0.4rem; margin-top:0.4rem; width:100%; flex-wrap:wrap; align-items:center;">
+                  <input type="text" id="inline-note-input-${lane.key}-${idx}" class="add-task-input" value="${task.note || ''}" placeholder="اكتب ملاحظة..." style="flex:1; padding:0.25rem 0.5rem; font-size:0.8rem; height:auto; min-width:120px;">
+                  <button type="button" class="btn btn-primary btn-sm" onclick="saveInlineTaskNote('${lane.key}', ${idx})" style="padding:2px 8px; font-size:0.72rem; white-space:nowrap;">حفظ</button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="cancelInlineTaskNote()" style="padding:2px 8px; font-size:0.72rem; white-space:nowrap;">إلغاء</button>
+                </div>
+              `;
+            } else {
+              noteContentHTML = `
+                <div style="flex:1;min-width:0;">
+                  <span class="task-text">${task.text}</span>
+                  ${task.note ? `<div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem; display:flex; align-items:center; gap:0.25rem;">
+                    <span>📝</span> <span style="font-style:italic; font-weight:600; color:var(--text-muted);">${task.note}</span>
+                  </div>` : ''}
+                </div>
+                ${currentUserRole !== null ? `
+                  <button class="btn-task-action" onclick="setInlineTaskNoteEdit('${lane.key}', ${idx})" title="ملاحظة على المهمة" style="background:transparent; border:none; cursor:pointer; font-size:0.85rem; padding:0.2rem; display:inline-flex; align-items:center; justify-content:center;">
+                    📝
+                  </button>
+                ` : ''}
+              `;
+            }
+
+            taskRowsHTML += `
+              <div class="task-row ${task.done ? 'completed' : ''}" style="flex-wrap:wrap;">
+                <div style="display:flex; align-items:center; width:100%;">
+                  <div class="custom-checkbox" ${checkboxClick} style="${!canEdit ? 'cursor:default;' : ''}; margin-left:0.5rem;">
+                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  </div>
+                  ${noteContentHTML}
+                  ${deleteBtn}
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        // ── Add task form ──
+        const addForm = canEdit ? `
+          <form class="add-task-form" onsubmit="addTask(event, '${lane.key}')">
+            <input class="add-task-input" type="text" id="new-task-${lane.key}" placeholder="أضف مهمة...">
+            <button type="submit" class="btn btn-primary btn-sm" style="white-space:nowrap;padding:0 0.85rem;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </form>` : '';
+
+        const laneEl = document.createElement('div');
+        laneEl.className = `lane-card ${lane.cssClass} ${locked ? 'lane-locked' : ''}`;
+        laneEl.innerHTML = `
+          <div class="lane-header">
+            <span>${lane.emoji}</span>
+            <span style="flex:1;">${lane.label}</span>
+            ${headerBadge}
+          </div>
+          <div class="lane-progress-wrap">
+            <div class="lane-progress-track">
+              <div class="lane-progress-bar" style="width:${pct}%;"></div>
+            </div>
+          </div>
+          <div class="lane-body">
+            ${taskRowsHTML}
+            ${addForm}
+          </div>
+        `;
+        container.appendChild(laneEl);
+      });
+    }
+
+    // ─── Task Actions ───
+    async function toggleTask(laneKey, idx) {
+      if (!selectedOrder) return;
+      const tasksObj = parseAllTasks(selectedOrder);
+
+      if (isLaneLocked(laneKey, tasksObj)) {
+        showAlert('🔒 لا يمكنك إكمال هذه المرحلة قبل إنهاء المرحلة السابقة', 'error');
+        return;
+      }
+
+      const tasks = tasksObj[laneKey] || [];
+      tasks[idx].done = !tasks[idx].done;
+      tasksObj[laneKey] = tasks;
+
+      await saveAllTasks(selectedOrder.id, tasksObj);
+
+      await checkAndApplyStageCascade(selectedOrder.id, tasksObj);
+
+      renderOrdersList();
+      renderSelectedOrderView();
+    }
+
+    async function checkAndApplyStageCascade(orderId, tasksObj) {
+      const order = activeOrders.find(o => o.id === orderId);
+      if (!order) return;
+
+      let targetStage = null;
+
+      if (isLaneComplete(tasksObj, 'inventory_manager')) {
+        targetStage = 'قيد التصنيع';
+
+        if (isLaneComplete(tasksObj, 'production_engineer')) {
+          targetStage = 'التجهيز';
+
+          if (isLaneComplete(tasksObj, 'purchasing_manager')) {
+            targetStage = 'جاهز للتسليم';
+          }
+        }
+      }
+
+      if (targetStage && targetStage !== order.stage) {
+        const stageOrder = [
+          'تم التعاقد (دفع عربون)',
+          'شراء الخامات',
+          'قيد التنفيذ',
+          'قيد التصنيع',
+          'التجهيز',
+          'جاهز للتسليم',
+          'تم التسليم للزبون'
+        ];
+        const currentIdx = stageOrder.indexOf(order.stage);
+        const targetIdx = stageOrder.indexOf(targetStage);
+
+        if (targetIdx > currentIdx) {
+          try {
+            const sb = getSupabase();
+            const { error } = await sb.from('client_orders').update({ stage: targetStage }).eq('id', orderId);
+            if (error) throw error;
+            order.stage = targetStage;
+            if (selectedOrder && selectedOrder.id === orderId) {
+              selectedOrder.stage = targetStage;
+            }
+            showAlert(`🎉 رائع! انتقلت الطلبية تلقائياً إلى "${targetStage}" بعد اكتمال المراحل!`, 'success');
+          } catch (e) {
+            console.warn('Cascade update error:', e.message);
+          }
+        }
+      }
+    }
+
+    async function addTask(event, laneKey) {
+      event.preventDefault();
+      if (!selectedOrder) return;
+      const input = document.getElementById(`new-task-${laneKey}`);
+      const text = input.value.trim();
+      if (!text) return;
+
+      const tasksObj = parseAllTasks(selectedOrder);
+      if (!tasksObj[laneKey]) tasksObj[laneKey] = [];
+      tasksObj[laneKey].push({ text, done: false, purchase_details: {} });
+
+      await saveAllTasks(selectedOrder.id, tasksObj);
+      renderOrdersList();
+      renderSelectedOrderView();
+      input.value = '';
+    }
+
+    async function deleteAssociatedExpenses(task) {
+      if (!task) return;
+      try {
+        const sb = getSupabase();
+        if (task.order_expense_id) {
+          await sb.from('order_expenses').delete().eq('id', task.order_expense_id);
+          delete task.order_expense_id;
+        }
+        if (task.general_expense_id) {
+          await sb.from('expenses').delete().eq('id', task.general_expense_id);
+          delete task.general_expense_id;
+        }
+      } catch (err) {
+        console.warn('Failed to delete associated expenses:', err.message);
+      }
+    }
+
+    async function deleteTask(laneKey, idx) {
+      if (!selectedOrder) return;
+      const tasksObj = parseAllTasks(selectedOrder);
+      if (!tasksObj[laneKey] || !tasksObj[laneKey][idx]) return;
+
+      const task = tasksObj[laneKey][idx];
+      await deleteAssociatedExpenses(task);
+
+      tasksObj[laneKey].splice(idx, 1);
+      await saveAllTasks(selectedOrder.id, tasksObj);
+      renderOrdersList();
+      renderSelectedOrderView();
+    }
+
+
+
+    // ─── Load Orders ───
+    async function loadActiveOrders() {
+      const sb = getSupabase();
+      try {
+        const { data, error } = await sb
+          .from('client_orders')
+          .select('id, client_name, order_display_name, stage, delivery_date, pending_materials, material_notes, created_at')
+          .eq('archived', false)
+          .not('stage', 'eq', 'تم التسليم للزبون')
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        activeOrders = data || [];
+        if (selectedOrder) {
+          const fresh = activeOrders.find(o => o.id === selectedOrder.id);
+          if (fresh) selectedOrder = fresh;
+        }
+        renderOrdersList();
+        if (selectedOrder) renderSelectedOrderView();
+      } catch (err) {
+        showAlert('فشل تحميل الطلبيات: ' + err.message, 'error');
+      }
+    }
+
+    // ─── Init ───
+    async function initTasksPage() {
+      const authData = await initAuth();
+      currentUserRole = (authData && authData.profile)
+        ? authData.profile.role
+        : (currentProfile ? currentProfile.role : null);
+
+      await loadActiveOrders();
+
+      const sb = getSupabase();
+      sb.channel('tasks-realtime').on('postgres_changes', { event: '*', schema: 'public', table: 'client_orders' }, () => {
+        loadActiveOrders();
+      }).subscribe();
+    }
+
+    function setInlineTaskNoteEdit(laneKey, idx) {
+      editingTaskNoteKey = { laneKey, idx };
+      const tasksObj = parseAllTasks(selectedOrder);
+      renderLanes(tasksObj);
+    }
+
+    function cancelInlineTaskNote() {
+      editingTaskNoteKey = null;
+      const tasksObj = parseAllTasks(selectedOrder);
+      renderLanes(tasksObj);
+    }
+
+    async function saveInlineTaskNote(laneKey, idx) {
+      if (!selectedOrder) return;
+      const tasksObj = parseAllTasks(selectedOrder);
+      if (!tasksObj[laneKey] || !tasksObj[laneKey][idx]) return;
+
+      const input = document.getElementById(`inline-note-input-${laneKey}-${idx}`);
+      const noteText = input ? input.value.trim() : '';
+
+      const task = tasksObj[laneKey][idx];
+      task.note = noteText;
+      editingTaskNoteKey = null;
+
+      try {
+        showAlert('جاري حفظ الملاحظة...', 'pending');
+        
+        // 1. Delete associated old expenses first
+        await deleteAssociatedExpenses(task);
+        
+        // 2. Parse and add new expenses if any
+        if (task.note) {
+          await parseAndAddExpense(task, selectedOrder);
+        }
+
+        // 3. Save tasksObj containing new/cleared expense IDs to Supabase
+        await saveAllTasks(selectedOrder.id, tasksObj);
+
+        renderOrdersList();
+        renderSelectedOrderView();
+        showAlert('تم حفظ الملاحظة بنجاح! ✅', 'success');
+      } catch (err) {
+        showAlert('فشل حفظ الملاحظة: ' + err.message, 'error');
+      }
+    }
+
+    async function parseAndAddExpense(task, order) {
+      const noteText = task.note;
+      const taskText = task.text;
+      const orderId = order.id;
+      const displayName = order.order_display_name || order.client_name || 'أوردر';
+
+      if (!noteText) return;
+      
+      // Parse and sum all numbers in the note
+      const matches = noteText.match(/(\d+(?:\.\d+)?)/g);
+      if (!matches) return;
+      
+      const amount = matches.reduce((sum, val) => sum + parseFloat(val), 0);
+      if (amount <= 0) return;
+      
+      let description = noteText.trim();
+      const rawNumOnly = /^\d+(?:\.\d+)?$/.test(description.replace(/[\+\s]/g, ''));
+      if (rawNumOnly) {
+        description = `مصاريف إضافية لمهمة: ${taskText}`;
+      }
+      
+      try {
+        const sb = getSupabase();
+        
+        // 1. Insert into order_expenses table and retrieve inserted ID
+        const { data: ordData, error: ordError } = await sb.from('order_expenses').insert([{
+          order_id: orderId,
+          description: description,
+          amount: amount,
+          created_by: currentUser ? currentUser.id : null
+        }]).select();
+        
+        if (ordError) throw ordError;
+        if (ordData && ordData[0]) {
+          task.order_expense_id = ordData[0].id;
+        }
+
+        // 2. Insert into expenses (الأرباح والمصروفات) table and retrieve inserted ID
+        const { data: genData, error: genError } = await sb.from('expenses').insert([{
+          expense_date: new Date().toISOString().split('T')[0],
+          category: 'مصاريف تشغيل ومهام',
+          amount: amount,
+          notes: `مصاريف مهمة "${taskText}" لطلبية (${displayName}): ${noteText}`
+        }]).select();
+
+        if (genError) throw genError;
+        if (genData && genData[0]) {
+          task.general_expense_id = genData[0].id;
+        }
+        
+        // Show inline feedback on the page instead of global showAlert
+        showInlineExpenseFeedback(amount, description);
+        
+        // Reload expenses list to reflect the new expense immediately
+        loadOrderExpenses(orderId);
+      } catch (err) {
+        console.warn('Failed to auto-insert order expense:', err.message);
+      }
+    }
+
+    async function loadOrderExpenses(orderId) {
+      const container = document.getElementById('order-expenses-list');
+      const totalEl = document.getElementById('order-expenses-total');
+      if (!container) return;
+
+      try {
+        const sb = getSupabase();
+        const { data, error } = await sb
+          .from('order_expenses')
+          .select('*')
+          .eq('order_id', orderId)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const expenses = data || [];
+        const total = expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
+        if (totalEl) totalEl.textContent = `${total.toLocaleString()} ج.م`;
+
+        if (expenses.length === 0) {
+          container.innerHTML = `<div style="text-align:center; padding:1.5rem 0.5rem; color:var(--text-muted); font-size:0.8rem; font-style:italic;">لا توجد مصاريف إضافية مسجلة.</div>`;
+          return;
+        }
+
+        container.innerHTML = expenses.map(exp => {
+          const dateStr = exp.created_at ? new Date(exp.created_at).toLocaleDateString('ar-EG', {month: 'short', day: 'numeric'}) : '';
+          return `
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(0,0,0,0.05); padding: 0.45rem 0; gap:0.5rem;">
+              <div style="display:flex; flex-direction:column; gap:0.1rem; min-width:0;">
+                <span style="font-weight:600; color:var(--text-main); text-overflow:ellipsis; overflow:hidden; white-space:nowrap;" title="${exp.description}">${exp.description}</span>
+                <span style="font-size:0.72rem; color:var(--text-muted);">${dateStr}</span>
+              </div>
+              <span style="font-weight:700; color:#dc2626; background:rgba(220, 38, 38, 0.08); padding:2px 8px; border-radius:6px; font-size:0.78rem; white-space:nowrap;">
+                +${exp.amount.toLocaleString()} ج.م
+              </span>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error('Failed to load order expenses:', err);
+        container.innerHTML = `<div style="text-align:center; padding:1.5rem 0.5rem; color:var(--danger-text); font-size:0.8rem;">فشل تحميل المصاريف.</div>`;
+      }
+    }
+
+    function showInlineExpenseFeedback(amount, description) {
+      const box = document.getElementById('order-expenses-box');
+      if (!box) return;
+
+      const oldFeedback = document.getElementById('expense-inline-feedback');
+      if (oldFeedback) oldFeedback.remove();
+
+      const feedbackDiv = document.createElement('div');
+      feedbackDiv.id = 'expense-inline-feedback';
+      feedbackDiv.style = `
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.15);
+        color: #065f46;
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        animation: fadeIn 0.3s ease-out;
+      `;
+      feedbackDiv.innerHTML = `
+        <span style="font-size:0.9rem;">💵</span>
+        <span style="flex:1;">تم تسجيل مصروف بقيمة <strong>${amount} ج.م</strong> تلقائياً للأوردر: "${description}"</span>
+      `;
+
+      const header = box.querySelector('h4');
+      if (header) {
+        header.insertAdjacentElement('afterend', feedbackDiv);
+      }
+
+      setTimeout(() => {
+        feedbackDiv.style.opacity = '0';
+        feedbackDiv.style.transition = 'opacity 0.5s ease-out';
+        setTimeout(() => feedbackDiv.remove(), 500);
+      }, 6000);
+    }
+
+    window.onload = initTasksPage;
+  </script>
+</body>
+
+</html>
