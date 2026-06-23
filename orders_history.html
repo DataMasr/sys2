@@ -2182,7 +2182,7 @@
       const mTb = document.getElementById('sheet-materials-tbody');
       mTb.innerHTML = '';
       const mats = parseMats(order.material_notes);
-      const whN = { wh_1_qty: 'مخزن 1', wh_2_qty: 'مخزن 2', wh_3_qty: 'مخزن 3' };
+      const whN = { wh_1_qty: 'المخزن', wh_2_qty: 'المخزن', wh_3_qty: 'المخزن' };
       if (!mats.length) { mTb.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:0.85rem;">لا توجد خامات مسجلة</td></tr>`; }
       else mats.forEach(t => {
         const inv = rawInventory.find(i => i.id === t.itemId);

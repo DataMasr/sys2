@@ -442,6 +442,35 @@
       </div>
     </div>
 
+    <!-- Custom Attendance/Departure Time Modal -->
+    <div id="custom-time-modal" class="modal-overlay modal-overlay-premium hidden">
+      <div class="modal modal-premium" style="max-width: 450px;">
+        <div class="modal-header">
+          <h3 id="custom-time-modal-title" style="font-weight:900;">تسجيل وقت مخصص</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('custom-time-modal')" style="padding:0.5rem; border-radius:50%;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body" style="padding: 2rem;">
+          <form id="custom-time-form">
+            <input type="hidden" id="custom-time-worker-id">
+            <input type="hidden" id="custom-time-hourly-rate">
+            <input type="hidden" id="custom-time-type"> <!-- 'check_in' or 'check_out' -->
+            <div class="form-group">
+              <label id="custom-time-label" for="custom-time-input" style="font-weight:700;">اختر الوقت والتاريخ *</label>
+              <input type="datetime-local" id="custom-time-input" required style="border-radius:12px; padding: 0.85rem 1rem;">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer" style="padding: 1.25rem 2rem;">
+          <button type="button" class="btn btn-primary" onclick="submitCustomTime()" style="border-radius:12px; padding: 0.7rem 1.4rem;">حفظ</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('custom-time-modal')" style="border-radius:12px; padding: 0.7rem 1.4rem;">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <script>
@@ -626,9 +655,14 @@
       }
     }
 
+    function getLocalDateTimeString(date = new Date()) {
+      const tzoffset = date.getTimezoneOffset() * 60000;
+      const localISOTime = (new Date(date - tzoffset)).toISOString().slice(0, 16);
+      return localISOTime;
+    }
+
     async function checkInWorker(workerId) {
       try {
-        showAlert('جاري تسجيل الحضور...', 'pending');
         const sb = getSupabase();
         
         // Ensure no active session
@@ -643,13 +677,34 @@
           return;
         }
 
-        // Today's date automatically detected
-        const todayStr = new Date().toISOString().split('T')[0];
+        const useCurrentTime = await customConfirm('هل تريد تسجيل حضور العامل بالوقت الحالي؟ (اضغط إلغاء لاختيار وقت مخصص)');
+        if (useCurrentTime) {
+          await proceedCheckIn(workerId, new Date().toISOString());
+        } else {
+          // Open custom time modal
+          document.getElementById('custom-time-worker-id').value = workerId;
+          document.getElementById('custom-time-type').value = 'check_in';
+          document.getElementById('custom-time-modal-title').textContent = 'تسجيل حضور مخصص';
+          document.getElementById('custom-time-label').textContent = 'اختر وقت وتاريخ الحضور *';
+          document.getElementById('custom-time-input').value = getLocalDateTimeString();
+          openModal('custom-time-modal');
+        }
+      } catch (e) {
+        showAlert('فشل تسجيل الحضور: ' + e.message, 'error');
+      }
+    }
+
+    async function proceedCheckIn(workerId, isoDateTime) {
+      try {
+        showAlert('جاري تسجيل الحضور...', 'pending');
+        const sb = getSupabase();
+        
+        const workDate = isoDateTime.split('T')[0];
         
         const { error } = await sb.from('attendance').insert([{
           worker_id: workerId,
-          work_date: todayStr,
-          check_in: new Date().toISOString()
+          work_date: workDate,
+          check_in: isoDateTime
         }]);
         
         if (error) throw error;
@@ -663,7 +718,6 @@
 
     async function checkOutWorker(workerId, hourlyRate) {
       try {
-        showAlert('جاري تسجيل الانصراف...', 'pending');
         const sb = getSupabase();
         
         // Get active session
@@ -674,13 +728,41 @@
           .maybeSingle();
           
         if (!active) {
-          showAlert('لا يوجد تسجيل حضور نشف لهذا العامل!', 'error');
+          showAlert('لا يوجد تسجيل حضور نشط لهذا العامل!', 'error');
           return;
         }
 
-        const checkInTime = new Date(active.check_in);
-        const checkOutTime = new Date();
+        const useCurrentTime = await customConfirm('هل تريد تسجيل انصراف العامل بالوقت الحالي؟ (اضغط إلغاء لاختيار وقت مخصص)');
+        if (useCurrentTime) {
+          await proceedCheckOut(active, hourlyRate, new Date().toISOString());
+        } else {
+          // Open custom time modal
+          document.getElementById('custom-time-worker-id').value = workerId;
+          document.getElementById('custom-time-hourly-rate').value = hourlyRate;
+          document.getElementById('custom-time-type').value = 'check_out';
+          document.getElementById('custom-time-modal-title').textContent = 'تسجيل انصراف مخصص';
+          document.getElementById('custom-time-label').textContent = 'اختر وقت وتاريخ الانصراف *';
+          document.getElementById('custom-time-input').value = getLocalDateTimeString();
+          openModal('custom-time-modal');
+        }
+      } catch (e) {
+        showAlert('فشل تسجيل الانصراف: ' + e.message, 'error');
+      }
+    }
+
+    async function proceedCheckOut(active, hourlyRate, isoDateTime) {
+      try {
+        showAlert('جاري تسجيل الانصراف...', 'pending');
+        const sb = getSupabase();
         
+        const checkInTime = new Date(active.check_in);
+        const checkOutTime = new Date(isoDateTime);
+        
+        if (checkOutTime <= checkInTime) {
+          showAlert('خطأ: وقت الانصراف يجب أن يكون بعد وقت الحضور!', 'error');
+          return;
+        }
+
         // Elapsed hours (decimal)
         const diffMs = checkOutTime - checkInTime;
         const totalHours = Math.max(0.01, Number((diffMs / (1000 * 60 * 60)).toFixed(2))); // minimum 0.01 hours
@@ -700,6 +782,49 @@
         await initWorkersPage();
       } catch (e) {
         showAlert('فشل تسجيل الانصراف: ' + e.message, 'error');
+      }
+    }
+
+    async function submitCustomTime() {
+      const form = document.getElementById('custom-time-form');
+      if (!form.checkValidity()) { form.reportValidity(); return; }
+
+      const workerId = document.getElementById('custom-time-worker-id').value;
+      const type = document.getElementById('custom-time-type').value;
+      const customTimeVal = document.getElementById('custom-time-input').value;
+      
+      if (!customTimeVal) {
+        showAlert('يرجى اختيار الوقت والتاريخ', 'error');
+        return;
+      }
+      
+      const isoDateTime = new Date(customTimeVal).toISOString();
+
+      if (type === 'check_in') {
+        closeModal('custom-time-modal');
+        await proceedCheckIn(workerId, isoDateTime);
+      } else if (type === 'check_out') {
+        const hourlyRate = parseFloat(document.getElementById('custom-time-hourly-rate').value || 0);
+        
+        try {
+          const sb = getSupabase();
+          const { data: active } = await sb.from('attendance')
+            .select('*')
+            .eq('worker_id', workerId)
+            .is('check_out', null)
+            .maybeSingle();
+            
+          if (!active) {
+            showAlert('لا يوجد تسجيل حضور نشط لهذا العامل!', 'error');
+            closeModal('custom-time-modal');
+            return;
+          }
+          
+          closeModal('custom-time-modal');
+          await proceedCheckOut(active, hourlyRate, isoDateTime);
+        } catch (e) {
+          showAlert('فشل تسجيل الانصراف: ' + e.message, 'error');
+        }
       }
     }
 

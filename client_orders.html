@@ -523,14 +523,7 @@
               </select>
             </div>
 
-            <div class="form-group" style="margin-bottom: 1rem;">
-              <label for="ret-material-warehouse">إلى أي مخزن؟</label>
-              <select id="ret-material-warehouse" required>
-                <option value="wh_1_qty">مخزن 1</option>
-                <option value="wh_2_qty">مخزن 2</option>
-                <option value="wh_3_qty">مخزن 3</option>
-              </select>
-            </div>
+            <input type="hidden" id="ret-material-warehouse" value="wh_1_qty">
 
             <div class="form-group" style="margin-bottom: 1.5rem;">
               <label for="ret-material-qty">الكمية المرتجعة</label>
@@ -696,24 +689,19 @@
       function updateRowStockLabels(selectEl) {
         const row = selectEl.closest('.material-row');
         const materialId = selectEl.value;
-        const whSelect = row.querySelector('.mat-wh');
+        const stockLabel = row.querySelector('.stock-label');
+        if (!stockLabel) return;
 
         if (!materialId) {
-          whSelect.innerHTML = `
-            <option value="wh_1_qty">مخزن 1</option>
-            <option value="wh_2_qty">مخزن 2</option>
-            <option value="wh_3_qty">مخزن 3</option>
-          `;
+          stockLabel.textContent = '';
           return;
         }
 
         const item = inventoryItems.find(i => i.id === materialId);
         if (item) {
-          whSelect.innerHTML = `
-            <option value="wh_1_qty">مخزن 1 (متاح: ${item.wh_1_qty || 0})</option>
-            <option value="wh_2_qty">مخزن 2 (متاح: ${item.wh_2_qty || 0})</option>
-            <option value="wh_3_qty">مخزن 3 (متاح: ${item.wh_3_qty || 0})</option>
-          `;
+          stockLabel.textContent = `(متاح: ${item.wh_1_qty || 0})`;
+        } else {
+          stockLabel.textContent = '';
         }
       }
 
@@ -750,12 +738,8 @@
         let options = '<option value="">-- اختر الصنف --</option>';
         inventoryItems.forEach(item => {
           const selected = val && val.itemId === item.id ? 'selected' : '';
-          options += `<option value="${item.id}" ${selected}>${item.item_name} (رصيد 1: ${item.wh_1_qty || 0} | 2: ${item.wh_2_qty || 0} | 3: ${item.wh_3_qty || 0})</option>`;
+          options += `<option value="${item.id}" ${selected}>${item.item_name} (رصيد: ${item.wh_1_qty || 0})</option>`;
         });
-
-        const selectWh1 = val && val.wh === 'wh_1_qty' ? 'selected' : '';
-        const selectWh2 = val && val.wh === 'wh_2_qty' ? 'selected' : '';
-        const selectWh3 = val && val.wh === 'wh_3_qty' ? 'selected' : '';
 
         const sourceInv = val && val.source === 'inventory' ? 'selected' : '';
         const sourceExt = val && val.source === 'external' ? 'selected' : '';
@@ -772,7 +756,7 @@
           </div>
 
           <div class="form-group" style="margin-bottom: 1rem;">
-            <label>الصنف المستخدم</label>
+            <label>الصنف المستخدم <span class="stock-label" style="font-weight:bold; color:var(--primary); margin-right:0.5rem;"></span></label>
             <select class="mat-item" onchange="updateRowStockLabels(this)" required>
               ${options}
             </select>
@@ -798,16 +782,15 @@
             </div>
           </div>
           
-          <div class="form-group mat-wh-group" style="margin-bottom:0; display: ${val && val.source === 'external' ? 'none' : 'block'};">
-            <label>من أي مخزن؟ (في حالة السحب)</label>
-            <select class="mat-wh">
-              <option value="wh_1_qty" ${selectWh1}>مخزن 1</option>
-              <option value="wh_2_qty" ${selectWh2}>مخزن 2</option>
-              <option value="wh_3_qty" ${selectWh3}>مخزن 3</option>
-            </select>
-          </div>
+          <input type="hidden" class="mat-wh" value="wh_1_qty">
         `;
         container.appendChild(row);
+
+        // Update the stock label immediately if there's prefilled data
+        if (val) {
+          const itemSelect = row.querySelector('.mat-item');
+          if (itemSelect) updateRowStockLabels(itemSelect);
+        }
       }
 
       async function openAddMaterialsModal(orderId) {
@@ -885,7 +868,7 @@
                   const { error: invError } = await sb.from('inventory').update({ [oldMat.wh]: revertedQty }).eq('id', oldMat.itemId);
                   if (invError) throw new Error(`فشل استرجاع خامة ${item.item_name}: ${invError.message}`);
 
-                  const whNames = { wh_1_qty: 'مخزن 1', wh_2_qty: 'مخزن 2', wh_3_qty: 'مخزن 3' };
+                  const whNames = { wh_1_qty: 'المخزن', wh_2_qty: 'المخزن', wh_3_qty: 'المخزن' };
                   await sb.from('inventory_logs').insert([{
                     item_name: item.item_name,
                     action_type: 'إضافة',
@@ -979,7 +962,7 @@
             const stockCost = deductedQty * piecePrice;
             totalStockConsumptionCost += stockCost;
 
-            const whNames = { wh_1_qty: 'مخزن 1', wh_2_qty: 'مخزن 2', wh_3_qty: 'مخزن 3' };
+            const whNames = { wh_1_qty: 'المخزن', wh_2_qty: 'المخزن', wh_3_qty: 'المخزن' };
 
             if (mat.source !== 'external') {
               const { error: invError } = await sb.from('inventory').update({ [mat.wh]: newQty }).eq('id', mat.itemId);
@@ -1411,7 +1394,7 @@
             if (item) {
               const opt = document.createElement('option');
               opt.value = item.id;
-              opt.textContent = `${item.item_name} (إجمالي الكمية: ${u.qty} من ${u.wh === 'wh_1_qty' ? 'مخزن 1' : u.wh === 'wh_2_qty' ? 'مخزن 2' : 'مخزن 3'})`;
+              opt.textContent = `${item.item_name} (إجمالي الكمية: ${u.qty})`;
               select.appendChild(opt);
             }
           });
@@ -1470,7 +1453,7 @@
           const { error: invError } = await sb.from('inventory').update({ [materialWh]: currentQty + qtyToReturn }).eq('id', materialId);
           if (invError) throw invError;
 
-          const whNames = { wh_1_qty: 'مخزن 1', wh_2_qty: 'مخزن 2', wh_3_qty: 'مخزن 3' };
+          const whNames = { wh_1_qty: 'المخزن', wh_2_qty: 'المخزن', wh_3_qty: 'المخزن' };
           const { error: logErr } = await sb.from('inventory_logs').insert([{
             item_name: item.item_name,
             action_type: 'إرجاع',

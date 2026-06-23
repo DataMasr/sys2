@@ -12,30 +12,54 @@
   <script src="js/auth.js"></script>
   <style>
     .cat-btn {
-      flex: 1; cursor: pointer; margin: 0;
+      flex: 1;
+      cursor: pointer;
+      margin: 0;
     }
-    .cat-btn input { display: none; }
+
+    .cat-btn input {
+      display: none;
+    }
+
     .cat-btn span {
-      display: flex; align-items: center; justify-content: center; gap: 0.4rem;
-      padding: 0.65rem 0.5rem; border-radius: 8px;
-      font-weight: 700; font-size: 0.88rem; color: var(--text-muted);
-      transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.65rem 0.5rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
+
     .cat-btn:hover span {
       color: var(--text-main);
     }
-    .cat-btn input:checked + span {
-      background: #fff; color: var(--primary);
-      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+
+    .cat-btn input:checked+span {
+      background: #fff;
+      color: var(--primary);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
     }
+
     .datalist-input {
-      width: 100%; padding: 0.8rem 1rem; border: 1.5px solid var(--border); border-radius: var(--radius);
-      font-family: inherit; font-size: 0.95rem; color: var(--text-main); background: #fff;
+      width: 100%;
+      padding: 0.8rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      background: #fff;
       transition: var(--transition);
     }
-    .datalist-input:focus { 
-      border-color: var(--primary); outline: none; 
-      box-shadow: 0 0 0 4px rgba(79,70,229,0.1); 
+
+    .datalist-input:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
     }
   </style>
 </head>
@@ -63,10 +87,11 @@
     </div>
 
     <div class="card">
-      <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+      <div class="card-header"
+        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
         <h2>أرصدة الأصناف في المخازن</h2>
         <div style="position:relative; min-width:300px;">
-          <input type="text" id="inventory-search" placeholder="🔍 ابحث عن صنف..." 
+          <input type="text" id="inventory-search" placeholder="🔍 ابحث عن صنف..."
             style="width:100%; padding:0.5rem 2.5rem 0.5rem 1rem; border-radius:8px; border:1.5px solid var(--border); font-size:0.9rem;"
             oninput="filterInventory()">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16" stroke-width="2.5"
@@ -83,16 +108,13 @@
                 <th>اسم الصنف</th>
                 <th>وحدة القياس</th>
                 <th>سعر الوحدة الثابت</th>
-                <th>مخزن 1</th>
-                <th>مخزن 2</th>
-                <th>مخزن 3</th>
-                <th>إجمالي الكميه</th>
+                <th>الكمية المتاحة</th>
                 <th>إجراءات</th>
               </tr>
             </thead>
             <tbody id="inventory-table-body">
               <tr>
-                <td colspan="7" style="text-align:center;color:var(--text-muted)">جاري التحميل...</td>
+                <td colspan="5" style="text-align:center;color:var(--text-muted)">جاري التحميل...</td>
               </tr>
             </tbody>
           </table>
@@ -100,7 +122,7 @@
       </div>
     </div>
 
-    
+
     <div id="create-item-modal" class="modal-overlay hidden">
       <div class="modal">
         <div class="modal-header">
@@ -114,17 +136,21 @@
         <div class="modal-body">
           <form id="create-item-form">
             <!-- Category Selector -->
-            <div style="background: var(--border-light); padding: 0.35rem; border-radius: 10px; display: flex; gap: 0.25rem; margin-bottom: 1.5rem;">
+            <div
+              style="background: var(--border-light); padding: 0.35rem; border-radius: 10px; display: flex; gap: 0.25rem; margin-bottom: 1.5rem;">
               <label class="cat-btn">
-                <input type="radio" name="item_category" value="normal" checked onchange="toggleItemCategory()" style="display:none;">
+                <input type="radio" name="item_category" value="normal" checked onchange="toggleItemCategory()"
+                  style="display:none;">
                 <span>📦 صنف عادي</span>
               </label>
               <label class="cat-btn">
-                <input type="radio" name="item_category" value="paper" onchange="toggleItemCategory()" style="display:none;">
+                <input type="radio" name="item_category" value="paper" onchange="toggleItemCategory()"
+                  style="display:none;">
                 <span>📄 ورق</span>
               </label>
               <label class="cat-btn">
-                <input type="radio" name="item_category" value="special" onchange="toggleItemCategory()" style="display:none;">
+                <input type="radio" name="item_category" value="special" onchange="toggleItemCategory()"
+                  style="display:none;">
                 <span>🧽 خامات خاصة</span>
               </label>
             </div>
@@ -133,7 +159,8 @@
             <div id="create-normal-fields">
               <div class="form-group" style="margin-bottom: 1rem;">
                 <label for="new-item-name">اسم الصنف (مثال: كرتون بلاستيك) *</label>
-                <input type="text" id="new-item-name" placeholder="اكتب اسم الصنف هنا" style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
+                <input type="text" id="new-item-name" placeholder="اكتب اسم الصنف هنا"
+                  style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
               </div>
             </div>
 
@@ -141,7 +168,8 @@
             <div id="create-paper-fields" class="hidden">
               <div class="form-group" style="margin-bottom: 1rem;">
                 <label for="paper-type">نوع الورق *</label>
-                <select id="paper-type" style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
+                <select id="paper-type"
+                  style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
                   <option value="كوشيه">كوشيه</option>
                   <option value="طبع">طبع</option>
                   <option value="بيرستول كوشيه">بيرستول كوشيه</option>
@@ -152,11 +180,14 @@
               <div style="display:flex; gap:1rem; margin-bottom: 1rem;">
                 <div class="form-group" style="flex:1;">
                   <label for="paper-gram">الجرام *</label>
-                  <input type="number" id="paper-gram" placeholder="مثال: 150" min="0" style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
+                  <input type="number" id="paper-gram" placeholder="مثال: 150" min="0"
+                    style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
                 </div>
                 <div class="form-group" style="flex:1;">
                   <label for="paper-size">المقاس *</label>
-                  <input type="text" id="paper-size" list="paper-sizes-list" class="datalist-input" placeholder="مثال: 70x100" dir="ltr" style="text-align:right; width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
+                  <input type="text" id="paper-size" list="paper-sizes-list" class="datalist-input"
+                    placeholder="مثال: 70x100" dir="ltr"
+                    style="text-align:right; width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
                   <datalist id="paper-sizes-list">
                     <option value="70x100"></option>
                     <option value="60x90"></option>
@@ -171,7 +202,8 @@
             <div id="create-special-fields" class="hidden">
               <div class="form-group" style="margin-bottom: 1rem;">
                 <label for="special-type">نوع الخامة *</label>
-                <select id="special-type" style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
+                <select id="special-type"
+                  style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
                   <option value="سفنج">سفنج</option>
                   <option value="فوم">فوم</option>
                   <option value="كاوتش">كاوتش</option>
@@ -180,7 +212,9 @@
               <div style="display:flex; gap:0.75rem; margin-bottom: 1rem; flex-wrap:wrap;">
                 <div class="form-group" style="flex:1; min-width:80px;">
                   <label for="special-thickness">السمك *</label>
-                  <input type="text" id="special-thickness" list="thick-options" class="datalist-input" placeholder="مثال: 5 سم" style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
+                  <input type="text" id="special-thickness" list="thick-options" class="datalist-input"
+                    placeholder="مثال: 5 سم"
+                    style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
                   <datalist id="thick-options">
                     <option value="2 ملي"></option>
                     <option value="5 ملي"></option>
@@ -191,11 +225,13 @@
                 </div>
                 <div class="form-group" style="flex:1; min-width:80px;">
                   <label for="special-color">درجة اللون *</label>
-                  <input type="text" id="special-color" placeholder="مثال: أبيض" style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
+                  <input type="text" id="special-color" placeholder="مثال: أبيض"
+                    style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
                 </div>
                 <div class="form-group" style="flex:1; min-width:80px;">
                   <label for="special-size">المقاس *</label>
-                  <input type="text" id="special-size" placeholder="مثال: 100x200" dir="ltr" style="text-align:right; width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
+                  <input type="text" id="special-size" placeholder="مثال: 100x200" dir="ltr"
+                    style="text-align:right; width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
                 </div>
               </div>
             </div>
@@ -203,7 +239,8 @@
             <!-- Unit field -->
             <div class="form-group" style="margin-bottom: 1rem;">
               <label for="new-item-unit">وحدة الحساب *</label>
-              <select id="new-item-unit" style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
+              <select id="new-item-unit"
+                style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
                 <option value="بالقطعة">بالقطعة (العدد)</option>
                 <option value="بالمتر">بالمتر</option>
               </select>
@@ -212,26 +249,15 @@
             <!-- Price field -->
             <div class="form-group" style="margin-bottom: 1rem;">
               <label for="new-item-price">سعر الوحدة الافتراضي ج.م *</label>
-              <input type="number" id="new-item-price" min="0" step="any" required value="0" style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
+              <input type="number" id="new-item-price" min="0" step="any" required value="0"
+                style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
             </div>
 
-            <!-- Opening Balances (remains common for both) -->
+            <!-- Opening Balance -->
             <div class="form-group" style="margin-bottom: 1rem;">
-              <label>الرصيد الافتتاحي (اختياري)</label>
-              <div style="display:flex;gap:1rem;margin-top:0.5rem;">
-                <div>
-                  <label for="new-wh1" style="font-size:0.75rem;color:var(--text-muted)">مخزن 1</label>
-                  <input type="number" id="new-wh1" min="0" step="any" placeholder="0" style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
-                </div>
-                <div>
-                  <label for="new-wh2" style="font-size:0.75rem;color:var(--text-muted)">مخزن 2</label>
-                  <input type="number" id="new-wh2" min="0" step="any" placeholder="0" style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
-                </div>
-                <div>
-                  <label for="new-wh3" style="font-size:0.75rem;color:var(--text-muted)">مخزن 3</label>
-                  <input type="number" id="new-wh3" min="0" step="any" placeholder="0" style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
-                </div>
-              </div>
+              <label for="new-wh1">الرصيد الافتتاحي (اختياري)</label>
+              <input type="number" id="new-wh1" min="0" step="any" placeholder="0"
+                style="width:100%; padding:0.8rem 1rem; border-radius:12px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
             </div>
           </form>
         </div>
@@ -242,7 +268,7 @@
       </div>
     </div>
 
-    
+
     <div id="edit-balances-modal" class="modal-overlay hidden">
       <div class="modal">
         <div class="modal-header">
@@ -257,32 +283,22 @@
           <form id="edit-balances-form">
             <input type="hidden" id="edit-item-id">
             <div class="form-group" style="margin-bottom: 1rem;">
-              <label>الأرصدة الحالية في كل مخزن</label>
-              <div style="display:flex;gap:1rem;margin-top:0.5rem;">
-                <div>
-                  <label for="edit-wh1" style="font-size:0.75rem;color:var(--text-muted)">مخزن 1</label>
-                  <input type="number" id="edit-wh1" min="0" step="any" required style="width:100%">
-                </div>
-                <div>
-                  <label for="edit-wh2" style="font-size:0.75rem;color:var(--text-muted)">مخزن 2</label>
-                  <input type="number" id="edit-wh2" min="0" step="any" required style="width:100%">
-                </div>
-                <div>
-                  <label for="edit-wh3" style="font-size:0.75rem;color:var(--text-muted)">مخزن 3</label>
-                  <input type="number" id="edit-wh3" min="0" step="any" required style="width:100%">
-                </div>
-              </div>
+              <label for="edit-wh1">الرصيد الحالي بالمخزن</label>
+              <input type="number" id="edit-wh1" min="0" step="any" required
+                style="width:100%; padding:0.8rem 1rem; border-radius:12px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
             </div>
             <div class="form-group" style="margin-bottom: 1rem; margin-top: 1rem;">
               <label for="edit-item-unit">وحدة الحساب *</label>
-              <select id="edit-item-unit" style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
+              <select id="edit-item-unit"
+                style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
                 <option value="بالقطعة">بالقطعة (العدد)</option>
                 <option value="بالمتر">بالمتر</option>
               </select>
             </div>
             <div class="form-group" style="margin-bottom: 1rem; margin-top: 1rem;">
               <label for="edit-item-price">سعر الوحدة الثابت ج.م *</label>
-              <input type="number" id="edit-item-price" min="0" step="any" required style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
+              <input type="number" id="edit-item-price" min="0" step="any" required
+                style="width:100%; padding:0.45rem; border-radius:8px; border:1.5px solid var(--border); font-family:inherit; outline:none; background:#fff;">
             </div>
           </form>
         </div>
@@ -293,7 +309,7 @@
       </div>
     </div>
 
-    
+
     <div class="card" style="margin-top: 2rem;">
       <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
         <h2 style="display:flex; align-items:center; gap:0.5rem; color:var(--text-main); margin:0;">
@@ -373,8 +389,6 @@
       document.getElementById('special-color').value = '';
       document.getElementById('special-size').value = '';
       document.getElementById('new-wh1').value = '';
-      document.getElementById('new-wh2').value = '';
-      document.getElementById('new-wh3').value = '';
       document.getElementById('new-item-price').value = '0';
 
       // Reset toggles to defaults
@@ -389,10 +403,8 @@
       if (!item) return;
 
       document.getElementById('edit-item-id').value = item.id;
-      document.getElementById('edit-balances-title').textContent = `تعديل أرصدة: ${item.item_name}`;
+      document.getElementById('edit-balances-title').textContent = `تعديل رصيد: ${item.item_name}`;
       document.getElementById('edit-wh1').value = item.wh_1_qty || 0;
-      document.getElementById('edit-wh2').value = item.wh_2_qty || 0;
-      document.getElementById('edit-wh3').value = item.wh_3_qty || 0;
 
       const priceInfo = (window.pricesMap && window.pricesMap[item.item_name]) || { unit: 'بالقطعة', price: 0 };
       document.getElementById('edit-item-unit').value = priceInfo.unit || 'بالقطعة';
@@ -403,10 +415,8 @@
 
     async function submitCreateItem() {
       const form = document.getElementById('create-item-form');
-      
+
       const wh1 = parseFloat(document.getElementById('new-wh1').value || '0');
-      const wh2 = parseFloat(document.getElementById('new-wh2').value || '0');
-      const wh3 = parseFloat(document.getElementById('new-wh3').value || '0');
       const sb = getSupabase();
 
       let name = '';
@@ -474,16 +484,14 @@
         const { error } = await sb.from('inventory').insert([{
           item_name: name,
           wh_1_qty: wh1,
-          wh_2_qty: wh2,
-          wh_3_qty: wh3
+          wh_2_qty: 0,
+          wh_3_qty: 0
         }]);
 
         if (error) throw error;
 
         let logsToInsert = [];
-        if (wh1 > 0) logsToInsert.push({ item_name: name, action_type: 'إضافة', quantity: wh1, warehouse: 'مخزن 1', notes: 'رصيد افتتاحي' });
-        if (wh2 > 0) logsToInsert.push({ item_name: name, action_type: 'إضافة', quantity: wh2, warehouse: 'مخزن 2', notes: 'رصيد افتتاحي' });
-        if (wh3 > 0) logsToInsert.push({ item_name: name, action_type: 'إضافة', quantity: wh3, warehouse: 'مخزن 3', notes: 'رصيد افتتاحي' });
+        if (wh1 > 0) logsToInsert.push({ item_name: name, action_type: 'إضافة', quantity: wh1, warehouse: 'المخزن', notes: 'رصيد افتتاحي' });
 
         if (logsToInsert.length > 0) {
           const { error: logErr } = await sb.from('inventory_logs').insert(logsToInsert);
@@ -501,58 +509,102 @@
 
     async function submitEditBalances() {
       const form = document.getElementById('edit-balances-form');
-      if (!form.checkValidity()) { form.reportValidity(); return; }
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
 
       const itemId = document.getElementById('edit-item-id').value;
       const wh1 = parseFloat(document.getElementById('edit-wh1').value || '0');
-      const wh2 = parseFloat(document.getElementById('edit-wh2').value || '0');
-      const wh3 = parseFloat(document.getElementById('edit-wh3').value || '0');
 
       try {
         showAlert('جاري تحديث الأرصدة...', 'pending');
+
         const sb = getSupabase();
 
         const oldItem = inventoryData.find(i => i.id === itemId);
+        if (!oldItem) {
+          throw new Error('الصنف غير موجود');
+        }
+
         const diff1 = wh1 - (oldItem.wh_1_qty || 0);
-        const diff2 = wh2 - (oldItem.wh_2_qty || 0);
-        const diff3 = wh3 - (oldItem.wh_3_qty || 0);
 
         const itemUnit = document.getElementById('edit-item-unit').value;
-        const itemPrice = parseFloat(document.getElementById('edit-item-price').value || 0);
+        const itemPrice = parseFloat(
+          document.getElementById('edit-item-price').value || '0'
+        );
 
-        // Update price in prices table
-        const { data: priceRecord } = await sb.from('prices').select('id').eq('item_name', oldItem.item_name).maybeSingle();
+        const { data: priceRecord, error: priceSelectError } =
+          await sb
+            .from('prices')
+            .select('id')
+            .eq('item_name', oldItem.item_name)
+            .maybeSingle();
+
+        if (priceSelectError) throw priceSelectError;
+
         if (priceRecord) {
-          const { error: priceErr } = await sb.from('prices').update({ piece_price: itemPrice, unit: itemUnit }).eq('id', priceRecord.id);
+          const { error: priceErr } = await sb
+            .from('prices')
+            .update({
+              piece_price: itemPrice,
+              unit: itemUnit
+            })
+            .eq('id', priceRecord.id);
+
           if (priceErr) throw priceErr;
         } else {
-          const { error: priceErr } = await sb.from('prices').insert([{ item_name: oldItem.item_name, piece_price: itemPrice, unit: itemUnit }]);
+          const { error: priceErr } = await sb
+            .from('prices')
+            .insert([
+              {
+                item_name: oldItem.item_name,
+                piece_price: itemPrice,
+                unit: itemUnit
+              }
+            ]);
+
           if (priceErr) throw priceErr;
         }
 
-        const { error } = await sb.from('inventory').update({
-          wh_1_qty: wh1,
-          wh_2_qty: wh2,
-          wh_3_qty: wh3
-        }).eq('id', itemId);
+        const { error } = await sb
+          .from('inventory')
+          .update({
+            wh_1_qty: wh1,
+            wh_2_qty: 0,
+            wh_3_qty: 0
+          })
+          .eq('id', itemId);
 
         if (error) throw error;
 
-        let logsToInsert = [];
-        if (diff1 !== 0) logsToInsert.push({ item_name: oldItem.item_name, action_type: diff1 > 0 ? 'إضافة' : 'سحب', quantity: Math.abs(diff1), warehouse: 'مخزن 1', notes: 'تعديل يدوي للأرصدة' });
-        if (diff2 !== 0) logsToInsert.push({ item_name: oldItem.item_name, action_type: diff2 > 0 ? 'إضافة' : 'سحب', quantity: Math.abs(diff2), warehouse: 'مخزن 2', notes: 'تعديل يدوي للأرصدة' });
-        if (diff3 !== 0) logsToInsert.push({ item_name: oldItem.item_name, action_type: diff3 > 0 ? 'إضافة' : 'سحب', quantity: Math.abs(diff3), warehouse: 'مخزن 3', notes: 'تعديل يدوي للأرصدة' });
+        const logsToInsert = [];
+
+        if (diff1 !== 0) {
+          logsToInsert.push({
+            item_name: oldItem.item_name,
+            action_type: diff1 > 0 ? 'إضافة' : 'سحب',
+            quantity: Math.abs(diff1),
+            warehouse: 'المخزن',
+            notes: 'تعديل يدوي للأرصدة'
+          });
+        }
 
         if (logsToInsert.length > 0) {
-          const { error: logErr } = await sb.from('inventory_logs').insert(logsToInsert);
+          const { error: logErr } = await sb
+            .from('inventory_logs')
+            .insert(logsToInsert);
+
           if (logErr) throw logErr;
         }
 
         showAlert('تم تحديث الأرصدة بنجاح!', 'success');
         closeModal('edit-balances-modal');
         await initInventoryPage();
+
       } catch (e) {
         showAlert('فشل التحديث: ' + e.message, 'error');
+        console.error(e);
       }
     }
 
@@ -628,13 +680,12 @@
     function renderInventoryTable(data) {
       const tbody = document.getElementById('inventory-table-body');
       if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted); padding:2rem;">لا توجد نتائج تطابق البحث</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted); padding:2rem;">لا توجد نتائج تطابق البحث</td></tr>`;
         return;
       }
 
       tbody.innerHTML = '';
       data.forEach(item => {
-        const total = (item.wh_1_qty || 0) + (item.wh_2_qty || 0) + (item.wh_3_qty || 0);
         const priceInfo = (window.pricesMap && window.pricesMap[item.item_name]) || { unit: 'بالقطعة', price: 0 };
         const unit = priceInfo.unit || 'بالقطعة';
         const price = priceInfo.price || 0;
@@ -645,10 +696,7 @@
             <td><strong>${item.item_name}</strong></td>
             <td>${unitBadge}</td>
             <td>${priceText}</td>
-            <td>${item.wh_1_qty || 0}</td>
-            <td>${item.wh_2_qty || 0}</td>
-            <td>${item.wh_3_qty || 0}</td>
-            <td><strong style="color:var(--primary)">${total}</strong></td>
+            <td><strong style="color:var(--primary)">${item.wh_1_qty || 0}</strong></td>
             <td>
               <div style="display:flex;gap:0.4rem;align-items:center;justify-content:center;flex-wrap:wrap;">
                 <button onclick="openEditBalances('${item.id}')" title="تعديل الأرصدة"
@@ -691,7 +739,7 @@
         inventoryData = data || [];
 
         if (inventoryData.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">لا يوجد أصناف في المخازن حالياً</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">لا يوجد أصناف في المخازن حالياً</td></tr>`;
           return;
         }
 
@@ -720,4 +768,3 @@
 </body>
 
 </html>
-
