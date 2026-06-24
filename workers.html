@@ -21,7 +21,7 @@
       --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
       --info-gradient: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
       --pending-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-      
+
       --card-bg-glass: rgba(255, 255, 255, 0.75);
       --card-border-glass: rgba(255, 255, 255, 0.4);
       --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
@@ -41,6 +41,7 @@
       font-size: 0.75rem;
       font-weight: 700;
     }
+
     .pulse-badge::before {
       content: '';
       width: 6px;
@@ -49,9 +50,19 @@
       background: #10b981;
       animation: pulse-dot 1.5s infinite;
     }
+
     @keyframes pulse-dot {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.4); opacity: 0.4; }
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.4);
+        opacity: 0.4;
+      }
     }
 
     .inactive-badge {
@@ -66,6 +77,7 @@
       font-size: 0.75rem;
       font-weight: 700;
     }
+
     .inactive-badge::before {
       content: '';
       width: 6px;
@@ -81,6 +93,7 @@
       gap: 1.25rem;
       margin-bottom: 2.25rem;
     }
+
     .stat-card-premium {
       background: var(--card-bg-glass);
       backdrop-filter: blur(16px);
@@ -95,22 +108,26 @@
       justify-content: space-between;
       position: relative;
     }
+
     .stat-card-premium:hover {
       transform: translateY(-5px);
       box-shadow: 0 12px 40px rgba(99, 102, 241, 0.08);
       border-color: rgba(99, 102, 241, 0.3);
     }
+
     .stat-info-side {
       display: flex;
       flex-direction: column;
       gap: 0.35rem;
     }
+
     .stat-info-side h3 {
       font-size: 0.78rem;
       font-weight: 700;
       color: var(--text-muted);
       margin: 0;
     }
+
     .stat-info-side .value {
       font-size: 1.55rem;
       font-weight: 900;
@@ -118,6 +135,7 @@
       line-height: 1.25;
       letter-spacing: -0.02em;
     }
+
     .stat-icon-side {
       width: 48px;
       height: 48px;
@@ -136,24 +154,29 @@
       color: #fff !important;
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
     }
+
     .btn-gradient-success:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
     }
+
     .btn-gradient-warning {
       background: var(--warning-gradient);
       color: #fff !important;
       box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
     }
+
     .btn-gradient-warning:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3);
     }
+
     .btn-gradient-primary {
       background: var(--primary-gradient);
       color: #fff !important;
       box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
     }
+
     .btn-gradient-primary:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
@@ -170,12 +193,14 @@
       overflow: hidden;
       margin-bottom: 2rem;
     }
+
     .data-table-premium th {
       background: rgba(248, 250, 252, 0.8) !important;
       font-weight: 800;
       color: var(--text-main);
       border-bottom: 1.5px solid var(--border);
     }
+
     .data-table-premium tbody tr:hover {
       background: rgba(99, 102, 241, 0.03);
     }
@@ -186,6 +211,7 @@
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
     }
+
     .modal-premium {
       border: 1px solid var(--card-border-glass);
       box-shadow: 0 24px 64px rgba(31, 38, 135, 0.12);
@@ -197,6 +223,7 @@
         gap: 1rem;
       }
     }
+
     @media (max-width: 480px) {
       .stats-container-premium {
         grid-template-columns: 1fr;
@@ -209,15 +236,20 @@
   <main class="main-content">
     <div class="page-header">
       <h1 style="display:flex; align-items:center; gap:0.75rem; font-weight:900;">
-        <div style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg,#6366f1,#4f46e5); display:flex; align-items:center; justify-content:center; box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        <div
+          style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg,#6366f1,#4f46e5); display:flex; align-items:center; justify-content:center; box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
           </svg>
         </div>
         شؤون وإدارة العمال
       </h1>
-      <button class="btn btn-primary" onclick="openModal('create-worker-modal')" style="gap:0.5rem; border-radius:12px; padding: 0.75rem 1.5rem; box-shadow: 0 4px 14px rgba(99,102,241,0.35);">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;">
+      <button class="btn btn-primary" onclick="openModal('create-worker-modal')"
+        style="gap:0.5rem; border-radius:12px; padding: 0.75rem 1.5rem; box-shadow: 0 4px 14px rgba(99,102,241,0.35);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round" style="width:18px;height:18px;">
           <path d="M12 5v14M5 12h14" />
         </svg>
         إضافة عامل جديد
@@ -233,7 +265,13 @@
           <div class="value" id="stat-total-workers">0</div>
         </div>
         <div class="stat-icon-side" style="background: var(--primary-gradient);">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
         </div>
       </div>
       <!-- Present Workers -->
@@ -243,7 +281,11 @@
           <div class="value" id="stat-active-workers">0</div>
         </div>
         <div class="stat-icon-side" style="background: var(--success-gradient);">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
         </div>
       </div>
       <!-- Total Wages -->
@@ -253,7 +295,11 @@
           <div class="value" id="stat-total-earnings">0 ج.م</div>
         </div>
         <div class="stat-icon-side" style="background: var(--pending-gradient);">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="1" x2="12" y2="23" />
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+          </svg>
         </div>
       </div>
       <!-- Total Advances -->
@@ -263,7 +309,12 @@
           <div class="value" id="stat-total-advances">0 ج.م</div>
         </div>
         <div class="stat-icon-side" style="background: var(--warning-gradient);">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="12" y1="6" x2="12" y2="18"/></svg>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2" ry="2" />
+            <line x1="12" y1="18" x2="12" y2="18" />
+            <line x1="12" y1="6" x2="12" y2="18" />
+          </svg>
         </div>
       </div>
       <!-- Net Remaining -->
@@ -273,18 +324,28 @@
           <div class="value" id="stat-net-balance">0 ج.م</div>
         </div>
         <div class="stat-icon-side" style="background: var(--info-gradient);">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h4v-6z"/></svg>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4" />
+            <path d="M4 6v12c0 1.1.9 2 2 2h14v-4" />
+            <path d="M18 12a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h4v-6z" />
+          </svg>
         </div>
       </div>
     </div>
 
     <!-- Workers List Card -->
     <div class="card-premium">
-      <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; border-bottom: 1.5px solid var(--border);">
+      <div class="card-header"
+        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; border-bottom: 1.5px solid var(--border);">
         <h2 style="font-weight:900;">قائمة العمال والأرصدة</h2>
         <div class="search-box">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="worker-search-input" placeholder="البحث عن عامل..." oninput="filterWorkers()" style="border-radius:12px; padding-right: 2.8rem;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input type="text" id="worker-search-input" placeholder="البحث عن عامل..." oninput="filterWorkers()"
+            style="border-radius:12px; padding-right: 2.8rem;">
         </div>
       </div>
       <div class="card-body" style="padding: 1.25rem;">
@@ -304,7 +365,8 @@
             </thead>
             <tbody id="workers-table-body">
               <tr>
-                <td colspan="8" style="text-align:center;color:var(--text-muted); padding: 3rem 0;">جاري تحميل العمال...</td>
+                <td colspan="8" style="text-align:center;color:var(--text-muted); padding: 3rem 0;">جاري تحميل العمال...
+                </td>
               </tr>
             </tbody>
           </table>
@@ -317,7 +379,8 @@
       <div class="modal modal-premium">
         <div class="modal-header">
           <h3 style="font-weight:900;">إضافة عامل جديد</h3>
-          <button class="btn btn-secondary btn-sm" onclick="closeModal('create-worker-modal')" style="padding:0.5rem; border-radius:50%;">
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('create-worker-modal')"
+            style="padding:0.5rem; border-radius:50%;">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -327,17 +390,21 @@
           <form id="create-worker-form">
             <div class="form-group">
               <label for="worker-name" style="font-weight:700;">اسم العامل *</label>
-              <input type="text" id="worker-name" required placeholder="أدخل اسم العامل الكامل" style="border-radius:12px; padding: 0.85rem 1rem;">
+              <input type="text" id="worker-name" required placeholder="أدخل اسم العامل الكامل"
+                style="border-radius:12px; padding: 0.85rem 1rem;">
             </div>
             <div class="form-group">
               <label for="worker-rate" style="font-weight:700;">حساب الساعة (جنيه) *</label>
-              <input type="number" id="worker-rate" min="0" required placeholder="مثال: 50" style="border-radius:12px; padding: 0.85rem 1rem;">
+              <input type="number" id="worker-rate" min="0" required placeholder="مثال: 50"
+                style="border-radius:12px; padding: 0.85rem 1rem;">
             </div>
           </form>
         </div>
         <div class="modal-footer" style="padding: 1.25rem 2rem;">
-          <button type="button" class="btn btn-primary" onclick="submitCreateWorker()" style="border-radius:12px; padding: 0.7rem 1.4rem;">حفظ العامل</button>
-          <button type="button" class="btn btn-secondary" onclick="closeModal('create-worker-modal')" style="border-radius:12px; padding: 0.7rem 1.4rem;">إلغاء</button>
+          <button type="button" class="btn btn-primary" onclick="submitCreateWorker()"
+            style="border-radius:12px; padding: 0.7rem 1.4rem;">حفظ العامل</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('create-worker-modal')"
+            style="border-radius:12px; padding: 0.7rem 1.4rem;">إلغاء</button>
         </div>
       </div>
     </div>
@@ -347,7 +414,8 @@
       <div class="modal modal-premium">
         <div class="modal-header">
           <h3 style="font-weight:900;">تسجيل سلفة لعامل</h3>
-          <button class="btn btn-secondary btn-sm" onclick="closeModal('add-advance-modal')" style="padding:0.5rem; border-radius:50%;">
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('add-advance-modal')"
+            style="padding:0.5rem; border-radius:50%;">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -358,21 +426,26 @@
             <input type="hidden" id="advance-worker-id">
             <div class="form-group">
               <label style="font-weight:700;">اسم العامل</label>
-              <div id="advance-worker-name" style="font-weight: 900; font-size: 1.3rem; color: var(--primary); padding: 0.5rem 0;">-</div>
+              <div id="advance-worker-name"
+                style="font-weight: 900; font-size: 1.3rem; color: var(--primary); padding: 0.5rem 0;">-</div>
             </div>
             <div class="form-group">
               <label for="advance-amount" style="font-weight:700;">مبلغ السلفة (جنيه) *</label>
-              <input type="number" id="advance-amount" min="1" required placeholder="أدخل مبلغ السلفة" style="border-radius:12px; padding: 0.85rem 1rem;">
+              <input type="number" id="advance-amount" min="1" required placeholder="أدخل مبلغ السلفة"
+                style="border-radius:12px; padding: 0.85rem 1rem;">
             </div>
             <div class="form-group">
               <label for="advance-notes" style="font-weight:700;">ملاحظات / سبب السلفة</label>
-              <textarea id="advance-notes" placeholder="اكتب ملاحظة اختيارية..." rows="2" style="border-radius:12px; padding: 0.85rem 1rem; resize: none;"></textarea>
+              <textarea id="advance-notes" placeholder="اكتب ملاحظة اختيارية..." rows="2"
+                style="border-radius:12px; padding: 0.85rem 1rem; resize: none;"></textarea>
             </div>
           </form>
         </div>
         <div class="modal-footer" style="padding: 1.25rem 2rem;">
-          <button type="button" class="btn btn-primary" onclick="submitAddAdvance()" style="border-radius:12px; padding: 0.7rem 1.4rem;">تسجيل السلفة</button>
-          <button type="button" class="btn btn-secondary" onclick="closeModal('add-advance-modal')" style="border-radius:12px; padding: 0.7rem 1.4rem;">إلغاء</button>
+          <button type="button" class="btn btn-primary" onclick="submitAddAdvance()"
+            style="border-radius:12px; padding: 0.7rem 1.4rem;">تسجيل السلفة</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('add-advance-modal')"
+            style="border-radius:12px; padding: 0.7rem 1.4rem;">إلغاء</button>
         </div>
       </div>
     </div>
@@ -382,7 +455,8 @@
       <div class="modal modal-premium" style="max-width: 850px;">
         <div class="modal-header">
           <h3 id="history-title" style="font-weight:900;">سجل العامل</h3>
-          <button class="btn btn-secondary btn-sm" onclick="closeModal('worker-history-modal')" style="padding:0.5rem; border-radius:50%;">
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('worker-history-modal')"
+            style="padding:0.5rem; border-radius:50%;">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -390,11 +464,18 @@
         </div>
         <div class="modal-body" style="padding: 2rem;">
           <div style="margin-bottom: 2rem;">
-            <h4 style="color: var(--primary); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; font-weight:800; font-size:1rem;">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <h4
+              style="color: var(--primary); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; font-weight:800; font-size:1rem;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
               سجل الحضور والانصراف (الورديات)
             </h4>
-            <div class="table-container" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px;">
+            <div class="table-container"
+              style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px;">
               <table class="data-table data-table-premium" style="min-width: 100%;">
                 <thead>
                   <tr>
@@ -408,7 +489,8 @@
                 </thead>
                 <tbody id="history-attendance-body">
                   <tr>
-                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">لا يوجد ورديات مسجلة</td>
+                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">لا يوجد
+                      ورديات مسجلة</td>
                   </tr>
                 </tbody>
               </table>
@@ -416,11 +498,17 @@
           </div>
 
           <div>
-            <h4 style="color: var(--warning-text); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; font-weight:800; font-size:1rem;">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="12" y1="6" x2="12" y2="18"/></svg>
+            <h4
+              style="color: var(--warning-text); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; font-weight:800; font-size:1rem;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="2" y="4" width="20" height="16" rx="2" ry="2" />
+                <line x1="12" y1="18" x2="12" y2="18" />
+                <line x1="12" y1="6" x2="12" y2="18" />
+              </svg>
               سجل السلف النقدية
             </h4>
-            <div class="table-container" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px;">
+            <div class="table-container"
+              style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px;">
               <table class="data-table data-table-premium" style="min-width: 100%;">
                 <thead>
                   <tr>
@@ -432,7 +520,8 @@
                 </thead>
                 <tbody id="history-advances-body">
                   <tr>
-                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">لا يوجد سلف مسجلة</td>
+                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">لا يوجد سلف
+                      مسجلة</td>
                   </tr>
                 </tbody>
               </table>
@@ -447,7 +536,8 @@
       <div class="modal modal-premium" style="max-width: 450px;">
         <div class="modal-header">
           <h3 id="custom-time-modal-title" style="font-weight:900;">تسجيل وقت مخصص</h3>
-          <button class="btn btn-secondary btn-sm" onclick="closeModal('custom-time-modal')" style="padding:0.5rem; border-radius:50%;">
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('custom-time-modal')"
+            style="padding:0.5rem; border-radius:50%;">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -459,14 +549,18 @@
             <input type="hidden" id="custom-time-hourly-rate">
             <input type="hidden" id="custom-time-type"> <!-- 'check_in' or 'check_out' -->
             <div class="form-group">
-              <label id="custom-time-label" for="custom-time-input" style="font-weight:700;">اختر الوقت والتاريخ *</label>
-              <input type="datetime-local" id="custom-time-input" required style="border-radius:12px; padding: 0.85rem 1rem;">
+              <label id="custom-time-label" for="custom-time-input" style="font-weight:700;">اختر الوقت والتاريخ
+                *</label>
+              <input type="datetime-local" id="custom-time-input" required
+                style="border-radius:12px; padding: 0.85rem 1rem;">
             </div>
           </form>
         </div>
         <div class="modal-footer" style="padding: 1.25rem 2rem;">
-          <button type="button" class="btn btn-primary" onclick="submitCustomTime()" style="border-radius:12px; padding: 0.7rem 1.4rem;">حفظ</button>
-          <button type="button" class="btn btn-secondary" onclick="closeModal('custom-time-modal')" style="border-radius:12px; padding: 0.7rem 1.4rem;">إلغاء</button>
+          <button type="button" class="btn btn-primary" onclick="submitCustomTime()"
+            style="border-radius:12px; padding: 0.7rem 1.4rem;">حفظ</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('custom-time-modal')"
+            style="border-radius:12px; padding: 0.7rem 1.4rem;">إلغاء</button>
         </div>
       </div>
     </div>
@@ -489,7 +583,7 @@
     async function initWorkersPage() {
       await initAuth();
       const sb = getSupabase();
-      
+
       try {
         // Fetch all workers, attendance logs, and advances logs
         const { data: workers, error: wErr } = await sb.from('workers').select('*').order('name');
@@ -513,16 +607,16 @@
 
     function renderStats() {
       const totalWorkers = allWorkers.length;
-      
+
       // Matched workers currently in work (check_out is null)
       const activeWorkers = allAttendance.filter(a => a.check_out === null).length;
-      
+
       // Calculate total earnings
       const totalEarnings = allAttendance.reduce((sum, a) => sum + (parseFloat(a.earnings) || 0), 0);
-      
+
       // Calculate total advances
       const totalAdvances = allAdvances.reduce((sum, a) => sum + (parseFloat(a.amount) || 0), 0);
-      
+
       // Net balance
       const netBalance = totalEarnings - totalAdvances;
 
@@ -531,7 +625,7 @@
       document.getElementById('stat-total-earnings').textContent = totalEarnings.toLocaleString('ar-EG') + ' ج.م';
       document.getElementById('stat-total-advances').textContent = totalAdvances.toLocaleString('ar-EG') + ' ج.م';
       document.getElementById('stat-net-balance').textContent = netBalance.toLocaleString('ar-EG') + ' ج.م';
-      
+
       // Dynamic color style for Net Balance
       const netValEl = document.getElementById('stat-net-balance');
       if (netBalance < 0) {
@@ -543,7 +637,7 @@
 
     function renderWorkersList(workers = allWorkers) {
       const tbody = document.getElementById('workers-table-body');
-      
+
       if (workers.length === 0) {
         tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted); padding: 3rem 0;">لا يوجد عمال مسجلين حالياً</td></tr>`;
         return;
@@ -554,19 +648,19 @@
         // Filter attendance for this worker
         const wAtt = allAttendance.filter(a => a.worker_id === w.id);
         const activeAtt = wAtt.find(a => a.check_out === null); // session where check_out is null
-        
+
         const totalHours = wAtt.reduce((sum, a) => sum + (parseFloat(a.total_hours) || 0), 0);
         const totalEarnings = wAtt.reduce((sum, a) => sum + (parseFloat(a.earnings) || 0), 0);
-        
+
         // Filter advances for this worker
         const wAdv = allAdvances.filter(a => a.worker_id === w.id);
         const totalAdvances = wAdv.reduce((sum, a) => sum + (parseFloat(a.amount) || 0), 0);
-        
+
         const netBalance = totalEarnings - totalAdvances;
-        
+
         const isCheckedIn = !!activeAtt;
-        const statusBadge = isCheckedIn 
-          ? `<span class="pulse-badge">في العمل</span>` 
+        const statusBadge = isCheckedIn
+          ? `<span class="pulse-badge">في العمل</span>`
           : `<span class="inactive-badge">غير متواجد</span>`;
 
         // Attendance Action button
@@ -664,14 +758,14 @@
     async function checkInWorker(workerId) {
       try {
         const sb = getSupabase();
-        
+
         // Ensure no active session
         const { data: active } = await sb.from('attendance')
           .select('*')
           .eq('worker_id', workerId)
           .is('check_out', null)
           .maybeSingle();
-          
+
         if (active) {
           showAlert('العامل مسجل حضور بالفعل!', 'error');
           return;
@@ -698,17 +792,17 @@
       try {
         showAlert('جاري تسجيل الحضور...', 'pending');
         const sb = getSupabase();
-        
+
         const workDate = isoDateTime.split('T')[0];
-        
+
         const { error } = await sb.from('attendance').insert([{
           worker_id: workerId,
           work_date: workDate,
           check_in: isoDateTime
         }]);
-        
+
         if (error) throw error;
-        
+
         showAlert('تم تسجيل الحضور بنجاح', 'success');
         await initWorkersPage();
       } catch (e) {
@@ -719,14 +813,14 @@
     async function checkOutWorker(workerId, hourlyRate) {
       try {
         const sb = getSupabase();
-        
+
         // Get active session
         const { data: active } = await sb.from('attendance')
           .select('*')
           .eq('worker_id', workerId)
           .is('check_out', null)
           .maybeSingle();
-          
+
         if (!active) {
           showAlert('لا يوجد تسجيل حضور نشط لهذا العامل!', 'error');
           return;
@@ -754,10 +848,10 @@
       try {
         showAlert('جاري تسجيل الانصراف...', 'pending');
         const sb = getSupabase();
-        
+
         const checkInTime = new Date(active.check_in);
         const checkOutTime = new Date(isoDateTime);
-        
+
         if (checkOutTime <= checkInTime) {
           showAlert('خطأ: وقت الانصراف يجب أن يكون بعد وقت الحضور!', 'error');
           return;
@@ -775,9 +869,14 @@
             earnings: earnings
           })
           .eq('id', active.id);
-          
+
         if (error) throw error;
-        
+
+        // Auto distribute wages for this day to orders
+        if (active.work_date) {
+          await distributeWagesForDate(active.work_date);
+        }
+
         showAlert(`تم تسجيل الانصراف بنجاح (المدة: ${totalHours} ساعة، المستحق: ${earnings} ج.م)`, 'success');
         await initWorkersPage();
       } catch (e) {
@@ -792,12 +891,12 @@
       const workerId = document.getElementById('custom-time-worker-id').value;
       const type = document.getElementById('custom-time-type').value;
       const customTimeVal = document.getElementById('custom-time-input').value;
-      
+
       if (!customTimeVal) {
         showAlert('يرجى اختيار الوقت والتاريخ', 'error');
         return;
       }
-      
+
       const isoDateTime = new Date(customTimeVal).toISOString();
 
       if (type === 'check_in') {
@@ -805,7 +904,7 @@
         await proceedCheckIn(workerId, isoDateTime);
       } else if (type === 'check_out') {
         const hourlyRate = parseFloat(document.getElementById('custom-time-hourly-rate').value || 0);
-        
+
         try {
           const sb = getSupabase();
           const { data: active } = await sb.from('attendance')
@@ -813,13 +912,13 @@
             .eq('worker_id', workerId)
             .is('check_out', null)
             .maybeSingle();
-            
+
           if (!active) {
             showAlert('لا يوجد تسجيل حضور نشط لهذا العامل!', 'error');
             closeModal('custom-time-modal');
             return;
           }
-          
+
           closeModal('custom-time-modal');
           await proceedCheckOut(active, hourlyRate, isoDateTime);
         } catch (e) {
@@ -871,13 +970,13 @@
 
     async function viewWorkerHistory(workerId, workerName) {
       document.getElementById('history-title').textContent = `سجل العامل: ${workerName}`;
-      
+
       const attBody = document.getElementById('history-attendance-body');
       const advBody = document.getElementById('history-advances-body');
-      
+
       attBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem 0;">جاري التحميل...</td></tr>';
       advBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 2rem 0;">جاري التحميل...</td></tr>';
-      
+
       openModal('worker-history-modal');
 
       const sb = getSupabase();
@@ -893,7 +992,7 @@
           att.forEach(a => {
             const dateStr = new Date(a.work_date).toLocaleDateString('ar-EG');
             const inTimeStr = new Date(a.check_in).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-            const outTimeStr = a.check_out 
+            const outTimeStr = a.check_out
               ? new Date(a.check_out).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
               : '<span style="color:var(--success-text); font-weight:700;">نشط حالياً</span>';
             const hoursStr = a.total_hours ? `${a.total_hours} ساعة` : '-';
@@ -953,8 +1052,17 @@
       if (!(await customConfirm('هل أنت متأكد من حذف وردية العمل هذه؟ سيؤثر هذا على إجمالي مستحقات العامل.'))) return;
       try {
         const sb = getSupabase();
+        // Fetch the record first to get the work_date
+        const { data: record } = await sb.from('attendance').select('work_date').eq('id', id).maybeSingle();
+
         const { error } = await sb.from('attendance').delete().eq('id', id);
         if (error) throw error;
+
+        // Auto distribute/recalculate wages for this day
+        if (record && record.work_date) {
+          await distributeWagesForDate(record.work_date);
+        }
+
         showAlert('تم حذف الوردية بنجاح', 'success');
         await initWorkersPage();
         await viewWorkerHistory(workerId, workerName);

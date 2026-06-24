@@ -45,46 +45,92 @@
   <main class="main-content">
     <div class="page-header" style="margin-bottom: 1rem;">
       <h1 style="display:flex; align-items:center; gap:0.6rem;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:30px;height:30px;flex-shrink:0;"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/><rect x="1" y="20" width="22" height="2" rx="1" fill="var(--primary)" opacity="0.15"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round"
+          stroke-linejoin="round" style="width:30px;height:30px;flex-shrink:0;">
+          <path d="M23 6l-9.5 9.5-5-5L1 18" />
+          <path d="M17 6h6v6" />
+          <rect x="1" y="20" width="22" height="2" rx="1" fill="var(--primary)" opacity="0.15" />
+        </svg>
         الأرباح والمصروفات
       </h1>
       <button class="btn btn-primary" onclick="openModal('create-expense-modal')" style="gap:0.5rem;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><path d="M12 5v14M5 12h14"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round" style="width:18px;height:18px;">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
         مصروف جديد
       </button>
     </div>
 
-    <div style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.25rem 1.5rem; margin-bottom:1.75rem; display:flex; gap:1rem; align-items:center; flex-wrap:wrap; box-shadow:var(--shadow-sm);">
+    <div
+      style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.25rem 1.5rem; margin-bottom:1.75rem; display:flex; gap:1rem; align-items:center; flex-wrap:wrap; box-shadow:var(--shadow-sm);">
       <div style="display:flex;align-items:center;gap:0.5rem;">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20" stroke-width="2" style="color:var(--primary)"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20" stroke-width="2"
+          style="color:var(--primary)">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
         <label style="font-weight:700; color:var(--text-main); white-space:nowrap;">عرض التقرير عن:</label>
       </div>
       <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-        <button onclick="setPeriod('all')" id="btn-all" style="padding:0.5rem 1.1rem; border-radius:50px; border:1.5px solid var(--primary); background:var(--primary); color:#fff; font-weight:700; font-size:0.85rem; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:0.4rem;">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        <button onclick="setPeriod('all')" id="btn-all"
+          style="padding:0.5rem 1.1rem; border-radius:50px; border:1.5px solid var(--primary); background:var(--primary); color:#fff; font-weight:700; font-size:0.85rem; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:0.4rem;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
           كل الأوقات
         </button>
-        <button onclick="setPeriod('month')" id="btn-month" style="padding:0.5rem 1.1rem; border-radius:50px; border:1.5px solid var(--border); background:#fff; color:var(--text-main); font-weight:700; font-size:0.85rem; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:0.4rem;">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        <button onclick="setPeriod('month')" id="btn-month"
+          style="padding:0.5rem 1.1rem; border-radius:50px; border:1.5px solid var(--border); background:#fff; color:var(--text-main); font-weight:700; font-size:0.85rem; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:0.4rem;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
           آخر 30 يوم
         </button>
-        <button onclick="setPeriod('year')" id="btn-year" style="padding:0.5rem 1.1rem; border-radius:50px; border:1.5px solid var(--border); background:#fff; color:var(--text-main); font-weight:700; font-size:0.85rem; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:0.4rem;">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg>
+        <button onclick="setPeriod('year')" id="btn-year"
+          style="padding:0.5rem 1.1rem; border-radius:50px; border:1.5px solid var(--border); background:#fff; color:var(--text-main); font-weight:700; font-size:0.85rem; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:0.4rem;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+            <path d="M8 14h.01"></path>
+            <path d="M12 14h.01"></path>
+            <path d="M16 14h.01"></path>
+            <path d="M8 18h.01"></path>
+            <path d="M12 18h.01"></path>
+            <path d="M16 18h.01"></path>
+          </svg>
           آخر سنة
         </button>
-        <button onclick="setPeriod('custom')" id="btn-custom" style="padding:0.5rem 1.1rem; border-radius:50px; border:1.5px solid var(--border); background:#fff; color:var(--text-main); font-weight:700; font-size:0.85rem; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:0.4rem;">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <button onclick="setPeriod('custom')" id="btn-custom"
+          style="padding:0.5rem 1.1rem; border-radius:50px; border:1.5px solid var(--border); background:#fff; color:var(--text-main); font-weight:700; font-size:0.85rem; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:0.4rem;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
           فترة محددة
         </button>
       </div>
       <div id="custom-date-range" class="hidden" style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
         <div style="display:flex; align-items:center; gap:0.5rem;">
           <label style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">من:</label>
-          <input type="date" id="date-from" onchange="initProfitsPage()" style="padding:0.5rem 0.75rem; border-radius:var(--radius); border:1.5px solid var(--border); background:#fff; color:var(--text-main); font-family:inherit; font-size:0.9rem;">
+          <input type="date" id="date-from" onchange="initProfitsPage()"
+            style="padding:0.5rem 0.75rem; border-radius:var(--radius); border:1.5px solid var(--border); background:#fff; color:var(--text-main); font-family:inherit; font-size:0.9rem;">
         </div>
         <div style="display:flex; align-items:center; gap:0.5rem;">
           <label style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">إلى:</label>
-          <input type="date" id="date-to" onchange="initProfitsPage()" style="padding:0.5rem 0.75rem; border-radius:var(--radius); border:1.5px solid var(--border); background:#fff; color:var(--text-main); font-family:inherit; font-size:0.9rem;">
+          <input type="date" id="date-to" onchange="initProfitsPage()"
+            style="padding:0.5rem 0.75rem; border-radius:var(--radius); border:1.5px solid var(--border); background:#fff; color:var(--text-main); font-family:inherit; font-size:0.9rem;">
         </div>
       </div>
     </div>
@@ -92,33 +138,53 @@
     <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 2rem;">
       <div class="stat-card clickable" onclick="window.location.href='client_orders.html'"
         title="الذهاب لصفحة طلبيات العملاء">
-        <h3 style="display:flex;align-items:center;gap:0.45rem;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg> إيرادات العملاء (+)</h3>
+        <h3 style="display:flex;align-items:center;gap:0.45rem;"><svg viewBox="0 0 24 24" width="18" height="18"
+            fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+          </svg> إيرادات العملاء (+)</h3>
         <div class="value" id="stat-revenues" style="color:var(--success)">0</div>
         <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">إجمالي حسابات طلبيات العملاء</div>
       </div>
       <div class="stat-card clickable" onclick="window.location.href='orders_history.html'"
         title="الذهاب لصفحة سجل الطلبيات">
         <h3 style="display:flex;align-items:center;gap:0.45rem;">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--error)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" opacity="0.5"/></svg>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--error)" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+            <path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" opacity="0.5" />
+          </svg>
           خامات الطلبيات (-)
         </h3>
         <div class="value" id="stat-order-materials" style="color:var(--error)">0</div>
         <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">تكلفة خامات الأوردرات المخصصة</div>
       </div>
       <div class="stat-card clickable" onclick="window.location.href='accounts.html'" title="الذهاب لصفحة الحسابات">
-        <h3 style="display:flex;align-items:center;gap:0.45rem;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--error)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg> مدفوعات الموردين (-)</h3>
+        <h3 style="display:flex;align-items:center;gap:0.45rem;"><svg viewBox="0 0 24 24" width="18" height="18"
+            fill="none" stroke="var(--error)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1" y="4" width="22" height="16" rx="2" />
+            <path d="M1 10h22" />
+          </svg> مدفوعات الموردين (-)</h3>
         <div class="value" id="stat-suppliers" style="color:var(--error)">0</div>
         <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">المبالغ المسددة للموردين</div>
       </div>
       <div class="stat-card clickable"
         onclick="document.getElementById('expenses-section').scrollIntoView({behavior: 'smooth'})"
         title="عرض جدول المصروفات بالأسفل">
-        <h3 style="display:flex;align-items:center;gap:0.45rem;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--error)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg> إجمالي المصروفات (-)</h3>
+        <h3 style="display:flex;align-items:center;gap:0.45rem;"><svg viewBox="0 0 24 24" width="18" height="18"
+            fill="none" stroke="var(--error)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 8v4M12 16h.01" />
+          </svg> إجمالي المصروفات (-)</h3>
         <div class="value" id="stat-expenses" style="color:var(--error)">0</div>
         <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">رواتب، إيجار، كهرباء...</div>
       </div>
       <div class="stat-card primary-bg">
-        <h3 style="display:flex;align-items:center;gap:0.45rem;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg> صافي الأرباح</h3>
+        <h3 style="display:flex;align-items:center;gap:0.45rem;"><svg viewBox="0 0 24 24" width="18" height="18"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 6l-9.5 9.5-5-5L1 18" />
+            <path d="M17 6h6v6" />
+          </svg> صافي الأرباح</h3>
         <div class="value" id="stat-net-profit">0</div>
         <div style="font-size:0.75rem;margin-top:0.5rem;opacity:0.8">الإيرادات - (الخامات + الموردين + المصروفات)</div>
       </div>
@@ -127,7 +193,11 @@
     <div class="card" id="expenses-section">
       <div class="card-header">
         <h2 style="display:flex;align-items:center;gap:0.5rem;">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--primary)" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+          </svg>
           سجل المصروفات
         </h2>
       </div>
@@ -152,7 +222,7 @@
       </div>
     </div>
 
-    
+
     <div id="create-expense-modal" class="modal-overlay hidden">
       <div class="modal">
         <div class="modal-header">
@@ -199,7 +269,7 @@
       function setPeriod(period) {
         currentPeriod = period;
 
-        ['all','month','year','custom'].forEach(p => {
+        ['all', 'month', 'year', 'custom'].forEach(p => {
           const btn = document.getElementById('btn-' + p);
           if (btn) {
             if (p === period) {
@@ -349,7 +419,7 @@
               }
               cleanText = '';
             }
-          } catch (e) {}
+          } catch (e) { }
 
           if (!isRawInstallments && defaultPaid > 0) {
             history = [{
@@ -475,7 +545,7 @@
           if (activePayables) {
             activePayables.forEach(acc => {
               const parsed = parsePaymentHistory(acc.notes, acc.created_at, acc.paid_amount || 0);
-              
+
               if (parsed.history && parsed.history.length > 0) {
                 parsed.history.forEach(p => {
                   let inRange = true;

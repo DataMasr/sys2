@@ -21,11 +21,9 @@ function renderLayout() {
 
   let navHTML = '';
   if (currentProfile) {
-    const role = currentProfile.role;
-    const isPrivileged = ['admin', 'manager', 'purchasing_manager'].includes(role);
     navHTML = sectionMap
       .filter(s => {
-        if (s.adminOnly && !isPrivileged) return false;
+        if (s.adminOnly && !hasRole(['admin', 'manager', 'purchasing_manager']) && !hasPermission(s.id)) return false;
         return hasPermission(s.id);
       })
       .map(s => `
@@ -207,7 +205,24 @@ async function checkGlobalAlerts() {
 
           // Restrict shortage approval notifications strictly to purchasing_manager, admin, and manager
           if (notif.message.includes("تم اعتماد نواقص") || notif.message.includes("جاهزة للشراء")) {
-            if (!['purchasing_manager', 'admin', 'manager'].includes(currentProfile.role)) {
+            if (!hasRole(['purchasing_manager', 'admin', 'manager']) && !hasPermission('purchasing')) {
+              return;
+            }
+          }
+
+          // Restrict task notifications strictly to the assigned role and admins
+          if (notif.message.includes("مهمة جديدة للـ")) {
+            const isDesignerText = notif.message.includes("للمصمم");
+            const isExecText = notif.message.includes("للمدير التنفيذي");
+            
+            const isDesigner = currentProfile.role === 'designer';
+            const isExec = currentProfile.role === 'executive_director';
+            const isAdminOrMgr = ['admin', 'manager', 'general_manager', 'executive_director'].includes(currentProfile.role);
+            
+            if (isDesignerText && !isDesigner && !isAdminOrMgr) {
+              return;
+            }
+            if (isExecText && !isExec && !isAdminOrMgr) {
               return;
             }
           }
@@ -250,7 +265,7 @@ async function checkGlobalAlerts() {
         const isDelivered = order.stage === 'تم التسليم للزبون';
 
         // 1. Notification for prep manager / admin: order needs materials OR has material issue
-        const isPrepOrAdmin = currentProfile && ['inventory_manager', 'admin'].includes(currentProfile.role);
+        const isPrepOrAdmin = currentProfile && (hasRole(['inventory_manager', 'admin']) || hasPermission('inventory'));
         if (isPrepOrAdmin && !isDelivered) {
           const hasMaterials = order.material_notes && order.material_notes.includes('<!--TRACK:');
           const hasIssue = order.material_notes && order.material_notes.includes('<!--MATERIAL_ISSUE:');
@@ -282,9 +297,9 @@ async function checkGlobalAlerts() {
         }
 
         // 2. Notification for shortages approval (production engineer, purchasing manager, manager, admin)
-        const isProd = currentProfile && currentProfile.role === 'production_engineer';
-        const isPurch = currentProfile && currentProfile.role === 'purchasing_manager';
-        const isMgr = currentProfile && ['manager', 'admin'].includes(currentProfile.role);
+        const isProd = currentProfile && (currentProfile.role === 'production_engineer' || hasPermission('tasks') || hasPermission('progress'));
+        const isPurch = currentProfile && (currentProfile.role === 'purchasing_manager' || hasPermission('purchasing'));
+        const isMgr = currentProfile && (hasRole(['manager', 'admin']) || hasPermission('orders'));
 
         if ((isProd || isPurch || isMgr) && !isDelivered) {
           const hasShortage = order.material_notes && order.material_notes.includes('عجز (مطلوب شراء)');
@@ -328,7 +343,7 @@ async function checkGlobalAlerts() {
 
         // 2.5 Notification for ready for delivery (جاهز للتسليم) - visible to purchasing manager, manager, and admin
         if (order.stage === 'جاهز للتسليم') {
-          const isPurchOrMgrOrAdmin = currentProfile && ['purchasing_manager', 'manager', 'admin'].includes(currentProfile.role);
+          const isPurchOrMgrOrAdmin = currentProfile && (hasRole(['purchasing_manager', 'manager', 'admin']) || hasPermission('orders') || hasPermission('purchasing'));
           if (isPurchOrMgrOrAdmin) {
             lateItems.push({
               id: order.id,
@@ -344,7 +359,7 @@ async function checkGlobalAlerts() {
         // 2.7 Notification for shortages fully approved (ready for purchase in purchasing.html) - visible to purchasing manager, manager, and admin
         const hasApprovedShortage = order.material_notes && order.material_notes.includes('عجز (معتمد للشراء)');
         if (hasApprovedShortage && !isDelivered) {
-          const isPurchOrMgrOrAdmin = currentProfile && ['purchasing_manager', 'manager', 'admin'].includes(currentProfile.role);
+          const isPurchOrMgrOrAdmin = currentProfile && (hasRole(['purchasing_manager', 'manager', 'admin']) || hasPermission('orders') || hasPermission('purchasing'));
           if (isPurchOrMgrOrAdmin) {
             lateItems.push({
               id: order.id,
@@ -584,6 +599,8 @@ function renderNotificationsList() {
         notifTitle = "🛒 تم شراء خامات الطلبية";
       } else if (item.source.includes("الكمية المطلوبة") || item.source.includes("خامات أوردر")) {
         notifTitle = "🧱 تعديل خامات الطلبية";
+      } else if (item.source.includes("مهمة جديدة للـ")) {
+        notifTitle = "📌 مهمة جديدة مسندة إليك";
       } else if (item.source.includes("إشعار")) {
         notifTitle = "🔔 إشعار نظام";
       }

@@ -59,7 +59,7 @@
     </div>
 
     <div id="create-user-modal" class="modal-overlay hidden">
-      <div class="modal">
+      <div class="modal" style="max-width: 650px;">
         <div class="modal-header">
           <h3>حساب جديد</h3>
           <button class="btn btn-secondary btn-sm" onclick="closeModal('create-user-modal')" style="padding:0.5rem">
@@ -85,12 +85,19 @@
 
             <div class="form-group" style="margin-bottom: 1.5rem;">
               <label for="new-user-role" style="display:block; margin-bottom:0.8rem; font-weight:800; color:var(--primary);">الرتبة :</label>
-              <select id="new-user-role" required style="width:100%; padding:0.8rem; border-radius:var(--radius); border:1px solid var(--border);">
-                <option value="purchasing_manager">مدير مشتريات</option>
-                <option value="inventory_manager">مدير التجهيزات</option>
-                <option value="production_engineer">مهندس إنتاج</option>
-                <option value="manager">مدير عام</option>
+              <select id="new-user-role" required onchange="applyDefaultPermissions('new')" style="width:100%; padding:0.8rem; border-radius:var(--radius); border:1px solid var(--border);">
+                <option value="executive_director">مدير تنفيذي</option>
+                <option value="general_manager">مدير عام</option>
+                <option value="designer">مصمم</option>
+                <option value="employee">موظف</option>
               </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <label style="display:block; margin-bottom:0.8rem; font-weight:800; color:var(--primary);">صلاحيات الوصول للأقسام :</label>
+              <div id="new-permissions-grid" style="border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem; background: var(--bg-color); max-height: 250px; overflow-y: auto;">
+                <!-- Will be populated dynamically -->
+              </div>
             </div>
           </form>
         </div>
@@ -102,9 +109,9 @@
     </div>
 
     <div id="edit-permissions-modal" class="modal-overlay hidden">
-      <div class="modal">
+      <div class="modal" style="max-width: 650px;">
         <div class="modal-header">
-          <h3 id="edit-perms-title">تعديل رتبة المستخدم</h3>
+          <h3 id="edit-perms-title">تعديل رتبة وصلاحيات المستخدم</h3>
           <button class="btn btn-secondary btn-sm" onclick="closeModal('edit-permissions-modal')"
             style="padding:0.5rem">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
@@ -117,12 +124,19 @@
             <input type="hidden" id="edit-user-id">
             <div class="form-group" style="margin-bottom: 1.5rem;">
               <label for="edit-user-role" style="display:block; margin-bottom:0.8rem; font-weight:800; color:var(--primary);">الرتبة :</label>
-              <select id="edit-user-role" required style="width:100%; padding:0.8rem; border-radius:var(--radius); border:1px solid var(--border);">
-                <option value="purchasing_manager">مدير مشتريات</option>
-                <option value="inventory_manager">مدير التجهيزات</option>
-                <option value="production_engineer">مهندس إنتاج</option>
-                <option value="manager">مدير عام</option>
+              <select id="edit-user-role" required onchange="applyDefaultPermissions('edit')" style="width:100%; padding:0.8rem; border-radius:var(--radius); border:1px solid var(--border);">
+                <option value="executive_director">مدير تنفيذي</option>
+                <option value="general_manager">مدير عام</option>
+                <option value="designer">مصمم</option>
+                <option value="employee">موظف</option>
               </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <label style="display:block; margin-bottom:0.8rem; font-weight:800; color:var(--primary);">صلاحيات الوصول للأقسام :</label>
+              <div id="edit-permissions-grid" style="border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem; background: var(--bg-color); max-height: 250px; overflow-y: auto;">
+                <!-- Will be populated dynamically -->
+              </div>
             </div>
           </form>
         </div>
@@ -136,142 +150,172 @@
     <script>
       const SECTIONS = [
         { id: 'orders', name: 'طلبيات العملاء', page: 'client_orders.html' },
+        { id: 'orders_history', name: 'سجل الطلبيات', page: 'orders_history.html' },
+        { id: 'tasks', name: 'قائمة المهام', page: 'tasks.html' },
+        { id: 'progress', name: 'متابعة التقدم', page: 'progress.html' },
         { id: 'inventory', name: 'المخازن', page: 'inventory.html' },
-        { id: 'customers', name: 'العملاء', page: 'customers.html' },
-        { id: 'pricing', name: 'التسعير', page: 'pricing.html' },
-        { id: 'accounts', name: 'الحسابات', page: 'accounts.html' },
-        { id: 'profits', name: 'الأرباح', page: 'profits.html' },
         { id: 'purchasing', name: 'المشتريات', page: 'purchasing.html' },
+        { id: 'pricing', name: 'التسعير', page: 'pricing.html' },
+        { id: 'profits', name: 'الأرباح والمصروفات', page: 'profits.html' },
+        { id: 'accounts', name: 'الحسابات', page: 'accounts.html' },
+        { id: 'customers', name: 'العملاء', page: 'customers.html' },
+        { id: 'workers', name: 'شؤون العمال', page: 'workers.html' },
         { id: 'users', name: 'المستخدمين', page: 'users.html' }
       ];
 
-      function openModal(id) {
-        document.getElementById(id).classList.remove('hidden');
+      const ROLE_DEFAULTS = {
+        executive_director: {
+          orders: 'full', orders_history: 'full', tasks: 'full', progress: 'full',
+          inventory: 'full', purchasing: 'full', pricing: 'full', profits: 'full',
+          accounts: 'full', customers: 'full', workers: 'full', users: 'full'
+        },
+        general_manager: {
+          orders: 'full', orders_history: 'full', tasks: 'full', progress: 'full',
+          inventory: 'full', purchasing: 'full', pricing: 'full', profits: 'full',
+          accounts: 'full', customers: 'full', workers: 'full', users: 'none'
+        },
+        designer: {
+          orders: 'read', orders_history: 'read', tasks: 'full', progress: 'full',
+          inventory: 'none', purchasing: 'none', pricing: 'none', profits: 'none',
+          accounts: 'none', customers: 'none', workers: 'none', users: 'none'
+        },
+        employee: {
+          orders: 'read', orders_history: 'read', tasks: 'full', progress: 'full',
+          inventory: 'none', purchasing: 'none', pricing: 'none', profits: 'none',
+          accounts: 'none', customers: 'none', workers: 'none', users: 'none'
+        }
+      };
+
+      function renderPermissionsGrid(containerId, prefix) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        let html = `<table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: right;">
+            <thead><tr style="border-bottom: 2px solid var(--border);">
+              <th style="padding: 0.5rem; font-weight: bold;">القسم</th>
+              <th style="padding: 0.5rem; font-weight: bold; text-align: center;">مخفي</th>
+              <th style="padding: 0.5rem; font-weight: bold; text-align: center;">عرض فقط</th>
+              <th style="padding: 0.5rem; font-weight: bold; text-align: center;">كاملة</th>
+            </tr></thead><tbody>`;
+        SECTIONS.forEach(s => {
+          html += `<tr style="border-bottom: 1px solid var(--border-light);">
+              <td style="padding: 0.6rem 0.5rem; font-weight: 600;">${s.name}</td>
+              <td style="padding: 0.6rem 0.5rem; text-align: center;"><input type="radio" name="${prefix}-perm-${s.id}" value="none" checked style="cursor: pointer; width: 16px; height: 16px;"></td>
+              <td style="padding: 0.6rem 0.5rem; text-align: center;"><input type="radio" name="${prefix}-perm-${s.id}" value="read" style="cursor: pointer; width: 16px; height: 16px;"></td>
+              <td style="padding: 0.6rem 0.5rem; text-align: center;"><input type="radio" name="${prefix}-perm-${s.id}" value="full" style="cursor: pointer; width: 16px; height: 16px;"></td>
+            </tr>`;
+        });
+        html += `</tbody></table>`;
+        container.innerHTML = html;
       }
 
-      function closeModal(id) {
-        document.getElementById(id).classList.add('hidden');
+      function applyDefaultPermissions(prefix) {
+        const role = document.getElementById(`${prefix}-user-role`)?.value;
+        const defaults = ROLE_DEFAULTS[role];
+        if (!defaults) return;
+        SECTIONS.forEach(s => {
+          const val = defaults[s.id] || 'none';
+          const radio = document.querySelector(`input[name="${prefix}-perm-${s.id}"][value="${val}"]`);
+          if (radio) radio.checked = true;
+        });
       }
+
+      function getSelectedPermissions(prefix) {
+        const perms = {};
+        SECTIONS.forEach(s => {
+          perms[s.id] = document.querySelector(`input[name="${prefix}-perm-${s.id}"]:checked`)?.value || 'none';
+        });
+        return perms;
+      }
+
+      function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+      function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
       async function openEditPermissionsModal(userId, fullName, currentRole) {
         document.getElementById('edit-user-id').value = userId;
-        document.getElementById('edit-perms-title').textContent = `تعديل رتبة: ${fullName}`;
+        document.getElementById('edit-perms-title').textContent = `تعديل رتبة وصلاحيات: ${fullName}`;
         document.getElementById('edit-user-role').value = currentRole;
+        try {
+          const { data } = await getSupabase().from('profiles').select('permissions').eq('id', userId).single();
+          const perms = data?.permissions || {};
+          SECTIONS.forEach(s => {
+            const radio = document.querySelector(`input[name="edit-perm-${s.id}"][value="${perms[s.id] || 'none'}"]`);
+            if (radio) radio.checked = true;
+          });
+        } catch (e) { applyDefaultPermissions('edit'); }
         openModal('edit-permissions-modal');
       }
 
       async function submitUpdatePermissions() {
         const userId = document.getElementById('edit-user-id').value;
         const role = document.getElementById('edit-user-role').value;
-
+        const permissions = getSelectedPermissions('edit');
         try {
-          showAlert('جاري تحديث الرتبة...', 'pending');
-          const sb = getSupabase();
-          const { error } = await sb.from('profiles').update({ role }).eq('id', userId);
+          showAlert('جاري التحديث...', 'pending');
+          const { error } = await getSupabase().from('profiles').update({ role, permissions }).eq('id', userId);
           if (error) throw error;
-
-          showAlert('تم تحديث الرتبة بنجاح!', 'success');
+          showAlert('تم التحديث بنجاح!', 'success');
           closeModal('edit-permissions-modal');
           await initUsersPage();
-        } catch (e) {
-          showAlert('فشل التحديث: ' + e.message, 'error');
-        }
+        } catch (e) { showAlert('فشل التحديث: ' + e.message, 'error'); }
       }
 
       async function submitCreateUser() {
         const form = document.getElementById('create-user-form');
         if (!form.checkValidity()) { form.reportValidity(); return; }
-
         const name = document.getElementById('new-user-name').value;
         const email = document.getElementById('new-user-email').value;
         const password = document.getElementById('new-user-password').value;
         const role = document.getElementById('new-user-role').value;
-
+        const permissions = getSelectedPermissions('new');
         try {
-          showAlert('جاري إنشاء الحساب...', 'pending');
+          showAlert('جاري الإنشاء...', 'pending');
           const tempSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             auth: { persistSession: false, autoRefreshToken: false }
           });
-
-          const { data, error } = await tempSupabase.auth.signUp({
-            email, password,
-            options: { data: { full_name: name, role: role } }
-          });
-
+          const { data, error } = await tempSupabase.auth.signUp({ email, password, options: { data: { full_name: name } } });
           if (error) throw error;
-
-          if (data.user) {
-            await new Promise(r => setTimeout(r, 1000));
-            const sb = getSupabase();
-            const { error: updateError } = await sb.from('profiles').update({
-              role, full_name: name, permissions: {}
-            }).eq('id', data.user.id);
-            if (updateError) throw updateError;
-          }
-
-          showAlert('تم إنشاء الحساب بنجاح!', 'success');
+          await getSupabase().from('profiles').update({ role, full_name: name, permissions }).eq('id', data.user.id);
+          showAlert('تم بنجاح!', 'success');
           closeModal('create-user-modal');
           form.reset();
+          applyDefaultPermissions('new');
           await initUsersPage();
-        } catch (e) {
-          showAlert('فشل إنشاء الحساب: ' + e.message, 'error');
-        }
+        } catch (e) { showAlert('فشل: ' + e.message, 'error'); }
       }
 
       async function initUsersPage() {
         await initAuth();
         const profiles = await getProfiles();
         const tbody = document.getElementById('users-table-body');
-
-        if (profiles.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">لا يوجد مستخدمين</td></tr>`;
-          return;
-        }
-
-        tbody.innerHTML = '';
+        tbody.innerHTML = profiles.length ? '' : `<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">لا يوجد مستخدمين</td></tr>`;
         profiles.forEach(p => {
           const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>
-              <div style="font-weight:600">${p.full_name || '-'}</div>
-              <div style="font-size:0.75rem;color:var(--text-muted)">${p.email}</div>
-            </td>
-            <td>
-              <span class="badge badge-${p.role === 'admin' ? 'completed' : 'in_progress'}">
-                ${getRoleLabel(p.role)}
-              </span>
-            </td>
+          tr.innerHTML = `<td><div style="font-weight:600">${p.full_name || '-'}</div><div style="font-size:0.75rem;color:var(--text-muted)">${p.email}</div></td>
+            <td><span class="badge badge-${p.role === 'admin' ? 'completed' : 'in_progress'}">${getRoleLabel(p.role)}</span></td>
             <td>${new Date(p.created_at).toLocaleDateString('ar-EG')}</td>
-            <td>
-              <div style="display:flex; gap:0.5rem; justify-content:center;">
-                <button onclick="openEditPermissionsModal('${p.id}', '${p.full_name || p.email}', '${p.role}')" 
-                  class="btn btn-secondary btn-sm" style="background:var(--primary); color:white; border:none;">
-                  تعديل الرتبة
-                </button>
-                <button onclick="deleteUserAccount('${p.id}')" class="btn btn-sm" style="background:#fee2e2; color:#dc2626; border:none;">
-                  حذف
-                </button>
-              </div>
-            </td>
-          `;
+            <td><div style="display:flex; gap:0.5rem; justify-content:center;">
+              <button onclick="openEditPermissionsModal('${p.id}', '${p.full_name || p.email}', '${p.role}')" class="btn btn-secondary btn-sm" style="background:var(--primary); color:white; border:none;">تعديل الصلاحيات</button>
+              <button onclick="deleteUserAccount('${p.id}')" class="btn btn-sm" style="background:#fee2e2; color:#dc2626; border:none;">حذف</button>
+            </div></td>`;
           tbody.appendChild(tr);
         });
       }
 
       async function deleteUserAccount(userId) {
-        if (!(await customConfirm('هل أنت متأكد من حذف هذا الحساب؟'))) return;
+        if (!(await customConfirm('هل أنت متأكد؟'))) return;
         try {
-          const sb = getSupabase();
-          const { error } = await sb.from('profiles').delete().eq('id', userId);
-          if (error) throw error;
-          showAlert('تم حذف الحساب بنجاح', 'success');
+          await getSupabase().from('profiles').delete().eq('id', userId);
+          showAlert('تم الحذف', 'success');
           await initUsersPage();
-        } catch (e) {
-          showAlert('فشل الحذف: ' + e.message, 'error');
-        }
+        } catch (e) { showAlert('فشل: ' + e.message, 'error'); }
       }
 
-      document.addEventListener('DOMContentLoaded', initUsersPage);
+      document.addEventListener('DOMContentLoaded', () => {
+        renderPermissionsGrid('new-permissions-grid', 'new');
+        renderPermissionsGrid('edit-permissions-grid', 'edit');
+        applyDefaultPermissions('new');
+        initUsersPage();
+      });
     </script>
 </body>
 

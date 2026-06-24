@@ -287,7 +287,7 @@
                     onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 4px rgba(99,102,241,0.1)'; showClientDropdown(this.value);"
                     onblur="hideClientDropdown(); this.style.borderColor='var(--border)'; this.style.boxShadow='none';"
                     oninput="handleClientSearchInput(this.value)" required>
-                  
+
                   <!-- Custom Autocomplete Dropdown -->
                   <div id="co-client-dropdown" class="autocomplete-dropdown hidden"></div>
                 </div>
@@ -295,7 +295,8 @@
 
                 <div id="new-customer-fields" class="hidden"
                   style="margin-top: 1rem; padding: 1rem 1.25rem; border: 2px dashed #c7d2fe; border-radius: var(--radius); background: #f8f9ff;">
-                  <h5 style="margin:0 0 0.8rem 0; color:var(--primary); font-weight:800;">✨ هذا العميل جديد، يرجى إدخال بياناته</h5>
+                  <h5 style="margin:0 0 0.8rem 0; color:var(--primary); font-weight:800;">✨ هذا العميل جديد، يرجى إدخال
+                    بياناته</h5>
                   <div class="form-group" style="margin-bottom: 1rem;">
                     <label>رقم التلفون (اختياري)</label>
                     <input type="text" id="new-cust-phone-input" placeholder="01012345678">
@@ -305,13 +306,27 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.4rem;">
                       <label class="cust-type-option">
                         <input type="radio" name="cust_type" value="regular" checked>
-                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 0.45rem;"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M12 2v3" opacity="0.6"/><path d="m9 3 3-1 3 1" opacity="0.6"/></svg>
-                        <span style="font-weight: 800; font-size: 0.82rem; color: var(--text-main);">عميل ثابت (مستمر)</span>
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--primary)"
+                          stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                          style="margin-bottom: 0.45rem;">
+                          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
+                          <path d="M12 2v3" opacity="0.6" />
+                          <path d="m9 3 3-1 3 1" opacity="0.6" />
+                        </svg>
+                        <span style="font-weight: 800; font-size: 0.82rem; color: var(--text-main);">عميل ثابت
+                          (مستمر)</span>
                       </label>
                       <label class="cust-type-option">
                         <input type="radio" name="cust_type" value="temporary">
-                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--error)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 0.45rem;"><path d="M5 2h14M5 22h14M19 2v4a7 7 0 0 1-7 7v0a7 7 0 0 1-7-7V2M5 22v-4a7 7 0 0 1 7-7v0a7 7 0 0 1 7 7v4"/></svg>
-                        <span style="font-weight: 800; font-size: 0.82rem; color: var(--text-main);">عميل مؤقت (أوردر واحد)</span>
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--error)"
+                          stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                          style="margin-bottom: 0.45rem;">
+                          <path
+                            d="M5 2h14M5 22h14M19 2v4a7 7 0 0 1-7 7v0a7 7 0 0 1-7-7V2M5 22v-4a7 7 0 0 1 7-7v0a7 7 0 0 1 7 7v4" />
+                        </svg>
+                        <span style="font-weight: 800; font-size: 0.82rem; color: var(--text-main);">عميل مؤقت (أوردر
+                          واحد)</span>
                       </label>
                     </div>
                   </div>
@@ -362,12 +377,6 @@
                   <option value="جاهز للتسليم">جاهز للتسليم</option>
                   <option value="تم التسليم للزبون">تم التسليم للزبون</option>
                 </select>
-              </div>
-
-              <div class="form-group" style="margin-bottom: 1rem; grid-column: 1 / -1;">
-                <label for="co-display-name">🏷️ اسم الأوردر للعرض العام *</label>
-                <input type="text" id="co-display-name" required placeholder="مثال: أوردر 001 — ستائر زرقاء..." style="font-weight:600;">
-                <small style="color:var(--text-muted);font-size:0.75rem;">هذا الاسم يراه جميع الموظفين بدلاً من اسم العميل</small>
               </div>
             </div>
 
@@ -422,7 +431,8 @@
 
             <div class="form-group" style="margin-bottom: 1rem; grid-column: 1 / -1;">
               <label for="upd-order-details">تفاصيل ومواصفات الطلب</label>
-              <textarea id="upd-order-details" rows="3" placeholder="اكتب تفاصيل الطلب، المقاسات، الألوان، وأي متطلبات خاصة هنا..."></textarea>
+              <textarea id="upd-order-details" rows="3"
+                placeholder="اكتب تفاصيل الطلب، المقاسات، الألوان، وأي متطلبات خاصة هنا..."></textarea>
             </div>
 
             <div class="form-group financial-field" style="margin-bottom: 1rem; grid-column: 1 / -1;">
@@ -468,7 +478,8 @@
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" id="add-materials-submit-btn" onclick="submitAddMaterials()">تأكيد وإضافة الخامات</button>
+          <button type="button" class="btn btn-primary" id="add-materials-submit-btn"
+            onclick="submitAddMaterials()">تأكيد وإضافة الخامات</button>
           <button type="button" class="btn btn-secondary" onclick="closeModal('add-materials-modal')">إلغاء</button>
         </div>
       </div>
@@ -488,7 +499,9 @@
           <input type="hidden" id="report-issue-order-id">
           <div class="form-group">
             <label>وصف المشكلة بالتفصيل</label>
-            <textarea id="report-issue-text" rows="4" placeholder="مثال: الخامة غير متطابقة مع المقاسات المطلوبة، أو الكمية المسحوبة غير كافية..." required style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:0.5rem; font-family:inherit;"></textarea>
+            <textarea id="report-issue-text" rows="4"
+              placeholder="مثال: الخامة غير متطابقة مع المقاسات المطلوبة، أو الكمية المسحوبة غير كافية..." required
+              style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:0.5rem; font-family:inherit;"></textarea>
           </div>
         </div>
         <div class="modal-footer">
@@ -583,7 +596,7 @@
 
         const query = val.trim().toLowerCase();
         let matches = [];
-        
+
         if (!query) {
           // If input is empty, show the first 10 customers as suggestions
           matches = customersList.slice(0, 10);
@@ -592,18 +605,18 @@
         }
 
         dropdown.innerHTML = '';
-        
+
         if (matches.length > 0) {
           matches.forEach(c => {
             const isTemp = c.phone && c.phone.includes('[مؤقت]');
             const cleanPhone = c.phone ? c.phone.replace(' [مؤقت]', '').replace('[مؤقت]', '') : '';
             const badgeClass = isTemp ? 'badge-temp' : 'badge-regular';
             const badgeText = isTemp ? 'مؤقت ⏳' : 'ثابت 📌';
-            
+
             const div = document.createElement('div');
             div.className = 'autocomplete-item';
             div.setAttribute('onmousedown', `selectClientOption('${c.name.replace(/'/g, "\\'")}')`);
-            
+
             div.innerHTML = `
               <div class="client-info">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -615,7 +628,7 @@
             dropdown.appendChild(div);
           });
         }
-        
+
         // Always show the "Add New Customer" option if the typed text doesn't exactly match any customer
         const exactMatch = customersList.some(c => c.name.trim() === val.trim());
         if (val.trim() && !exactMatch) {
@@ -705,7 +718,7 @@
         }
       }
 
-      window.setFraction = function(inputEl, fraction) {
+      window.setFraction = function (inputEl, fraction) {
         const currentVal = parseFloat(inputEl.value || 0);
         const whole = Math.floor(currentVal);
         inputEl.value = (whole + fraction).toString();
@@ -715,7 +728,7 @@
         if (!notes) return [];
         const tracked = [];
         const regex = /<!--TRACK:([a-zA-Z0-9\-]+):([0-9.]+)(?::([a-zA-Z0-9_]+):([a-zA-Z]+):([0-9.]+))?-->/g;
-        let match;
+          let match;
         while ((match = regex.exec(notes)) !== null) {
           tracked.push({
             itemId: match[1],
@@ -864,7 +877,7 @@
                 if (item) {
                   const currentQtyInDB = item[oldMat.wh] || 0;
                   const revertedQty = currentQtyInDB + oldMat.deductedQty;
-                  
+
                   const { error: invError } = await sb.from('inventory').update({ [oldMat.wh]: revertedQty }).eq('id', oldMat.itemId);
                   if (invError) throw new Error(`فشل استرجاع خامة ${item.item_name}: ${invError.message}`);
 
@@ -953,7 +966,7 @@
 
             const priceItem = pricesList.find(p => p.item_name === item.item_name);
             const piecePrice = priceItem ? (priceItem.piece_price || 0) : 0;
-            
+
             // Total manufacturing cost (for display and estimation) uses full requested quantity
             const displayCost = mat.qty * piecePrice;
             totalManufacturingCost += displayCost;
@@ -979,7 +992,7 @@
                 if (logErr) throw logErr;
               }
             }
-            
+
             // Construct the note, keeping and displaying the already purchased quantity tag
             const displayPurchased = Math.min(mat.qty, alreadyPurchased);
             let note = '';
@@ -1040,9 +1053,14 @@
 
           // Send notification about quantity / materials edit by Manager or Purchasing Manager
           const role = currentProfile ? currentProfile.role : 'user';
-          if (['admin', 'manager', 'purchasing_manager'].includes(role)) {
+          if (['admin', 'manager', 'general_manager', 'executive_director', 'purchasing_manager'].includes(role)) {
             try {
-              const roleText = (role === 'admin' || role === 'manager') ? 'المدير' : 'مدير المشتريات';
+              let roleText = 'المسؤول';
+              if (role === 'admin') roleText = 'الأونر';
+              else if (role === 'executive_director') roleText = 'المدير التنفيذي';
+              else if (role === 'general_manager' || role === 'manager') roleText = 'المدير العام';
+              else if (role === 'purchasing_manager') roleText = 'مدير المشتريات';
+              
               const displayName = order.order_display_name || order.client_name || 'أوردر';
               await sb.from('notifications').insert([{
                 order_id: orderId,
@@ -1098,7 +1116,7 @@
           const role = currentProfile ? currentProfile.role : 'user';
           const issueTag = `<!--MATERIAL_ISSUE:${role}:${text}-->`;
           let cleanNotes = (order.material_notes || '').replace(/<!--MATERIAL_ISSUE:.*?-->/g, '').trim();
-          
+
           let newNotes = `⚠️ مشكلة في الخامات (تم الإبلاغ عنها): ${text}\n${issueTag}`;
           if (cleanNotes) {
             newNotes += '\n---------------------------\n' + cleanNotes;
@@ -1187,11 +1205,9 @@
             finalMaterialNotes = `📝 تفاصيل الطلب: ${orderDetails}`;
           }
 
-          const displayName = document.getElementById('co-display-name').value.trim();
-
           const { error: ordError } = await sb.from('client_orders').insert([{
             client_name: clientName,
-            order_display_name: displayName || clientName,
+            order_display_name: clientName,
             total_price: totalPrice,
             paid_amount: paidAmount,
             payment_plan: paymentPlan,
@@ -1201,6 +1217,14 @@
           }]);
 
           if (ordError) throw ordError;
+
+          // Auto distribute wages for today to include the new order
+          try {
+            const todayStr = new Date().toISOString().split('T')[0];
+            await distributeWagesForDate(todayStr);
+          } catch (distErr) {
+            console.error('Failed to auto-distribute wages:', distErr);
+          }
 
           // Check and delete temporary customer (if already completed/paid upon registration)
           await checkAndDeleteTemporaryCustomer(clientName);
@@ -1218,8 +1242,7 @@
         const order = clientOrdersData.find(o => o.id === orderId);
         if (!order) return;
 
-        const role = currentProfile ? currentProfile.role : 'user';
-        const canSeeFinancials = ['manager', 'admin', 'purchasing_manager'].includes(role);
+        const canSeeFinancials = canViewFinancials();
 
         document.getElementById('upd-order-id').value = order.id;
         const paidInput = document.getElementById('upd-paid-amount');
@@ -1280,8 +1303,7 @@
         });
         const paymentPlan = installments.length > 0 ? JSON.stringify(installments) : '';
 
-        const role = currentProfile ? currentProfile.role : 'user';
-        const canSeeFinancials = ['manager', 'admin', 'purchasing_manager'].includes(role);
+        const canSeeFinancials = canViewFinancials();
 
         try {
           showAlert('جاري التحديث...', 'pending');
@@ -1576,7 +1598,7 @@
 
         const filtered = clientOrdersData.filter(order => {
           const displayName = (order.order_display_name || order.client_name || '').toLowerCase();
-          const clientName  = (order.client_name || '').toLowerCase();
+          const clientName = (order.client_name || '').toLowerCase();
           const matchesName = displayName.includes(nameQuery) || clientName.includes(nameQuery);
 
           let matchesDate = true;
@@ -1600,12 +1622,12 @@
       function renderOrdersTable(data) {
         const tbody = document.getElementById('client-orders-table-body');
         const role = currentProfile ? currentProfile.role : 'user';
-        const isPrepManagerOrAdmin = ['inventory_manager', 'admin'].includes(role);
-        const isManagerOrAdmin = ['manager', 'admin'].includes(role);
+        const isPrepManagerOrAdmin = ['inventory_manager', 'admin', 'executive_director', 'general_manager'].includes(role) || hasPermission('inventory', 'full');
+        const isManagerOrAdmin = ['manager', 'general_manager', 'executive_director', 'admin'].includes(role) || hasPermission('orders', 'full');
         // manager + purchasing_manager see client name in addition to display name
-        const canSeeClientName = ['manager', 'admin', 'purchasing_manager'].includes(role);
-        const canSeeFinancials = ['manager', 'admin', 'purchasing_manager'].includes(role);
-        const canEditMaterials = ['inventory_manager', 'admin', 'manager', 'purchasing_manager'].includes(role);
+        const canSeeClientName = canViewFinancials() || hasPermission('orders', 'full');
+        const canSeeFinancials = canViewFinancials() || hasPermission('orders', 'full');
+        const canEditMaterials = hasPermission('inventory', 'full') || hasPermission('purchasing', 'full') || hasPermission('orders', 'full');
 
         if (data.length === 0) {
           tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted); padding:3rem;">لا توجد نتائج تطابق البحث</td></tr>`;
@@ -1651,26 +1673,25 @@
 
           const tr = document.createElement('tr');
           tr.id = 'order-row-' + order.id;
-          
-          // Name cell: show display_name for all; show client_name only for privileged roles
-          const displayName = order.order_display_name || order.client_name;
+
+          // Name cell: show client name for all
+          const displayName = order.client_name;
           const customerObj = customersList.find(c => c.name === order.client_name);
           const clientPhone = customerObj ? customerObj.phone : null;
           const cleanPhone = clientPhone ? clientPhone.replace(' [مؤقت]', '').replace('[مؤقت]', '') : '';
           const isTemp = clientPhone && clientPhone.includes('[مؤقت]');
-          const custBadge = isTemp 
-            ? `<span style="font-size:0.68rem; font-weight:700; background:#fee2e2; color:#ef4444; padding:1px 6px; border-radius:4px;">عميل مؤقت ⏳</span>` 
+          const custBadge = isTemp
+            ? `<span style="font-size:0.68rem; font-weight:700; background:#fee2e2; color:#ef4444; padding:1px 6px; border-radius:4px;">عميل مؤقت ⏳</span>`
             : `<span style="font-size:0.68rem; font-weight:700; background:#fef3c7; color:#92400e; padding:1px 6px; border-radius:4px;">عميل 📌</span>`;
 
           let nameCellHTML;
           if (canSeeClientName) {
-            // Privileged: show display name in large text, client name below as label
+            // Privileged: show client name, badge, and phone number
             nameCellHTML = `
               <div style="font-weight:800; font-size:1rem; color:var(--primary);">${displayName}</div>
               <div style="margin-top:0.25rem; display:flex; flex-direction:column; gap:0.25rem;">
                 <div style="display:flex; align-items:center; gap:0.35rem;">
                   ${custBadge}
-                  <span style="font-size:0.8rem; color:var(--text-main); font-weight:700;">${order.client_name}</span>
                 </div>
                 ${cleanPhone ? `
                   <div style="display:flex; align-items:center; gap:0.35rem; font-size:0.78rem; color:var(--text-muted); font-weight:600;">
@@ -1682,10 +1703,12 @@
               <div style="font-size:0.73rem; color:var(--text-muted); margin-top:0.2rem;">${new Date(order.created_at).toLocaleDateString('ar-EG')}</div>
             `;
           } else {
-            // Regular staff: display name only
+            // Regular staff: client name and badge
             nameCellHTML = `
               <div style="font-weight:800; font-size:1rem; color:var(--text-main);">${displayName}</div>
-              ${isTemp ? `<div style="margin-top:0.25rem;">${custBadge}</div>` : ''}
+              <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.35rem;">
+                ${custBadge}
+              </div>
               <div style="font-size:0.73rem; color:var(--text-muted); margin-top:0.2rem;">${new Date(order.created_at).toLocaleDateString('ar-EG')}</div>
             `;
           }
@@ -1873,7 +1896,7 @@
           clientOrdersData = orders || [];
 
           const role = currentProfile ? currentProfile.role : 'user';
-          const canSeeFinancials = ['manager', 'admin', 'purchasing_manager'].includes(role);
+          const canSeeFinancials = canViewFinancials();
           document.querySelectorAll('.financial-field').forEach(el => {
             el.style.display = canSeeFinancials ? '' : 'none';
           });
@@ -1881,7 +1904,7 @@
           // Show/Hide Create Order button based on role
           const createBtn = document.getElementById('create-order-btn');
           if (createBtn) {
-            if (['manager', 'admin'].includes(role)) {
+            if (hasPermission('orders', 'full')) {
               createBtn.style.display = 'flex';
             } else {
               createBtn.style.display = 'none';
@@ -1899,7 +1922,7 @@
           // Render Prep Notification Banner
           const prepBanner = document.getElementById('prep-notification-banner');
           if (prepBanner) {
-            const isPrepOrAdmin = ['inventory_manager', 'admin'].includes(role);
+            const isPrepOrAdmin = ['inventory_manager', 'admin', 'executive_director', 'general_manager'].includes(role);
             if (isPrepOrAdmin) {
               const noMaterialsOrders = clientOrdersData.filter(o => {
                 return !(o.material_notes && o.material_notes.includes('<!--TRACK:'));
@@ -1943,9 +1966,9 @@
                       </div>
                       <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
                         ${issueOrders.map(o => {
-                          const match = o.material_notes.match(/<!--MATERIAL_ISSUE:(.*?)-->/);
-                          const issueText = match ? match[1] : 'مشكلة بالخامات';
-                          return `
+                  const match = o.material_notes.match(/<!--MATERIAL_ISSUE:(.*?)-->/);
+                  const issueText = match ? match[1] : 'مشكلة بالخامات';
+                  return `
                             <span onclick="scrollToOrder('${o.id}')" style="background:#fff; border:1px solid #fecaca; color:var(--error); padding:0.25rem 0.75rem; border-radius:50px; font-size:0.8rem; font-weight:700; cursor:pointer; transition:all 0.2s;"
                               onmouseover="this.style.background='#fef2f2'; this.style.transform='scale(1.05)';"
                               onmouseout="this.style.background='#fff'; this.style.transform='scale(1)';"
@@ -1953,7 +1976,7 @@
                               ⚠️ ${o.client_name} (تعديل الخامات)
                             </span>
                           `;
-                        }).join('')}
+                }).join('')}
                       </div>
                     </div>
                   </div>
@@ -1978,7 +2001,7 @@
           if (approvalBanner) {
             const isProd = role === 'production_engineer';
             const isPurch = role === 'purchasing_manager';
-            const isMgr = ['manager', 'admin'].includes(role);
+            const isMgr = ['manager', 'general_manager', 'executive_director', 'admin'].includes(role);
 
             if (isProd || isPurch || isMgr) {
               const pendingApprovals = clientOrdersData.filter(o => {
@@ -2129,7 +2152,7 @@
             if (payload) {
               const role = currentProfile ? currentProfile.role : 'user';
               if (payload.eventType === 'INSERT') {
-                if (['inventory_manager', 'admin'].includes(role)) {
+                if (role === 'admin' || hasPermission('inventory', 'full')) {
                   showAlert(`🔔 طلبيّة جديدة مضافة للعميل "${payload.new.client_name}"! يرجى تحديد الخامات المطلوبة لها.`, 'success');
                 }
               } else if (payload.eventType === 'UPDATE') {
@@ -2141,7 +2164,7 @@
                 const oldShortage = payload.old && payload.old.material_notes && payload.old.material_notes.includes('عجز (مطلوب شراء)');
 
                 if (newShortage && !oldShortage) {
-                  if (['production_engineer', 'purchasing_manager', 'manager', 'admin'].includes(role)) {
+                  if (['production_engineer', 'purchasing_manager', 'manager', 'general_manager', 'executive_director', 'admin'].includes(role)) {
                     showAlert(`⚠️ طلبية العميل "${payload.new.client_name}" بها نواقص وبانتظار اعتمادكم للشراء!`, 'warning');
                   }
                 }

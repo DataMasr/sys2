@@ -49,13 +49,24 @@ async function initAuth() {
     if (currentProfile.role === 'admin') {
       window.location.href = 'client_orders.html';
     } else {
-      const perms = currentProfile.permissions || {};
-      const firstAllowed = Object.keys(perms)[0];
-      if (firstAllowed) {
-        const target = Object.entries(sectionMap).find(([key, val]) => val === firstAllowed);
-        window.location.href = target ? target[0] : 'client_orders.html';
+      const orderedSections = [
+        { id: 'orders', page: 'client_orders.html' },
+        { id: 'orders_history', page: 'orders_history.html' },
+        { id: 'tasks', page: 'tasks.html' },
+        { id: 'progress', page: 'progress.html' },
+        { id: 'inventory', page: 'inventory.html' },
+        { id: 'purchasing', page: 'purchasing.html' },
+        { id: 'profits', page: 'profits.html' },
+        { id: 'accounts', page: 'accounts.html' },
+        { id: 'customers', page: 'customers.html' },
+        { id: 'workers', page: 'workers.html' },
+        { id: 'users', page: 'users.html' }
+      ];
+      const allowed = orderedSections.find(s => hasPermission(s.id));
+      if (allowed) {
+        window.location.href = allowed.page;
       } else {
-        window.location.href = 'client_orders.html'; // Fallback to let enforce handle it
+        window.location.href = 'client_orders.html'; // Fallback
       }
     }
     return null;
@@ -87,46 +98,89 @@ function updateSidebarUser() {
 
 function getRoleLabel(role) {
   if (role === 'admin') return 'الأونر';
+  if (role === 'executive_director') return 'مدير تنفيذي';
+  if (role === 'general_manager') return 'مدير عام';
+  if (role === 'designer') return 'مصمم';
+  if (role === 'employee') return 'موظف';
+  
+  // Legacy roles
   if (role === 'purchasing_manager') return 'مدير مشتريات';
   if (role === 'inventory_manager') return 'مدير التجهيزات';
   if (role === 'production_engineer') return 'مهندس إنتاج';
-  if (role === 'manager') return 'الأونر';
+  if (role === 'manager') return 'مدير عام';
   return 'مستخدم';
 }
 
 function hasPermission(sectionId, mode = 'read') {
-  if (sectionId === 'tasks') return true;
-  if (sectionId === 'progress') return true;
-  if (sectionId === 'orders_history') return true;
   if (!currentProfile) return false;
   const role = currentProfile.role;
 
-  // accounts, profits, customers restricted to admin + manager + purchasing_manager only
-  if (['accounts', 'profits', 'customers'].includes(sectionId)) {
-    return ['admin', 'manager', 'purchasing_manager'].includes(role);
+  // Admin has full access to everything
+  if (role === 'admin') return true;
+
+  // Check permissions JSON
+  const perms = currentProfile.permissions || {};
+  const userPerm = perms[sectionId]; // 'full', 'read', or 'none'/undefined
+
+  // Default permissions if not set in JSON (for backward compatibility)
+  if (userPerm === undefined) {
+    if (['tasks', 'progress', 'orders_history'].includes(sectionId)) return true;
+    
+    // Legacy full-access roles
+    if (['purchasing_manager', 'inventory_manager', 'production_engineer', 'manager'].includes(role)) {
+      if (['accounts', 'profits', 'customers'].includes(sectionId)) {
+        return ['manager', 'purchasing_manager'].includes(role);
+      }
+      return true;
+    }
+    return false;
   }
 
-  if (['admin', 'purchasing_manager', 'inventory_manager', 'production_engineer', 'manager'].includes(role)) {
-    return true;
+  if (userPerm === 'none') return false;
+
+  if (mode === 'full') {
+    return userPerm === 'full';
+  }
+
+  return true;
+}
+
+function canViewFinancials() {
+  if (!currentProfile) return false;
+  const role = currentProfile.role;
+  if (role === 'admin') return true;
+  
+  // If they have access to accounts or profits, they can see financials
+  if (hasPermission('accounts') || hasPermission('profits')) return true;
+  
+  // Backward compatibility / default roles
+  return ['manager', 'general_manager', 'executive_director', 'purchasing_manager'].includes(role);
+}
+
+function hasRole(rolesList) {
+  if (!currentProfile) return false;
+  const role = currentProfile.role;
+  if (role === 'admin') return true;
+
+  let normalizedList = [...rolesList];
+  if (rolesList.includes('manager')) {
+    normalizedList.push('general_manager', 'executive_director');
+  }
+  if (rolesList.includes('admin')) {
+    normalizedList.push('executive_director');
   }
   
-  const perms = currentProfile.permissions || {};
-  if (!perms[sectionId]) return false;
-  
-  if (mode === 'full' && perms[sectionId] !== 'full') return false;
-  
-  return true;
+  return normalizedList.includes(role);
 }
 
 function enforceRoutePermissions() {
   if (!currentProfile) return;
   const role = currentProfile.role;
-  if (['admin', 'purchasing_manager', 'inventory_manager', 'production_engineer', 'manager'].includes(role)) {
-    return; // Full access roles
+  if (role === 'admin') {
+    return; // Admin always bypasses route enforcement
   }
 
   const path = window.location.pathname;
-  const perms = currentProfile.permissions || {};
 
   const sectionMap = {
     'client_orders.html': 'orders',
@@ -153,13 +207,10 @@ function enforceRoutePermissions() {
 
   // If on a restricted page, check access
   if (currentSection && !hasPermission(currentSection)) {
-    const firstAllowed = Object.keys(perms)[0];
+    const firstAllowed = Object.entries(sectionMap).find(([page, sec]) => hasPermission(sec));
     if (firstAllowed) {
-      const target = Object.entries(sectionMap).find(([key, val]) => val === firstAllowed);
-      if (target) {
-        window.location.href = target[0];
-        return;
-      }
+      window.location.href = firstAllowed[0];
+      return;
     }
     
     showAlert('عذراً، ليس لديك صلاحيات وصول لأي قسم. تواصل مع الأدمن.', 'error');
@@ -170,12 +221,9 @@ function enforceRoutePermissions() {
 function hideUnauthorizedElements() {
   if (!currentProfile) return;
   const role = currentProfile.role;
-  if (['admin', 'purchasing_manager', 'inventory_manager', 'production_engineer', 'manager'].includes(role)) {
-    return; // Full access roles
-  }
+  if (role === 'admin') return; // Admin has full power
 
   const path = window.location.pathname;
-  const perms = currentProfile.permissions || {};
 
   const sectionMap = {
     'client_orders.html': 'orders',
@@ -186,7 +234,10 @@ function hideUnauthorizedElements() {
     'profits.html': 'profits',
     'purchasing.html': 'purchasing',
     'users.html': 'users',
-    'workers.html': 'workers'
+    'workers.html': 'workers',
+    'tasks.html': 'tasks',
+    'progress.html': 'progress',
+    'orders_history.html': 'orders_history'
   };
 
   let currentSection = null;
@@ -197,7 +248,8 @@ function hideUnauthorizedElements() {
     }
   }
 
-  if (currentSection && perms[currentSection] === 'read') {
+  // If the user has permission but only 'read' mode, disable/hide actions
+  if (currentSection && !hasPermission(currentSection, 'full')) {
     // Disable/Hide all buttons that imply action
     const actionButtons = document.querySelectorAll('.btn-primary, .btn-danger, button[onclick*="open"], button[onclick*="submit"], button[onclick*="delete"], button[onclick*="Update"], button[onclick*="Add"]');
     actionButtons.forEach(btn => {

@@ -568,9 +568,9 @@
     let editingTaskNoteKey = null;
     // ─── Constants ───
     const LANES = [
-      { key: 'inventory_manager', label: 'مدير التجهيزات', emoji: '📦', cssClass: 'lane-inventory' },
-      { key: 'production_engineer', label: 'مهندس الإنتاج', emoji: '⚙️', cssClass: 'lane-production' },
-      { key: 'purchasing_manager', label: 'مدير المشتريات', emoji: '🛒', cssClass: 'lane-purchasing' }
+      { key: 'general_manager', label: 'مدير عام', emoji: '📋', cssClass: 'lane-inventory' },
+      { key: 'designer', label: 'مصمم', emoji: '🎨', cssClass: 'lane-production' },
+      { key: 'executive_director', label: 'مدير تنفيذي', emoji: '⚡', cssClass: 'lane-purchasing' }
     ];
 
     let activeOrders = [];
@@ -578,14 +578,26 @@
     let searchFilter = '';
     let currentUserRole = null;
 
-    const IS_ADMIN_ROLE = (role) => ['admin', 'manager'].includes(role);
+    const IS_ADMIN_ROLE = (role) => ['admin', 'manager', 'general_manager', 'executive_director'].includes(role) || hasPermission('tasks', 'full');
 
     // ─── Task parsing ───
     function parseAllTasks(order) {
       if (!order || !order.pending_materials) return {};
       const pm = order.pending_materials;
-      if (Array.isArray(pm)) return { production_engineer: pm, inventory_manager: [], purchasing_manager: [] };
-      return pm;
+      
+      // Migrate array structure to new roles structure
+      if (Array.isArray(pm)) {
+        return { designer: pm, general_manager: [], executive_director: [] };
+      }
+      
+      // Migrate old keys to new keys if they exist
+      const result = {
+        general_manager: pm.general_manager || pm.inventory_manager || [],
+        designer: pm.designer || pm.production_engineer || [],
+        executive_director: pm.executive_director || pm.purchasing_manager || []
+      };
+      
+      return result;
     }
 
     async function saveAllTasks(orderId, tasksObj) {
@@ -928,7 +940,27 @@
       if (!tasksObj[laneKey]) tasksObj[laneKey] = [];
       tasksObj[laneKey].push({ text, done: false, purchase_details: {} });
 
-      await saveAllTasks(selectedOrder.id, tasksObj);
+      try {
+        const sb = getSupabase();
+        await saveAllTasks(selectedOrder.id, tasksObj);
+        
+        // Notify Designer or Executive Director if assigned
+        if (laneKey === 'designer' || laneKey === 'executive_director') {
+          const roleLabel = laneKey === 'designer' ? 'المصمم' : 'المدير التنفيذي';
+          const displayName = selectedOrder.order_display_name || selectedOrder.client_name || 'أوردر';
+          
+          await sb.from('notifications').insert([{
+            order_id: selectedOrder.id,
+            order_display_name: displayName,
+            message: `📌 مهمة جديدة للـ ${roleLabel}: تمت إضافة مهمة جديدة في طلبية (${displayName}): ${text}`,
+            created_by: (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : null,
+            read_by: []
+          }]);
+        }
+      } catch (err) {
+        console.warn('Failed to save task or send notification:', err.message);
+      }
+
       renderOrdersList();
       renderSelectedOrderView();
       input.value = '';
