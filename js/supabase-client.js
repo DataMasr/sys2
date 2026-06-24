@@ -81,7 +81,7 @@ async function distributeWagesForDate(dateStr) {
       const { data: activeOrders, error: activeOrdersError } = await sb.from('client_orders')
         .select('id, order_display_name, client_name, created_at, stage, archived')
         .eq('archived', false)
-        .neq('stage', 'تم التسليم للزبون');
+        .neq('stage', 'تم التسليم');
 
       if (activeOrdersError) throw activeOrdersError;
 

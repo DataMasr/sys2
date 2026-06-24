@@ -30,6 +30,9 @@ async function initAuth() {
   }
 
   currentProfile = profile;
+  if (currentProfile && currentProfile.role) {
+    currentProfile.role = currentProfile.role.toLowerCase().trim();
+  }
 
   const sectionMap = {
     'client_orders.html': 'orders',
@@ -97,7 +100,7 @@ function updateSidebarUser() {
 }
 
 function getRoleLabel(role) {
-  if (role === 'admin') return 'الأونر';
+  if (role === 'admin') return 'المدير العام';
   if (role === 'executive_director') return 'مدير تنفيذي';
   if (role === 'general_manager') return 'مدير عام';
   if (role === 'designer') return 'مصمم';
@@ -253,7 +256,9 @@ function hideUnauthorizedElements() {
     // Disable/Hide all buttons that imply action
     const actionButtons = document.querySelectorAll('.btn-primary, .btn-danger, button[onclick*="open"], button[onclick*="submit"], button[onclick*="delete"], button[onclick*="Update"], button[onclick*="Add"]');
     actionButtons.forEach(btn => {
-      // If it's a "Close" or "Cancel" button, keep it
+      // Keep cancel/close buttons, global sidebar attendance button, and any buttons inside the attendance modal visible
+      if (btn.id === 'sidebar-attendance-btn') return;
+      if (btn.closest('#attendance-self-modal')) return;
       if (btn.textContent.includes('إلغاء') || btn.textContent.includes('إغلاق')) return;
       
       btn.style.display = 'none';
@@ -263,6 +268,7 @@ function hideUnauthorizedElements() {
     const inputs = document.querySelectorAll('input, select, textarea');
     inputs.forEach(input => {
       if (input.id.includes('search')) return; // Allow searching
+      if (input.closest('#attendance-self-modal')) return;
       input.disabled = true;
       input.style.opacity = '0.7';
       input.style.cursor = 'not-allowed';

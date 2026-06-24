@@ -86,8 +86,8 @@
             <div class="form-group" style="margin-bottom: 1.5rem;">
               <label for="new-user-role" style="display:block; margin-bottom:0.8rem; font-weight:800; color:var(--primary);">الرتبة :</label>
               <select id="new-user-role" required onchange="applyDefaultPermissions('new')" style="width:100%; padding:0.8rem; border-radius:var(--radius); border:1px solid var(--border);">
+                <option value="admin">المدير العام (المالك)</option>
                 <option value="executive_director">مدير تنفيذي</option>
-                <option value="general_manager">مدير عام</option>
                 <option value="designer">مصمم</option>
                 <option value="employee">موظف</option>
               </select>
@@ -123,10 +123,14 @@
           <form id="edit-perms-form">
             <input type="hidden" id="edit-user-id">
             <div class="form-group" style="margin-bottom: 1.5rem;">
+              <label for="edit-user-name" style="display:block; margin-bottom:0.8rem; font-weight:800; color:var(--primary);">الاسم الكامل :</label>
+              <input type="text" id="edit-user-name" required placeholder="مثال: أحمد محمد" style="width:100%; padding:0.8rem; border-radius:var(--radius); border:1px solid var(--border); background: var(--bg-color); color: var(--text-main);">
+            </div>
+            <div class="form-group" style="margin-bottom: 1.5rem;">
               <label for="edit-user-role" style="display:block; margin-bottom:0.8rem; font-weight:800; color:var(--primary);">الرتبة :</label>
               <select id="edit-user-role" required onchange="applyDefaultPermissions('edit')" style="width:100%; padding:0.8rem; border-radius:var(--radius); border:1px solid var(--border);">
+                <option value="admin">المدير العام (المالك)</option>
                 <option value="executive_director">مدير تنفيذي</option>
-                <option value="general_manager">مدير عام</option>
                 <option value="designer">مصمم</option>
                 <option value="employee">موظف</option>
               </select>
@@ -211,7 +215,15 @@
       function applyDefaultPermissions(prefix) {
         const role = document.getElementById(`${prefix}-user-role`)?.value;
         const defaults = ROLE_DEFAULTS[role];
-        if (!defaults) return;
+        if (!defaults) {
+          if (role === 'admin') {
+            SECTIONS.forEach(s => {
+              const radio = document.querySelector(`input[name="${prefix}-perm-${s.id}"][value="full"]`);
+              if (radio) radio.checked = true;
+            });
+          }
+          return;
+        }
         SECTIONS.forEach(s => {
           const val = defaults[s.id] || 'none';
           const radio = document.querySelector(`input[name="${prefix}-perm-${s.id}"][value="${val}"]`);
@@ -233,12 +245,29 @@
       async function openEditPermissionsModal(userId, fullName, currentRole) {
         document.getElementById('edit-user-id').value = userId;
         document.getElementById('edit-perms-title').textContent = `تعديل رتبة وصلاحيات: ${fullName}`;
+        document.getElementById('edit-user-name').value = fullName;
         document.getElementById('edit-user-role').value = currentRole;
         try {
-          const { data } = await getSupabase().from('profiles').select('permissions').eq('id', userId).single();
+          const { data } = await getSupabase().from('profiles').select('permissions, full_name, role').eq('id', userId).single();
+          if (data && data.full_name) {
+            document.getElementById('edit-user-name').value = data.full_name;
+            document.getElementById('edit-perms-title').textContent = `تعديل رتبة وصلاحيات: ${data.full_name}`;
+          }
           const perms = data?.permissions || {};
+          const role = data?.role || currentRole;
+          
           SECTIONS.forEach(s => {
-            const radio = document.querySelector(`input[name="edit-perm-${s.id}"][value="${perms[s.id] || 'none'}"]`);
+            let val = perms[s.id];
+            // If the permission is not explicitly set, show the effective default for their role
+            if (val === undefined || val === null) {
+              if (role === 'admin') {
+                val = 'full';
+              } else {
+                val = ROLE_DEFAULTS[role]?.[s.id] || 'none';
+              }
+            }
+            
+            const radio = document.querySelector(`input[name="edit-perm-${s.id}"][value="${val}"]`);
             if (radio) radio.checked = true;
           });
         } catch (e) { applyDefaultPermissions('edit'); }
@@ -247,12 +276,19 @@
 
       async function submitUpdatePermissions() {
         const userId = document.getElementById('edit-user-id').value;
+        const fullName = document.getElementById('edit-user-name').value.trim();
         const role = document.getElementById('edit-user-role').value;
         const permissions = getSelectedPermissions('edit');
         try {
           showAlert('جاري التحديث...', 'pending');
-          const { error } = await getSupabase().from('profiles').update({ role, permissions }).eq('id', userId);
+          const sb = getSupabase();
+          
+          const { error } = await sb.from('profiles').update({ role, full_name: fullName, permissions }).eq('id', userId);
           if (error) throw error;
+
+          // Sync name to workers table if linked
+          await sb.from('workers').update({ name: fullName }).eq('profile_id', userId);
+
           showAlert('تم التحديث بنجاح!', 'success');
           closeModal('edit-permissions-modal');
           await initUsersPage();

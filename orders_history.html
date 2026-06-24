@@ -1981,7 +1981,7 @@
       let daysTaken = 0;
       if (order.created_at) {
         const s = new Date(order.created_at);
-        const e = order.stage === 'تم التسليم للزبون' && order.delivery_date ? new Date(order.delivery_date) : new Date();
+        const e = order.stage === 'تم التسليم' && order.delivery_date ? new Date(order.delivery_date) : new Date();
         daysTaken = Math.max(0, Math.ceil((e - s) / 86400000));
       }
       return { materialCost, additionalExps, supplierDebt, totalCost, netProfit, profitPercentage, clientReceivable, daysTaken, orderPayables };
@@ -1993,8 +1993,8 @@
     function render() {
       const cnts = {
         all: rawOrders.length,
-        active: rawOrders.filter(o => !o.archived && o.stage !== 'تم التسليم للزبون').length,
-        delivered: rawOrders.filter(o => o.stage === 'تم التسليم للزبون').length,
+        active: rawOrders.filter(o => !o.archived && o.stage !== 'تم التسليم').length,
+        delivered: rawOrders.filter(o => o.stage === 'تم التسليم').length,
         archived: rawOrders.filter(o => o.archived).length
       };
       ['all', 'active', 'delivered', 'archived'].forEach(k => {
@@ -2003,8 +2003,8 @@
       });
 
       let filtered = rawOrders;
-      if (activeFilter === 'active') filtered = rawOrders.filter(o => !o.archived && o.stage !== 'تم التسليم للزبون');
-      else if (activeFilter === 'delivered') filtered = rawOrders.filter(o => o.stage === 'تم التسليم للزبون');
+      if (activeFilter === 'active') filtered = rawOrders.filter(o => !o.archived && o.stage !== 'تم التسليم');
+      else if (activeFilter === 'delivered') filtered = rawOrders.filter(o => o.stage === 'تم التسليم');
       else if (activeFilter === 'archived') filtered = rawOrders.filter(o => o.archived);
 
       if (searchQuery.trim()) {
@@ -2048,16 +2048,16 @@
 
     function stageClass(s) {
       if (!s) return 'sp-default';
-      if (s === 'تم التسليم للزبون') return 'sp-done';
+      if (s === 'تم التسليم') return 'sp-done';
       if (s.includes('عربون') || s.includes('تعاقد')) return 'sp-contract';
-      if (s.includes('تنفيذ') || s.includes('تصنيع') || s.includes('التجهيز') || s.includes('خامات')) return 'sp-production';
+      if (s.includes('تنفيذ') || s.includes('تصنيع') || s.includes('التجهيز') || s.includes('خامات') || s.includes('تصميم')) return 'sp-production';
       if (s.includes('شحن') || s.includes('تسليم') || s.includes('جاهز') || s.includes('توصيل')) return 'sp-delivery';
       return 'sp-default';
     }
 
     function buildCard(order, fin) {
       const dn = order.order_display_name || order.client_name || '—';
-      const isDel = order.stage === 'تم التسليم للزبون';
+      const isDel = order.stage === 'تم التسليم';
       const isArch = order.archived;
       const cardCls = isDel ? 'c-delivered' : isArch ? 'c-archived' : '';
       const spCls = isArch ? 'sp-archived' : stageClass(order.stage);
@@ -2176,7 +2176,7 @@
       document.getElementById('fkpi-pay').textContent = fmt(fin.supplierDebt) + ' ج.م';
       document.getElementById('sheet-order-created').textContent = order.created_at ? new Date(order.created_at).toLocaleDateString('ar-EG', { dateStyle: 'long' }) : '—';
       document.getElementById('sheet-order-target').textContent = order.delivery_date || 'غير محدد';
-      document.getElementById('sheet-order-days').textContent = order.stage === 'تم التسليم للزبون' ? `مكتمل في ${fin.daysTaken} يوم ✅` : `جارٍ منذ ${fin.daysTaken} يوم`;
+      document.getElementById('sheet-order-days').textContent = order.stage === 'تم التسليم' ? `مكتمل في ${fin.daysTaken} يوم ✅` : `جارٍ منذ ${fin.daysTaken} يوم`;
 
       // Materials
       const mTb = document.getElementById('sheet-materials-tbody');

@@ -1078,7 +1078,7 @@
         };
 
         if (!hasRemainingDeficits) {
-          updateFields.stage = 'قيد التنفيذ';
+          updateFields.stage = 'التصميم';
         }
 
         const { error: updateErr } = await sb.from('client_orders').update(updateFields).eq('id', orderId);
@@ -1090,7 +1090,7 @@
           await sb.from('notifications').insert([{
             order_id: orderId,
             order_display_name: displayName,
-            message: `🛒 تم شراء خامات أوردر [${displayName}] بنجاح! المواد المشتراة: ${matsList}. وهي جاهزة الآن لمدير التجهيزات للبدء بقيد التصنيع.`,
+            message: `🛒 تم شراء خامات أوردر [${displayName}] بنجاح! المواد المشتراة: ${matsList}. وهي جاهزة الآن للبدء بالتصميم.`,
             created_by: currentUser ? currentUser.id : null,
             read_by: []
           }]);
@@ -1131,7 +1131,7 @@
         closeModal('purchase-checklist-modal');
 
         if (!hasRemainingDeficits) {
-          showAlert('تم شراء جميع النواقص وقيد المعاملات بالماليات! الطلبية تحولت إلى قيد التنفيذ ✅', 'success');
+          showAlert('تم شراء جميع النواقص وقيد المعاملات بالماليات! الطلبية تحولت إلى مرحلة التصميم ✅', 'success');
         } else {
           showAlert('تم تأكيد الشراء وقيد الحسابات بنجاح! 📦', 'success');
         }

@@ -72,6 +72,10 @@ function renderLayout() {
             <div id="user-role" style="font-size:0.75rem;color:var(--text-muted)">-</div>
           </div>
         </div>
+        <button id="sidebar-attendance-btn" class="btn btn-success btn-block btn-sm" style="margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: var(--success-gradient) !important; border: none; font-weight: 700;" onclick="openAttendanceSelfServiceModal()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>حضور وانصراف</span>
+        </button>
         <button class="btn btn-secondary btn-block btn-sm" onclick="logout()">تسجيل الخروج</button>
       </div>
     </aside>
@@ -130,6 +134,56 @@ function renderLayout() {
         <div style="display:flex; gap: 1rem; justify-content: center;">
           <button id="confirm-btn-yes" class="btn btn-primary" style="flex:1;">تأكيد</button>
           <button id="confirm-btn-no" class="btn btn-secondary" style="flex:1;">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Self-Service Attendance Modal -->
+    <div id="attendance-self-modal" class="modal-overlay hidden" style="z-index: 10005;">
+      <div class="modal" style="max-width: 480px;">
+        <div class="modal-header">
+          <h3 style="display:flex; align-items:center; gap:0.5rem; font-weight:800; color:var(--text-main);">تسجيل الحضور والانصراف 🕒</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeAttendanceSelfServiceModal()" style="padding:0.5rem; border-radius:50%;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body" style="padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1.25rem;">
+          <div id="attendance-user-info" style="text-align: center; background: rgba(99, 102, 241, 0.05); padding: 1rem; border-radius: 12px; border: 1px dashed rgba(99, 102, 241, 0.2);">
+            <div id="attendance-status-text" style="font-weight: 700; color: var(--text-main); font-size: 1rem; margin-bottom: 0.25rem;">جاري التحميل...</div>
+            <div id="attendance-sub-text" style="font-size: 0.85rem; color: var(--text-muted);">يرجى الانتظار</div>
+          </div>
+          
+          <!-- Camera Area -->
+          <div id="attendance-camera-section" class="hidden">
+            <label style="font-weight: 700; display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-main);">التقاط صورة التحقق *</label>
+            <div class="attendance-camera-container-wrapper">
+              <video id="attendance-video" autoplay playsinline></video>
+              <canvas id="attendance-canvas" width="320" height="240" class="hidden"></canvas>
+              <img id="attendance-preview-img" class="hidden">
+              <div id="attendance-shutter"></div>
+            </div>
+            
+            <div id="attendance-camera-error" class="hidden" style="color: var(--error); font-size: 0.85rem; margin-top: 0.5rem; text-align: center;"></div>
+            
+            <div style="display: flex; gap: 0.75rem; margin-top: 1rem; justify-content: center;">
+              <button id="btn-capture-photo" class="btn btn-secondary btn-sm" style="display:flex; align-items:center; gap:0.3rem;" onclick="captureAttendancePhoto()">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                التقاط الصورة
+              </button>
+              <button id="btn-retake-photo" class="btn btn-secondary btn-sm hidden" style="display:flex; align-items:center; gap:0.3rem;" onclick="retakeAttendancePhoto()">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                إعادة التقاط
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="padding: 1rem 2rem; display: flex; gap: 1rem;">
+          <button id="btn-submit-attendance" class="btn btn-primary" style="flex:1; border-radius:10px; justify-content: center; gap: 0.5rem;" onclick="submitAttendanceSelf()" disabled>
+            تسجيل حضور
+          </button>
+          <button class="btn btn-secondary" onclick="closeAttendanceSelfServiceModal()" style="border-radius:10px; flex: 1;">إلغاء</button>
         </div>
       </div>
     </div>
@@ -198,7 +252,7 @@ async function checkGlobalAlerts() {
           if (notif.order_id) {
             const relatedOrder = ordRes.data ? ordRes.data.find(o => o.id === notif.order_id) : null;
             // Skip notification if the order is not found (archived/deleted) or if it has already been delivered to the customer
-            if (!relatedOrder || relatedOrder.stage === 'تم التسليم للزبون') {
+            if (!relatedOrder || relatedOrder.stage === 'تم التسليم') {
               return;
             }
           }
@@ -212,8 +266,8 @@ async function checkGlobalAlerts() {
 
           // Restrict task notifications strictly to the assigned role and admins
           if (notif.message.includes("مهمة جديدة للـ")) {
-            const isDesignerText = notif.message.includes("للمصمم");
-            const isExecText = notif.message.includes("للمدير التنفيذي");
+            const isDesignerText = notif.message.includes("المصمم");
+            const isExecText = notif.message.includes("المدير التنفيذي");
             
             const isDesigner = currentProfile.role === 'designer';
             const isExec = currentProfile.role === 'executive_director';
@@ -262,7 +316,7 @@ async function checkGlobalAlerts() {
 
     if (ordRes.data) {
       ordRes.data.forEach(order => {
-        const isDelivered = order.stage === 'تم التسليم للزبون';
+        const isDelivered = order.stage === 'تم التسليم';
 
         // 1. Notification for prep manager / admin: order needs materials OR has material issue
         const isPrepOrAdmin = currentProfile && (hasRole(['inventory_manager', 'admin']) || hasPermission('inventory'));
@@ -600,7 +654,17 @@ function renderNotificationsList() {
       } else if (item.source.includes("الكمية المطلوبة") || item.source.includes("خامات أوردر")) {
         notifTitle = "🧱 تعديل خامات الطلبية";
       } else if (item.source.includes("مهمة جديدة للـ")) {
-        notifTitle = "📌 مهمة جديدة مسندة إليك";
+        const isDesigner = item.source.includes("المصمم");
+        const isExec = item.source.includes("المدير التنفيذي");
+        const myRole = currentProfile ? currentProfile.role : 'user';
+        
+        if (isDesigner && myRole === 'designer') {
+          notifTitle = "📌 مهمة جديدة مسندة إليك";
+        } else if (isExec && myRole === 'executive_director') {
+          notifTitle = "📌 مهمة جديدة مسندة إليك";
+        } else {
+          notifTitle = isDesigner ? "📌 مهمة جديدة للمصمم" : "📌 مهمة جديدة للمدير التنفيذي";
+        }
       } else if (item.source.includes("إشعار")) {
         notifTitle = "🔔 إشعار نظام";
       }
@@ -951,7 +1015,7 @@ async function checkAndDeleteTemporaryCustomer(clientName) {
     const hasActiveOrUnpaid = (orders || []).some(o => {
       const remaining = (o.total_price || 0) - (o.paid_amount || 0);
       const isFullyPaid = remaining <= 0;
-      const isDelivered = (o.stage === 'تم التسليم للزبون');
+      const isDelivered = (o.stage === 'تم التسليم');
       console.log(`[checkAndDeleteTemporaryCustomer] الطلبية: ${o.id || o.order_display_name} | حالة التسليم: ${isDelivered} | حالة الدفع: ${isFullyPaid} (المتبقي: ${remaining})`);
       return !isDelivered || !isFullyPaid;
     });
@@ -984,3 +1048,286 @@ async function checkAndDeleteTemporaryCustomer(clientName) {
     }
   }
 }
+
+// ════════════════════════════════════════════════════════════════
+// SELF-SERVICE ATTENDANCE & CAMERA IMPLEMENTATION
+// ════════════════════════════════════════════════════════════════
+
+window.selfServiceCameraStream = null;
+window.selfServiceWorker = null;
+window.selfServiceActiveSession = null;
+window.selfServicePhotoData = null;
+
+async function openAttendanceSelfServiceModal() {
+  const modal = document.getElementById('attendance-self-modal');
+  if (!modal) return;
+
+  // Show modal
+  modal.classList.remove('hidden');
+
+  const statusText = document.getElementById('attendance-status-text');
+  const subText = document.getElementById('attendance-sub-text');
+  const submitBtn = document.getElementById('btn-submit-attendance');
+  const cameraSection = document.getElementById('attendance-camera-section');
+
+  statusText.textContent = 'جاري التحقق من الحساب...';
+  subText.textContent = 'يرجى الانتظار لحين جلب البيانات';
+  submitBtn.disabled = true;
+  cameraSection.classList.add('hidden');
+
+  if (typeof currentProfile === 'undefined' || !currentProfile) {
+    statusText.textContent = 'خطأ في الجلسة';
+    subText.textContent = 'لم يتم العثور على حساب نشط. يرجى تسجيل الدخول.';
+    return;
+  }
+
+  const sb = getSupabase();
+  try {
+    // 1. Get or create worker record linked to this profile
+    let { data: worker, error: workerErr } = await sb
+      .from('workers')
+      .select('*')
+      .eq('profile_id', currentProfile.id)
+      .maybeSingle();
+
+    if (workerErr) throw workerErr;
+
+    if (!worker) {
+      // Look up by name
+      let { data: matchedWorker } = await sb
+        .from('workers')
+        .select('*')
+        .eq('name', currentProfile.full_name)
+        .maybeSingle();
+
+      if (matchedWorker) {
+        // Link them
+        const { data: updatedWorker, error: linkErr } = await sb
+          .from('workers')
+          .update({ profile_id: currentProfile.id })
+          .eq('id', matchedWorker.id)
+          .select()
+          .single();
+        if (linkErr) throw linkErr;
+        worker = updatedWorker;
+      } else {
+        // Create new worker
+        const { data: newWorker, error: createErr } = await sb
+          .from('workers')
+          .insert({
+            name: currentProfile.full_name,
+            profile_id: currentProfile.id,
+            hourly_rate: 0
+          })
+          .select()
+          .single();
+        if (createErr) throw createErr;
+        worker = newWorker;
+      }
+    }
+
+    window.selfServiceWorker = worker;
+
+    // 2. Check today's active attendance session
+    const { data: activeSession, error: sessionErr } = await sb
+      .from('attendance')
+      .select('*')
+      .eq('worker_id', worker.id)
+      .is('check_out', null)
+      .maybeSingle();
+
+    if (sessionErr) throw sessionErr;
+
+    window.selfServiceActiveSession = activeSession;
+    retakeAttendancePhoto(); // Reset camera view elements
+
+    if (activeSession) {
+      const inTime = new Date(activeSession.check_in).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+      statusText.textContent = `مرحباً ${currentProfile.full_name}`;
+      subText.innerHTML = `تم تسجيل حضورك اليوم الساعة <span style="color:var(--success-text); font-weight:bold;">${inTime}</span>. يرجى التقاط صورة لتسجيل الانصراف.`;
+      submitBtn.textContent = 'تسجيل انصراف';
+    } else {
+      statusText.textContent = `مرحباً ${currentProfile.full_name}`;
+      subText.textContent = 'يرجى التقاط صورة لتسجيل حضورك اليوم.';
+      submitBtn.textContent = 'تسجيل حضور';
+    }
+
+    // 3. Start Camera
+    cameraSection.classList.remove('hidden');
+    await startAttendanceCamera();
+
+  } catch (err) {
+    console.error('Attendance error:', err);
+    statusText.textContent = 'فشل الاتصال بقاعدة البيانات';
+    subText.textContent = err.message || 'حدث خطأ غير متوقع';
+  }
+}
+
+async function startAttendanceCamera() {
+  const errorEl = document.getElementById('attendance-camera-error');
+  errorEl.classList.add('hidden');
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" }
+    });
+    window.selfServiceCameraStream = stream;
+    const video = document.getElementById('attendance-video');
+    video.srcObject = stream;
+  } catch (err) {
+    console.error('Camera access failed:', err);
+    errorEl.textContent = 'عذراً، تعذر الوصول إلى الكاميرا. يرجى التأكد من توصيلها وتفعيل صلاحيات الكاميرا في المتصفح.';
+    errorEl.classList.remove('hidden');
+  }
+}
+
+function closeAttendanceSelfServiceModal() {
+  const modal = document.getElementById('attendance-self-modal');
+  if (modal) modal.classList.add('hidden');
+
+  // Stop camera stream
+  if (window.selfServiceCameraStream) {
+    window.selfServiceCameraStream.getTracks().forEach(track => track.stop());
+    window.selfServiceCameraStream = null;
+  }
+}
+
+function captureAttendancePhoto() {
+  const video = document.getElementById('attendance-video');
+  const canvas = document.getElementById('attendance-canvas');
+  const preview = document.getElementById('attendance-preview-img');
+  const shutter = document.getElementById('attendance-shutter');
+  const btnCapture = document.getElementById('btn-capture-photo');
+  const btnRetake = document.getElementById('btn-retake-photo');
+  const btnSubmit = document.getElementById('btn-submit-attendance');
+
+  if (!video.srcObject) {
+    if (typeof showAlert === 'function') showAlert('الكاميرا غير مفعلة!', 'error');
+    return;
+  }
+
+  // Draw frame to canvas
+  const ctx = canvas.getContext('2d');
+  // Handle drawing mirroring so it looks identical to preview
+  ctx.translate(canvas.width, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transformation
+
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.7); // Compress
+  window.selfServicePhotoData = dataUrl;
+
+  // Flash Effect
+  shutter.style.opacity = '1';
+  setTimeout(() => shutter.style.opacity = '0', 150);
+
+  // Toggle View
+  preview.src = dataUrl;
+  preview.classList.remove('hidden');
+  video.classList.add('hidden');
+
+  btnCapture.classList.add('hidden');
+  btnRetake.classList.remove('hidden');
+  btnSubmit.disabled = false;
+}
+
+function retakeAttendancePhoto() {
+  const video = document.getElementById('attendance-video');
+  const preview = document.getElementById('attendance-preview-img');
+  const btnCapture = document.getElementById('btn-capture-photo');
+  const btnRetake = document.getElementById('btn-retake-photo');
+  const btnSubmit = document.getElementById('btn-submit-attendance');
+
+  window.selfServicePhotoData = null;
+  preview.src = '';
+  preview.classList.add('hidden');
+  video.classList.remove('hidden');
+
+  btnCapture.classList.remove('hidden');
+  btnRetake.classList.add('hidden');
+  btnSubmit.disabled = true;
+}
+
+async function submitAttendanceSelf() {
+  const btnSubmit = document.getElementById('btn-submit-attendance');
+  const originalText = btnSubmit.textContent;
+
+  if (!window.selfServicePhotoData) {
+    if (typeof showAlert === 'function') showAlert('يرجى التقاط صورة للتحقق أولاً!', 'error');
+    return;
+  }
+
+  btnSubmit.disabled = true;
+  btnSubmit.textContent = 'جاري الحفظ...';
+
+  const sb = getSupabase();
+  const d = new Date();
+  const todayStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+
+  try {
+    if (window.selfServiceActiveSession) {
+      // Clock Out
+      const active = window.selfServiceActiveSession;
+      const checkInTime = new Date(active.check_in);
+      const checkOutTime = new Date();
+
+      if (checkOutTime <= checkInTime) {
+        throw new Error('خطأ: وقت الانصراف يجب أن يكون بعد وقت الحضور!');
+      }
+
+      const diffMs = checkOutTime - checkInTime;
+      const totalHours = Math.max(0.01, Number((diffMs / (1000 * 60 * 60)).toFixed(2)));
+      const earnings = Number((totalHours * (window.selfServiceWorker.hourly_rate || 0)).toFixed(2));
+
+      const { error } = await sb.from('attendance')
+        .update({
+          check_out: checkOutTime.toISOString(),
+          total_hours: totalHours,
+          earnings: earnings,
+          photo_out: window.selfServicePhotoData
+        })
+        .eq('id', active.id);
+
+      if (error) throw error;
+
+      // Wage distribution update
+      if (typeof distributeWagesForDate === 'function' && active.work_date) {
+        await distributeWagesForDate(active.work_date);
+      }
+
+      if (typeof showAlert === 'function') {
+        showAlert(`تم تسجيل الانصراف بنجاح (المدة: ${totalHours} ساعة)`, 'success');
+      }
+    } else {
+      // Clock In
+      const { error } = await sb.from('attendance')
+        .insert([{
+          worker_id: window.selfServiceWorker.id,
+          work_date: todayStr,
+          check_in: new Date().toISOString(),
+          photo: window.selfServicePhotoData
+        }]);
+
+      if (error) throw error;
+
+      if (typeof showAlert === 'function') {
+        showAlert('تم تسجيل الحضور بنجاح اليوم. طاب يومك! ☀️', 'success');
+      }
+    }
+
+    closeAttendanceSelfServiceModal();
+
+    // If current page is workers.html, refresh it to update lists immediately
+    if (window.location.pathname.includes('workers.html') && typeof initWorkersPage === 'function') {
+      await initWorkersPage();
+    }
+  } catch (err) {
+    console.error('Failed to submit attendance:', err);
+    if (typeof showAlert === 'function') {
+      showAlert('فشل التسجيل: ' + err.message, 'error');
+    }
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = originalText;
+  }
+}
+

@@ -296,7 +296,7 @@
             <td>${o.total_price.toLocaleString()}</td>
             <td>${o.paid_amount.toLocaleString()}</td>
             <td>${remaining.toLocaleString()}</td>
-            <td><span class="badge badge-${o.stage === 'تم التسليم للزبون' ? 'success' : 'pending'}">${o.stage}</span></td>
+            <td><span class="badge badge-${o.stage === 'تم التسليم' ? 'success' : 'pending'}">${o.stage}</span></td>
           `;
           tbody.appendChild(tr);
         });

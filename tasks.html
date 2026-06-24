@@ -568,9 +568,9 @@
     let editingTaskNoteKey = null;
     // ─── Constants ───
     const LANES = [
-      { key: 'general_manager', label: 'مدير عام', emoji: '📋', cssClass: 'lane-inventory' },
-      { key: 'designer', label: 'مصمم', emoji: '🎨', cssClass: 'lane-production' },
-      { key: 'executive_director', label: 'مدير تنفيذي', emoji: '⚡', cssClass: 'lane-purchasing' }
+      { key: 'executive_director', label: 'مدير تنفيذي', emoji: '⚡', cssClass: 'lane-purchasing' },
+      { key: 'designer',           label: 'مصمم',         emoji: '🎨', cssClass: 'lane-production' },
+      { key: 'general_manager',    label: 'مدير عام',     emoji: '📋', cssClass: 'lane-inventory'  }
     ];
 
     let activeOrders = [];
@@ -631,8 +631,8 @@
       if (!stage) return `<span class="badge-stage stage-default">مجهول</span>`;
       let cls = 'stage-default';
       if (stage.includes('عربون') || stage.includes('تعاقد')) cls = 'stage-contract';
-      else if (stage.includes('تنفيذ') || stage.includes('خامات') || stage.includes('تصنيع')) cls = 'stage-production';
-      else if (stage.includes('شحن') || stage.includes('توصيل') || stage.includes('تسليم') || stage.includes('جاهز')) cls = 'stage-delivery';
+      else if (stage.includes('خامات') || stage.includes('تصميم') || stage.includes('تجهيز')) cls = 'stage-production';
+      else if (stage.includes('تسليم') || stage.includes('جاهز')) cls = 'stage-delivery';
       return `<span class="badge-stage ${cls}">${stage}</span>`;
     }
 
@@ -698,11 +698,10 @@
       const stages = [
         'تم التعاقد (دفع عربون)',
         'شراء الخامات',
-        'قيد التنفيذ',
-        'قيد التصنيع',
+        'التصميم',
         'التجهيز',
         'جاهز للتسليم',
-        'تم التسليم للزبون'
+        'تم التسليم'
       ];
       let optionsHTML = stages.map(s => `
         <option value="${s}" ${selectedOrder.stage === s ? 'selected' : ''}>${s}</option>
@@ -885,43 +884,48 @@
       const order = activeOrders.find(o => o.id === orderId);
       if (!order) return;
 
-      let targetStage = null;
+      const stageOrder = [
+        'تم التعاقد (دفع عربون)',
+        'شراء الخامات',
+        'التصميم',
+        'التجهيز',
+        'جاهز للتسليم',
+        'تم التسليم'
+      ];
 
-      if (isLaneComplete(tasksObj, 'inventory_manager')) {
-        targetStage = 'قيد التصنيع';
+      // Each lane independently pushes to its own target stage
+      const laneTargets = [
+        { laneKey: 'executive_director', targetStage: 'التصميم' },
+        { laneKey: 'designer',           targetStage: 'التجهيز' },
+        { laneKey: 'general_manager',    targetStage: 'جاهز للتسليم' },
+      ];
 
-        if (isLaneComplete(tasksObj, 'production_engineer')) {
-          targetStage = 'التجهيز';
+      let bestTarget = null;
+      let bestTargetIdx = -1;
 
-          if (isLaneComplete(tasksObj, 'purchasing_manager')) {
-            targetStage = 'جاهز للتسليم';
+      for (const { laneKey, targetStage } of laneTargets) {
+        if (isLaneComplete(tasksObj, laneKey)) {
+          const idx = stageOrder.indexOf(targetStage);
+          if (idx > bestTargetIdx) {
+            bestTargetIdx = idx;
+            bestTarget = targetStage;
           }
         }
       }
 
-      if (targetStage && targetStage !== order.stage) {
-        const stageOrder = [
-          'تم التعاقد (دفع عربون)',
-          'شراء الخامات',
-          'قيد التنفيذ',
-          'قيد التصنيع',
-          'التجهيز',
-          'جاهز للتسليم',
-          'تم التسليم للزبون'
-        ];
+      if (bestTarget && bestTarget !== order.stage) {
         const currentIdx = stageOrder.indexOf(order.stage);
-        const targetIdx = stageOrder.indexOf(targetStage);
-
-        if (targetIdx > currentIdx) {
+        // Only advance forward, never go backward
+        if (bestTargetIdx > currentIdx) {
           try {
             const sb = getSupabase();
-            const { error } = await sb.from('client_orders').update({ stage: targetStage }).eq('id', orderId);
+            const { error } = await sb.from('client_orders').update({ stage: bestTarget }).eq('id', orderId);
             if (error) throw error;
-            order.stage = targetStage;
+            order.stage = bestTarget;
             if (selectedOrder && selectedOrder.id === orderId) {
-              selectedOrder.stage = targetStage;
+              selectedOrder.stage = bestTarget;
             }
-            showAlert(`🎉 رائع! انتقلت الطلبية تلقائياً إلى "${targetStage}" بعد اكتمال المراحل!`, 'success');
+            showAlert(`🎉 رائع! انتقلت الطلبية تلقائياً إلى "${bestTarget}" بعد اكتمال المراحل!`, 'success');
           } catch (e) {
             console.warn('Cascade update error:', e.message);
           }
@@ -1007,7 +1011,7 @@
           .from('client_orders')
           .select('id, client_name, order_display_name, stage, delivery_date, pending_materials, material_notes, created_at')
           .eq('archived', false)
-          .not('stage', 'eq', 'تم التسليم للزبون')
+          .not('stage', 'eq', 'تم التسليم')
           .order('created_at', { ascending: false });
         if (error) throw error;
         activeOrders = data || [];

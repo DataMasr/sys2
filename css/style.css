@@ -5,10 +5,12 @@
   --primary-light: #6366f1;
   --primary-dark: #3730a3;
   --primary-bg: rgba(79, 70, 229, 0.06);
+  --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
 
   --success: #059669;
   --success-bg: rgba(5, 150, 105, 0.08);
   --success-text: #047857;
+  --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
 
   --warning: #d97706;
   --warning-bg: rgba(217, 119, 6, 0.08);
@@ -1010,4 +1012,56 @@ select option {
   background: rgba(239, 68, 68, 0.08);
   color: var(--error);
 }
+
+/* ─── SELF SERVICE ATTENDANCE & CAMERA STYLES ─── */
+.attendance-camera-container-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: #0f172a;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2px solid var(--border);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  margin-top: 0.5rem;
+}
+
+#attendance-video, #attendance-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* Mirror view for natural interaction */
+}
+
+#attendance-shutter {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5;
+  transition: opacity 0.1s ease;
+}
+
+.attendance-thumbnail {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1.5px solid var(--border);
+}
+
+.attendance-thumbnail:hover {
+  transform: scale(1.15);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  border-color: var(--primary);
+  z-index: 10;
+}
+
+/* Lightbox Image Preview Modal styling */
+#attendance-lightbox-modal img {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease;
+}
+
 

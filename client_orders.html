@@ -371,11 +371,10 @@
                 <select id="co-stage" required>
                   <option value="تم التعاقد (دفع عربون)">تم التعاقد (دفع عربون)</option>
                   <option value="شراء الخامات">شراء الخامات</option>
-                  <option value="قيد التنفيذ">قيد التنفيذ</option>
-                  <option value="قيد التصنيع">قيد التصنيع</option>
+                  <option value="التصميم">التصميم</option>
                   <option value="التجهيز">التجهيز</option>
                   <option value="جاهز للتسليم">جاهز للتسليم</option>
-                  <option value="تم التسليم للزبون">تم التسليم للزبون</option>
+                  <option value="تم التسليم">تم التسليم</option>
                 </select>
               </div>
             </div>
@@ -421,11 +420,10 @@
               <select id="upd-stage" required>
                 <option value="تم التعاقد (دفع عربون)">تم التعاقد (دفع عربون)</option>
                 <option value="شراء الخامات">شراء الخامات</option>
-                <option value="قيد التنفيذ">قيد التنفيذ</option>
-                <option value="قيد التصنيع">قيد التصنيع</option>
+                <option value="التصميم">التصميم</option>
                 <option value="التجهيز">التجهيز</option>
                 <option value="جاهز للتسليم">جاهز للتسليم</option>
-                <option value="تم التسليم للزبون">تم التسليم للزبون</option>
+                <option value="تم التسليم">تم التسليم</option>
               </select>
             </div>
 
@@ -1043,7 +1041,7 @@
             updateData.approval_production = false;
             updateData.approval_purchasing = false;
           } else {
-            updateData.stage = 'قيد التنفيذ';
+            updateData.stage = 'التصميم';
             updateData.approval_production = true;
             updateData.approval_purchasing = true;
           }
@@ -1309,7 +1307,7 @@
           showAlert('جاري التحديث...', 'pending');
           const sb = getSupabase();
 
-          const isDelivered = (stage === 'تم التسليم للزبون');
+          const isDelivered = (stage === 'تم التسليم');
           const originalNotes = (clientOrdersData.find(o => o.id === orderId)?.material_notes || '');
           const newDetails = document.getElementById('upd-order-details').value.trim();
 
@@ -1548,7 +1546,7 @@
 
           if (prodApproved && purchApproved) {
             updateFields.material_notes = (order.material_notes || '').replace(/عجز \(مطلوب شراء\)/g, 'عجز (معتمد للشراء)');
-            updateFields.stage = 'قيد التنفيذ';
+            updateFields.stage = 'التصميم';
 
             try {
               const displayName = order.order_display_name || order.client_name || 'أوردر';
@@ -1651,11 +1649,10 @@
           const stageColors = {
             'تم التعاقد (دفع عربون)': { bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
             'شراء الخامات': { bg: '#fefce8', color: '#a16207', border: '#fde68a' },
-            'قيد التنفيذ': { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe' },
-            'قيد التصنيع': { bg: '#faf5ff', color: '#7c3aed', border: '#e9d5ff' },
+            'التصميم': { bg: '#faf5ff', color: '#7c3aed', border: '#e9d5ff' },
             'التجهيز': { bg: '#f0fdfa', color: '#0d9488', border: '#ccfbf1' },
             'جاهز للتسليم': { bg: '#f0fdf4', color: '#059669', border: '#6ee7b7' },
-            'تم التسليم للزبون': { bg: '#f5f3ff', color: '#6d28d9', border: '#ddd6fe' },
+            'تم التسليم': { bg: '#f5f3ff', color: '#6d28d9', border: '#ddd6fe' },
           };
           const sc = stageColors[order.stage] || { bg: '#f8fafc', color: '#475569', border: '#e2e8f0' };
           const stageName = order.stage || 'جديد';
@@ -2102,7 +2099,7 @@
           const today = new Date();
           today.setHours(0, 0, 0, 0);
           const overdue = orders.filter(o => {
-            if (!o.delivery_date || o.stage === 'تم التسليم للزبون') return false;
+            if (!o.delivery_date || o.stage === 'تم التسليم') return false;
             const d = new Date(o.delivery_date);
             d.setHours(0, 0, 0, 0);
             return d < today;

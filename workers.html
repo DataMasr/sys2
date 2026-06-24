@@ -409,6 +409,42 @@
       </div>
     </div>
 
+    <!-- Edit Worker Modal -->
+    <div id="edit-worker-modal" class="modal-overlay modal-overlay-premium hidden">
+      <div class="modal modal-premium" style="max-width: 450px;">
+        <div class="modal-header">
+          <h3 style="font-weight:900;">تعديل بيانات العامل / الموظف</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('edit-worker-modal')"
+            style="padding:0.5rem; border-radius:50%;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body" style="padding: 2rem;">
+          <form id="edit-worker-form">
+            <input type="hidden" id="edit-worker-id">
+            <div class="form-group">
+              <label for="edit-worker-name" style="font-weight:700;">اسم العامل / الموظف *</label>
+              <input type="text" id="edit-worker-name" required placeholder="أدخل اسم العامل الكامل"
+                style="border-radius:12px; padding: 0.85rem 1rem;">
+            </div>
+            <div class="form-group">
+              <label for="edit-worker-rate" style="font-weight:700;">سعر الساعة (جنيه) *</label>
+              <input type="number" id="edit-worker-rate" min="0" step="0.01" required placeholder="أدخل سعر الساعة"
+                style="border-radius:12px; padding: 0.85rem 1rem;">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer" style="padding: 1.25rem 2rem;">
+          <button type="button" class="btn btn-primary" onclick="submitEditWorker()"
+            style="border-radius:12px; padding: 0.7rem 1.4rem;">حفظ التغييرات</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('edit-worker-modal')"
+            style="border-radius:12px; padding: 0.7rem 1.4rem;">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Add Advance Modal -->
     <div id="add-advance-modal" class="modal-overlay modal-overlay-premium hidden">
       <div class="modal modal-premium">
@@ -478,7 +514,7 @@
               style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px;">
               <table class="data-table data-table-premium" style="min-width: 100%;">
                 <thead>
-                  <tr>
+                  <tr id="attendance-header-row">
                     <th>اليوم</th>
                     <th>الحضور</th>
                     <th>الانصراف</th>
@@ -698,6 +734,10 @@
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="12" y1="6" x2="12" y2="18"/></svg>
                 سُلفة
               </button>
+              <button onclick="openEditWorkerModal('${w.id}')" class="btn btn-secondary btn-sm" style="border-radius:10px; border-color:#d1d5db; font-weight:700; gap:0.3rem;">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                تعديل
+              </button>
               <button onclick="viewWorkerHistory('${w.id}', '${w.name}')" class="btn btn-secondary btn-sm" style="border-radius:10px; border-color:#d1d5db; font-weight:700; gap:0.3rem;">
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                 السجل
@@ -743,6 +783,46 @@
         showAlert('تم حفظ العامل بنجاح!', 'success');
         closeModal('create-worker-modal');
         form.reset();
+        await initWorkersPage();
+      } catch (e) {
+        showAlert('فشل الحفظ: ' + e.message, 'error');
+      }
+    }
+
+    function openEditWorkerModal(workerId) {
+      const worker = allWorkers.find(w => w.id === workerId);
+      if (!worker) return;
+
+      document.getElementById('edit-worker-id').value = worker.id;
+      document.getElementById('edit-worker-name').value = worker.name;
+      document.getElementById('edit-worker-rate').value = worker.hourly_rate;
+
+      openModal('edit-worker-modal');
+    }
+
+    async function submitEditWorker() {
+      const form = document.getElementById('edit-worker-form');
+      if (!form.checkValidity()) { form.reportValidity(); return; }
+
+      const id = document.getElementById('edit-worker-id').value;
+      const name = document.getElementById('edit-worker-name').value.trim();
+      const rate = parseFloat(document.getElementById('edit-worker-rate').value || 0);
+
+      try {
+        showAlert('جاري حفظ التغييرات...', 'pending');
+        const sb = getSupabase();
+
+        const { error } = await sb.from('workers')
+          .update({
+            name: name,
+            hourly_rate: rate
+          })
+          .eq('id', id);
+
+        if (error) throw error;
+
+        showAlert('تم حفظ التعديلات بنجاح!', 'success');
+        closeModal('edit-worker-modal');
         await initWorkersPage();
       } catch (e) {
         showAlert('فشل الحفظ: ' + e.message, 'error');
@@ -979,6 +1059,31 @@
 
       openModal('worker-history-modal');
 
+      const isGeneralManagerOrOwner = currentProfile && (['general_manager', 'admin', 'manager'].includes(currentProfile.role));
+      const headerRow = document.getElementById('attendance-header-row');
+      if (headerRow) {
+        if (isGeneralManagerOrOwner) {
+          headerRow.innerHTML = `
+            <th>اليوم</th>
+            <th>الحضور</th>
+            <th>الانصراف</th>
+            <th>المدة</th>
+            <th>المستحق</th>
+            <th>صور التحقق</th>
+            <th>إجراء</th>
+          `;
+        } else {
+          headerRow.innerHTML = `
+            <th>اليوم</th>
+            <th>الحضور</th>
+            <th>الانصراف</th>
+            <th>المدة</th>
+            <th>المستحق</th>
+            <th>إجراء</th>
+          `;
+        }
+      }
+
       const sb = getSupabase();
       try {
         const { data: att } = await sb.from('attendance').select('*').eq('worker_id', workerId).order('check_in', { ascending: false });
@@ -986,7 +1091,8 @@
 
         // Populate Attendance
         if (!att || att.length === 0) {
-          attBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">لا يوجد ورديات مسجلة</td></tr>';
+          const colSpan = isGeneralManagerOrOwner ? 7 : 6;
+          attBody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">لا يوجد ورديات مسجلة</td></tr>`;
         } else {
           attBody.innerHTML = '';
           att.forEach(a => {
@@ -998,6 +1104,18 @@
             const hoursStr = a.total_hours ? `${a.total_hours} ساعة` : '-';
             const earnStr = a.earnings ? `${a.earnings.toLocaleString()} ج.م` : '-';
 
+            let photoHtml = '';
+            if (isGeneralManagerOrOwner) {
+              const inPhoto = a.photo ? `<img src="${a.photo}" class="attendance-thumbnail" style="width: 40px; height: 30px; object-fit: cover; border-radius: 4px; cursor: pointer;" onclick="viewFullPhoto('${a.photo}', 'صورة حضور - ${workerName}')" title="عرض صورة الحضور">` : '';
+              const outPhoto = a.photo_out ? `<img src="${a.photo_out}" class="attendance-thumbnail" style="width: 40px; height: 30px; object-fit: cover; border-radius: 4px; cursor: pointer;" onclick="viewFullPhoto('${a.photo_out}', 'صورة انصراف - ${workerName}')" title="عرض صورة الانصراف">` : '';
+              
+              if (inPhoto || outPhoto) {
+                photoHtml = `<td><div style="display: flex; gap: 0.4rem; justify-content: center;">${inPhoto} ${outPhoto}</div></td>`;
+              } else {
+                photoHtml = `<td>-</td>`;
+              }
+            }
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
               <td>${dateStr}</td>
@@ -1005,6 +1123,7 @@
               <td>${outTimeStr}</td>
               <td style="font-weight:600;">${hoursStr}</td>
               <td style="font-weight:700; color:var(--primary-dark);">${earnStr}</td>
+              ${isGeneralManagerOrOwner ? photoHtml : ''}
               <td>
                 <button onclick="deleteAttendanceRecord('${a.id}', '${workerId}', '${workerName}')" class="btn btn-secondary btn-sm" style="color:var(--error); padding: 0.2rem 0.5rem; background:transparent; border:none; font-weight:700; display:inline-flex; align-items:center; gap:0.25rem;">
                   <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
@@ -1043,7 +1162,8 @@
         }
 
       } catch (e) {
-        attBody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--error); padding: 2rem 0;">فشل تحميل السجل: ${e.message}</td></tr>`;
+        const colSpan = isGeneralManagerOrOwner ? 7 : 6;
+        attBody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align:center;color:var(--error); padding: 2rem 0;">فشل تحميل السجل: ${e.message}</td></tr>`;
         advBody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--error); padding: 2rem 0;">فشل تحميل السجل: ${e.message}</td></tr>`;
       }
     }
@@ -1097,6 +1217,34 @@
       } catch (e) {
         showAlert('فشل الحذف: ' + e.message, 'error');
       }
+    }
+
+    function viewFullPhoto(photoSrc, title) {
+      let lightbox = document.getElementById('attendance-lightbox-modal');
+      if (!lightbox) {
+        const html = `
+          <div id="attendance-lightbox-modal" class="modal-overlay hidden" style="z-index: 10002; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%;">
+            <div class="modal" style="max-width: 500px; text-align: center; border-radius: 16px; background: var(--surface); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); border: 1px solid var(--border); overflow: hidden; width: 90%;">
+              <div class="modal-header" style="padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-light);">
+                <h3 id="attendance-lightbox-title" style="font-weight:900; color:var(--text-main); margin:0; font-size: 1.15rem;">صورة التحقق</h3>
+                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('attendance-lightbox-modal').classList.add('hidden')" style="padding:0.5rem; border-radius:50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div class="modal-body" style="padding: 1.5rem;">
+                <img id="attendance-lightbox-img" src="" style="width: 100%; max-height: 400px; object-fit: contain; border-radius: 8px; border: 1px solid var(--border);">
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', html);
+        lightbox = document.getElementById('attendance-lightbox-modal');
+      }
+      document.getElementById('attendance-lightbox-title').textContent = title;
+      document.getElementById('attendance-lightbox-img').src = photoSrc;
+      lightbox.classList.remove('hidden');
     }
 
     document.addEventListener('DOMContentLoaded', initWorkersPage);
