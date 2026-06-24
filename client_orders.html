@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
+    <link rel="icon" type="image/jpeg" href="Logo.jpeg">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>طلبيات العملاء - نظام الإدارة</title>
@@ -1000,7 +1001,7 @@
                 note += ` [تم شراء عجز: ${displayPurchased}] ✅`;
               }
               if (deficit > 0) {
-                note += ` [عجز (مطلوب شراء): ${deficit}]`;
+                note += ` [عجز (معتمد للشراء): ${deficit}]`;
               }
             } else {
               note = `تم سحب ${deductedQty} من ${item.item_name} (${whNames[mat.wh]}) <!--TRACK:${mat.itemId}:${mat.qty}:${mat.wh}:${mat.source}:${deductedQty}-->`;
@@ -1008,7 +1009,7 @@
                 note += ` [تم شراء عجز: ${displayPurchased}] ✅`;
               }
               if (deficit > 0) {
-                note += ` [عجز (مطلوب شراء): ${deficit}]`;
+                note += ` [عجز (معتمد للشراء): ${deficit}]`;
               }
             }
             fullMaterialNotes.push(note);
@@ -1035,15 +1036,16 @@
             newNotes = extraNotes;
           }
 
-          const hasShortage = extraNotes.includes('عجز (مطلوب شراء)');
+          const hasShortage = extraNotes.includes('عجز (معتمد للشراء)') || extraNotes.includes('تم طلب شراء من الخارج');
           let updateData = { material_notes: newNotes };
+          // دائمًا اعتماد أوتوماتيك بغض النظر عن العجز أو الشراء الخارجي
+          updateData.approval_production = true;
+          updateData.approval_purchasing = true;
           if (hasShortage) {
-            updateData.approval_production = false;
-            updateData.approval_purchasing = false;
+            // لو في عجز أو شراء خارجي → المرحلة الشراء
+            updateData.stage = 'الشراء';
           } else {
             updateData.stage = 'التصميم';
-            updateData.approval_production = true;
-            updateData.approval_purchasing = true;
           }
 
           const { error: updError } = await sb.from('client_orders').update(updateData).eq('id', orderId);
@@ -1082,7 +1084,11 @@
             if (expError) console.error("Failed to add material cost to expenses", expError);
           }
 
-          showAlert('تم حفظ وتعديل الخامات بنجاح!', 'success');
+          if (hasShortage) {
+            showAlert('تم حفظ الخامات بنجاح! 🛒 يوجد عجز أو شراء خارجي — تم إرسال الطلب لقسم الشراء تلقائياً.', 'success');
+          } else {
+            showAlert('تم حفظ وتعديل الخامات بنجاح!', 'success');
+          }
           closeModal('add-materials-modal');
           await initClientOrdersPage();
         } catch (e) {
@@ -1523,59 +1529,7 @@
         }
       }
 
-      async function approveShortage(orderId, type) {
-        const title = type === 'production' ? 'اعتماد النواقص من طرف مهندس الإنتاج' : 'اعتماد النواقص من طرف مدير المشتريات';
-        if (!(await customConfirm(`هل أنت متأكد من ${title}؟`))) return;
-
-        try {
-          showAlert('جاري حفظ الاعتماد...', 'pending');
-          const sb = getSupabase();
-
-          const { data: order, error: fetchErr } = await sb.from('client_orders').select('*').eq('id', orderId).single();
-          if (fetchErr) throw fetchErr;
-
-          let updateFields = {};
-          if (type === 'production') {
-            updateFields.approval_production = true;
-          } else if (type === 'purchasing') {
-            updateFields.approval_purchasing = true;
-          }
-
-          const prodApproved = type === 'production' ? true : order.approval_production;
-          const purchApproved = type === 'purchasing' ? true : order.approval_purchasing;
-
-          if (prodApproved && purchApproved) {
-            updateFields.material_notes = (order.material_notes || '').replace(/عجز \(مطلوب شراء\)/g, 'عجز (معتمد للشراء)');
-            updateFields.stage = 'التصميم';
-
-            try {
-              const displayName = order.order_display_name || order.client_name || 'أوردر';
-              await sb.from('notifications').insert([{
-                order_id: orderId,
-                order_display_name: displayName,
-                message: `🎉 تم اعتماد نواقص طلبية العميل "${displayName}" بالكامل وهي جاهزة للشراء الآن!`,
-                created_by: currentUser ? currentUser.id : null,
-                read_by: []
-              }]);
-            } catch (notifErr) {
-              console.warn('Failed to send shortage approval notification:', notifErr.message);
-            }
-          }
-
-          const { error: updateErr } = await sb.from('client_orders').update(updateFields).eq('id', orderId);
-          if (updateErr) throw updateErr;
-
-          if (prodApproved && purchApproved) {
-            showAlert('تم اعتماد النواقص بالكامل وإرسالها لقسم الشراء بنجاح! 🎉', 'success');
-          } else {
-            showAlert('تم تسجيل الاعتماد بنجاح! وبانتظار اعتماد الطرف الآخر.', 'success');
-          }
-
-          await initClientOrdersPage();
-        } catch (e) {
-          showAlert('فشل الاعتماد: ' + e.message, 'error');
-        }
-      }
+      // approveShortage removed — orders are auto-approved and sent directly to purchasing
 
       async function deleteClientOrder(id) {
         if (!(await customConfirm('هل متأكد من حذف هذه الطلبيه؟'))) return;
@@ -1785,82 +1739,7 @@
                   ` : ''}
                 </div>
                 ${(() => {
-              if (order.material_notes && order.material_notes.includes('عجز (مطلوب شراء)')) {
-                const isProd = role === 'production_engineer';
-                const isPurch = role === 'purchasing_manager';
-
-                const isIssue = order.material_notes && order.material_notes.includes('<!--MATERIAL_ISSUE:');
-                let issueReporter = '';
-                if (isIssue) {
-                  const match = order.material_notes.match(/<!--MATERIAL_ISSUE:([^:]+?):/);
-                  if (match) {
-                    issueReporter = match[1];
-                  }
-                }
-
-                const prodRejected = isIssue && (issueReporter === 'production_engineer' || issueReporter === 'admin' || issueReporter === 'manager');
-                const prodHTML = order.approval_production
-                  ? `<span class="shortage-approved-badge">
-                           <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                           مُعتمد
-                         </span>`
-                  : prodRejected
-                    ? `<span class="shortage-rejected-badge" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; padding:0.35rem 0.6rem; border-radius:8px; font-size:0.78rem; font-weight:700; display:inline-flex; align-items:center; gap:0.25rem;">
-                         ❌ مرفوض
-                       </span>`
-                    : (isProd || isManagerOrAdmin)
-                      ? `<button class="shortage-approve-btn" onclick="approveShortage('${order.id}', 'production')">
-                               <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                               اعتماد
-                             </button>`
-                      : `<span class="shortage-pending-badge">⏳ بانتظار الإنتاج</span>`;
-
-                const purchRejected = isIssue && (issueReporter === 'purchasing_manager' || issueReporter === 'admin' || issueReporter === 'manager');
-                const purchHTML = order.approval_purchasing
-                  ? `<span class="shortage-approved-badge">
-                           <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                           مُعتمد
-                         </span>`
-                  : purchRejected
-                    ? `<span class="shortage-rejected-badge" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; padding:0.35rem 0.6rem; border-radius:8px; font-size:0.78rem; font-weight:700; display:inline-flex; align-items:center; gap:0.25rem;">
-                         ❌ مرفوض
-                       </span>`
-                    : (isPurch || isManagerOrAdmin)
-                      ? `<button class="shortage-approve-btn" onclick="approveShortage('${order.id}', 'purchasing')">
-                               <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                               اعتماد
-                             </button>`
-                      : `<span class="shortage-pending-badge">⏳ بانتظار المشتريات</span>`;
-
-                const canReport = ['production_engineer', 'purchasing_manager', 'manager', 'admin'].includes(role);
-                const reportHTML = canReport
-                  ? `<button onclick="reportMaterialIssue('${order.id}')" class="shortage-approve-btn" style="background:#fee2e2; color:#dc2626; margin-top:0.6rem; width:100%; justify-content:center; border:1px dashed #fca5a5;">
-                       <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:0.25rem;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                       إبلاغ عن مشكلة في الخامات
-                     </button>`
-                  : '';
-
-                return `
-                      <div class="shortage-card">
-                        <div class="shortage-card-header">
-                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-                          </svg>
-                          اعتماد نواقص الشراء
-                        </div>
-                        <div class="shortage-approval-row">
-                          <span class="shortage-approval-label">👷 مهندس الإنتاج</span>
-                          ${prodHTML}
-                        </div>
-                        <div class="shortage-approval-row">
-                          <span class="shortage-approval-label">💼 مدير المشتريات</span>
-                          ${purchHTML}
-                        </div>
-                        ${reportHTML}
-                      </div>
-                    `;
-              }
+              // shortage-card removed: orders auto-approved and redirected to purchasing.html
               return '';
             })()}
               </div>
@@ -1993,56 +1872,11 @@
             }
           }
 
-          // Render Approvals Notification Banner for Production Engineer and Purchasing Manager
+          // Approval notification banner removed — orders auto-approved and sent to purchasing directly
           const approvalBanner = document.getElementById('approval-notification-banner');
           if (approvalBanner) {
-            const isProd = role === 'production_engineer';
-            const isPurch = role === 'purchasing_manager';
-            const isMgr = ['manager', 'general_manager', 'executive_director', 'admin'].includes(role);
-
-            if (isProd || isPurch || isMgr) {
-              const pendingApprovals = clientOrdersData.filter(o => {
-                const hasShortage = o.material_notes && o.material_notes.includes('عجز (مطلوب شراء)');
-                if (!hasShortage) return false;
-
-                if (isProd && !o.approval_production) return true;
-                if (isPurch && !o.approval_purchasing) return true;
-                if (isMgr && (!o.approval_production || !o.approval_purchasing)) return true;
-                return false;
-              });
-
-              if (pendingApprovals.length > 0) {
-                approvalBanner.style.display = 'block';
-                const roleLabel = isProd ? '👷 مهندس الإنتاج' : isPurch ? '💼 مدير المشتريات' : '📋 المدير';
-                approvalBanner.innerHTML = `
-                  <div class="approval-notification-bar">
-                    <span class="notif-icon">🔔</span>
-                    <div style="flex:1;">
-                      <div class="notif-title">
-                        ${roleLabel} — ${pendingApprovals.length} طلبية بانتظار اعتمادك لنواقص الشراء
-                      </div>
-                      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-                        ${pendingApprovals.map(o => `
-                          <span class="approval-notif-chip" onclick="scrollToOrder('${o.id}')">
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                              <line x1="12" y1="9" x2="12" y2="13"/>
-                            </svg>
-                            ${o.client_name}
-                          </span>
-                        `).join('')}
-                      </div>
-                    </div>
-                  </div>
-                `;
-              } else {
-                approvalBanner.style.display = 'none';
-                approvalBanner.innerHTML = '';
-              }
-            } else {
-              approvalBanner.style.display = 'none';
-              approvalBanner.innerHTML = '';
-            }
+            approvalBanner.style.display = 'none';
+            approvalBanner.innerHTML = '';
           }
 
           // Render Ready for Delivery Banner

@@ -37,7 +37,11 @@ function renderLayout() {
   const sidebarHTML = `
     <!-- Mobile Header -->
     <div class="mobile-header">
-      <h2 style="font-size:1.25rem; font-weight:800; color:var(--primary); margin:0;">نظام الإدارة</h2>
+      <div style="display:flex; align-items:center; gap:0.6rem;">
+        <img src="Logo.jpeg" alt="Future Board Logo"
+          style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid #f5c518; box-shadow:0 2px 8px rgba(0,0,0,0.18);">
+        <h2 style="font-size:1.1rem; font-weight:800; color:var(--primary); margin:0;">Future Board</h2>
+      </div>
       <button class="mobile-toggle" onclick="toggleSidebar()">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
@@ -48,11 +52,20 @@ function renderLayout() {
 
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header" style="display:flex; justify-content:space-between; align-items:center;">
-        <div style="display:flex; align-items:center; gap:0.6rem;">
-          <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#4f46e5);display:flex;align-items:center;justify-content:center;">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <div style="position:relative; flex-shrink:0;">
+            <img src="Logo.jpeg" alt="Future Board"
+              style="width:44px; height:44px; border-radius:50%; object-fit:cover;
+                     border:2.5px solid #f5c518;
+                     box-shadow:0 0 0 3px rgba(245,197,24,0.18), 0 4px 12px rgba(0,0,0,0.25);
+                     display:block;">
+            <span style="position:absolute;bottom:1px;right:1px;width:10px;height:10px;
+                         background:#22c55e;border-radius:50%;border:2px solid var(--sidebar-bg);"></span>
           </div>
-          <h2 style="margin:0; font-size:1.15rem;">نظام الإدارة</h2>
+          <div>
+            <h2 style="margin:0; font-size:1rem; font-weight:800; color:var(--sidebar-text); line-height:1.2;">Future Board</h2>
+            <span style="font-size:0.7rem; color:var(--text-muted); font-weight:500;">نظام الإدارة</span>
+          </div>
         </div>
         <div id="notif-bell" class="hidden" style="position:relative; cursor:pointer;" onclick="openNotificationsModal()">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24" stroke-width="2">

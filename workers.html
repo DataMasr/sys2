@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
+    <link rel="icon" type="image/jpeg" href="Logo.jpeg">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>شؤون العمال - نظام الإدارة</title>
@@ -940,7 +941,17 @@
         // Elapsed hours (decimal)
         const diffMs = checkOutTime - checkInTime;
         const totalHours = Math.max(0.01, Number((diffMs / (1000 * 60 * 60)).toFixed(2))); // minimum 0.01 hours
-        const earnings = Number((totalHours * hourlyRate).toFixed(2));
+
+        // Overtime: first 15 hours at normal rate, anything above × 2
+        const OVERTIME_THRESHOLD = 15;
+        let earnings;
+        if (totalHours <= OVERTIME_THRESHOLD) {
+          earnings = Number((totalHours * hourlyRate).toFixed(2));
+        } else {
+          const normalPay   = OVERTIME_THRESHOLD * hourlyRate;
+          const overtimePay = (totalHours - OVERTIME_THRESHOLD) * hourlyRate * 2;
+          earnings = Number((normalPay + overtimePay).toFixed(2));
+        }
 
         const { error = null } = await sb.from('attendance')
           .update({
@@ -957,7 +968,10 @@
           await distributeWagesForDate(active.work_date);
         }
 
-        showAlert(`تم تسجيل الانصراف بنجاح (المدة: ${totalHours} ساعة، المستحق: ${earnings} ج.م)`, 'success');
+        const overtimeNote = totalHours > 15
+          ? ` | وقت إضافي: ${(totalHours - 15).toFixed(2)} ساعة × 2`
+          : '';
+        showAlert(`تم تسجيل الانصراف بنجاح (المدة: ${totalHours} ساعة${overtimeNote}، المستحق: ${earnings} ج.م)`, 'success');
         await initWorkersPage();
       } catch (e) {
         showAlert('فشل تسجيل الانصراف: ' + e.message, 'error');
