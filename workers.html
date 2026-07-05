@@ -1,8 +1,8 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
-    <link rel="icon" type="image/jpeg" href="Logo.jpeg">
+  <link rel="icon" type="image/jpeg" href="Logo.jpeg">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>شؤون العمال - نظام الإدارة</title>
@@ -50,6 +50,44 @@
       border-radius: 50%;
       background: #10b981;
       animation: pulse-dot 1.5s infinite;
+    }
+
+    /* Break badge for active breaks */
+    .break-badge {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(245, 158, 11, 0.12);
+      color: #d97706;
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      padding: 0.35rem 0.85rem;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .break-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #f59e0b;
+      animation: break-pulse-dot 1.5s infinite;
+    }
+
+    @keyframes break-pulse-dot {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.4);
+        opacity: 0.4;
+      }
     }
 
     @keyframes pulse-dot {
@@ -335,6 +373,39 @@
       </div>
     </div>
 
+    <!-- Pending Leave Requests -->
+    <div class="card-premium" id="leave-requests-card" style="margin-bottom: 1.5rem;">
+      <div class="card-header"
+        style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1.5px solid var(--border);">
+        <h2 style="font-weight:900; display:flex; align-items:center; gap:0.5rem;">
+          <span style="background:var(--pending-gradient); color:#fff; width:28px; height:28px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; font-size:0.85rem;" id="leave-pending-count">0</span>
+          طلبات الإجازة المعلّقة
+        </h2>
+      </div>
+      <div class="card-body" style="padding: 1.25rem;">
+        <div class="table-container">
+          <table class="data-table data-table-premium">
+            <thead>
+              <tr>
+                <th>العامل</th>
+                <th>من</th>
+                <th>إلى</th>
+                <th>عدد الأيام</th>
+                <th>السبب</th>
+                <th>تاريخ الطلب</th>
+                <th style="text-align:center;">إجراء</th>
+              </tr>
+            </thead>
+            <tbody id="leave-requests-body">
+              <tr>
+                <td colspan="7" style="text-align:center;color:var(--text-muted); padding: 2rem 0;">لا توجد طلبات معلّقة</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- Workers List Card -->
     <div class="card-premium">
       <div class="card-header"
@@ -564,6 +635,51 @@
               </table>
             </div>
           </div>
+
+          <div style="margin-top: 2rem;">
+            <h4
+              style="color: #7c3aed; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; font-weight:800; font-size:1rem;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              سجل الإجازات وخصومات الغياب
+            </h4>
+            <div class="table-container"
+              style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 1rem;">
+              <table class="data-table data-table-premium" style="min-width: 100%;">
+                <thead>
+                  <tr>
+                    <th>من</th>
+                    <th>إلى</th>
+                    <th>الحالة</th>
+                    <th>السبب</th>
+                  </tr>
+                </thead>
+                <tbody id="history-leave-body">
+                  <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:1.5rem 0;">لا توجد طلبات إجازة</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-container"
+              style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px;">
+              <table class="data-table data-table-premium" style="min-width: 100%;">
+                <thead>
+                  <tr>
+                    <th>تاريخ الغياب</th>
+                    <th>ساعات الخصم</th>
+                    <th>المبلغ</th>
+                    <th>السبب</th>
+                  </tr>
+                </thead>
+                <tbody id="history-absence-body">
+                  <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:1.5rem 0;">لا توجد خصومات غياب</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -602,12 +718,88 @@
       </div>
     </div>
 
+    <!-- Approve Leave Modal -->
+    <div id="approve-leave-modal" class="modal-overlay modal-overlay-premium hidden">
+      <div class="modal modal-premium" style="max-width: 480px; overflow: hidden;">
+        <div class="modal-header" style="background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(5,150,105,0.06)); border-bottom: 1px solid rgba(16,185,129,0.2);">
+          <h3 style="font-weight:900; display:flex; align-items:center; gap:0.5rem; color:#059669;">
+            <span style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;">✓</span>
+            الموافقة على طلب الإجازة
+          </h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('approve-leave-modal')" style="padding:0.5rem; border-radius:50%;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body" style="padding: 2rem;">
+          <input type="hidden" id="approve-leave-id">
+          <div style="text-align:center; margin-bottom:1.25rem;">
+            <div style="width:64px;height:64px;margin:0 auto 1rem;border-radius:50%;background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(5,150,105,0.08));display:flex;align-items:center;justify-content:center;font-size:1.75rem;">📅</div>
+            <div style="font-size:0.9rem; color:var(--text-muted); margin-bottom:0.35rem;">طلب إجازة من</div>
+            <div id="approve-leave-worker-name" style="font-weight:900; font-size:1.25rem; color:var(--primary-dark);">—</div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:1rem;">
+            <div style="background:rgba(99,102,241,0.06); border:1px solid rgba(99,102,241,0.15); border-radius:12px; padding:0.85rem; text-align:center;">
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.25rem;">من تاريخ</div>
+              <div id="approve-leave-start" style="font-weight:800; color:var(--primary);">—</div>
+            </div>
+            <div style="background:rgba(139,92,246,0.06); border:1px solid rgba(139,92,246,0.15); border-radius:12px; padding:0.85rem; text-align:center;">
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.25rem;">إلى تاريخ</div>
+              <div id="approve-leave-end" style="font-weight:800; color:#7c3aed;">—</div>
+            </div>
+          </div>
+          <div id="approve-leave-reason-box" class="hidden" style="background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:0.85rem; margin-bottom:1rem; font-size:0.9rem;">
+            <span style="font-weight:700; color:var(--text-muted);">السبب: </span>
+            <span id="approve-leave-reason"></span>
+          </div>
+          <div style="background:rgba(16,185,129,0.08); border:1px dashed rgba(16,185,129,0.35); border-radius:12px; padding:0.85rem 1rem; font-size:0.85rem; color:#047857; line-height:1.6; text-align:center;">
+            الإجازة <strong>غير مدفوعة الأجر</strong> و<strong>بدون عواقب</strong> خلال فترة الإجازة المعتمدة.
+          </div>
+        </div>
+        <div class="modal-footer" style="padding: 1.25rem 2rem; gap:0.75rem;">
+          <button type="button" class="btn btn-primary" onclick="confirmApproveLeave()" style="border-radius:12px; flex:1; background:var(--success-gradient); border:none; font-weight:800; gap:0.4rem;">
+            ✓ تأكيد الموافقة
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('approve-leave-modal')" style="border-radius:12px; flex:1;">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reject Leave Modal -->
+    <div id="reject-leave-modal" class="modal-overlay modal-overlay-premium hidden">
+      <div class="modal modal-premium" style="max-width: 450px;">
+        <div class="modal-header">
+          <h3 style="font-weight:900;">رفض طلب الإجازة</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('reject-leave-modal')" style="padding:0.5rem; border-radius:50%;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body" style="padding: 2rem;">
+          <input type="hidden" id="reject-leave-id">
+          <div class="form-group">
+            <label for="reject-leave-notes" style="font-weight:700;">سبب الرفض (اختياري)</label>
+            <textarea id="reject-leave-notes" rows="2" placeholder="اكتب سبب الرفض..." style="border-radius:12px; padding:0.85rem 1rem; width:100%; resize:none;"></textarea>
+          </div>
+          <p style="font-size:0.85rem; color:var(--warning-text); margin-top:0.5rem;">⚠️ في حال غياب العامل في أيام الإجازة المرفوضة سيُخصم يومين (20 ساعة) عن كل يوم.</p>
+        </div>
+        <div class="modal-footer" style="padding: 1.25rem 2rem;">
+          <button type="button" class="btn btn-danger" onclick="confirmRejectLeave()" style="border-radius:12px;">تأكيد الرفض</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('reject-leave-modal')" style="border-radius:12px;">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <script>
     let allWorkers = [];
     let allAttendance = [];
     let allAdvances = [];
+    let allLeaveRequests = [];
+    let allAbsenceDeductions = [];
 
     function openModal(id) {
       document.getElementById(id).classList.remove('hidden');
@@ -635,8 +827,37 @@
         if (advErr) throw advErr;
         allAdvances = advances || [];
 
+        const { data: leaveReqs, error: lrErr } = await sb.from('leave_requests').select('*').order('created_at', { ascending: false });
+        if (lrErr) {
+          if (isMissingTableError(lrErr)) {
+            allLeaveRequests = [];
+            showAlert(getDbErrorMessage(lrErr, 'جدول طلبات الإجازة غير موجود. شغّل supabase_leave_migration.sql في Supabase SQL Editor.'), 'error');
+          } else {
+            throw lrErr;
+          }
+        } else {
+          allLeaveRequests = leaveReqs || [];
+        }
+
+        const { data: absDed, error: absErr } = await sb.from('absence_deductions').select('*');
+        if (absErr) {
+          if (isMissingTableError(absErr)) {
+            allAbsenceDeductions = [];
+          } else {
+            throw absErr;
+          }
+        } else {
+          allAbsenceDeductions = absDed || [];
+
+          await processAbsenceDeductions(sb, allWorkers, allAttendance, allLeaveRequests, allAbsenceDeductions);
+
+          const { data: absDedFresh } = await sb.from('absence_deductions').select('*');
+          allAbsenceDeductions = absDedFresh || [];
+        }
+
         renderStats();
         renderWorkersList();
+        renderPendingLeaveRequests();
       } catch (e) {
         showAlert('خطأ أثناء جلب البيانات: ' + e.message, 'error');
       }
@@ -654,8 +875,11 @@
       // Calculate total advances
       const totalAdvances = allAdvances.reduce((sum, a) => sum + (parseFloat(a.amount) || 0), 0);
 
+      // Total absence deductions
+      const totalAbsenceDeductions = allAbsenceDeductions.reduce((sum, d) => sum + (parseFloat(d.deduction_amount) || 0), 0);
+
       // Net balance
-      const netBalance = totalEarnings - totalAdvances;
+      const netBalance = totalEarnings - totalAdvances - totalAbsenceDeductions;
 
       document.getElementById('stat-total-workers').textContent = totalWorkers;
       document.getElementById('stat-active-workers').textContent = activeWorkers;
@@ -693,11 +917,16 @@
         const wAdv = allAdvances.filter(a => a.worker_id === w.id);
         const totalAdvances = wAdv.reduce((sum, a) => sum + (parseFloat(a.amount) || 0), 0);
 
-        const netBalance = totalEarnings - totalAdvances;
+        const wAbsDed = allAbsenceDeductions.filter(d => d.worker_id === w.id);
+        const totalAbsDed = wAbsDed.reduce((sum, d) => sum + (parseFloat(d.deduction_amount) || 0), 0);
+
+        const netBalance = totalEarnings - totalAdvances - totalAbsDed;
 
         const isCheckedIn = !!activeAtt;
         const statusBadge = isCheckedIn
-          ? `<span class="pulse-badge">في العمل</span>`
+          ? (activeAtt.break_start
+            ? `<span class="break-badge">في استراحة ☕</span>`
+            : `<span class="pulse-badge">في العمل</span>`)
           : `<span class="inactive-badge">غير متواجد</span>`;
 
         // Attendance Action button
@@ -761,6 +990,156 @@
         filtered = filtered.filter(w => w.name.toLowerCase().includes(q));
       }
       renderWorkersList(filtered);
+    }
+
+    function renderPendingLeaveRequests() {
+      const tbody = document.getElementById('leave-requests-body');
+      const countEl = document.getElementById('leave-pending-count');
+      const pending = allLeaveRequests.filter(lr => lr.status === 'pending');
+      const canManage = typeof hasPermission === 'function' && hasPermission('workers', 'full');
+
+      countEl.textContent = pending.length;
+
+      if (pending.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted); padding: 2rem 0;">لا توجد طلبات معلّقة حالياً ✅</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      pending.forEach(lr => {
+        const workerName = lr.workers ? lr.workers.name : (allWorkers.find(w => w.id === lr.worker_id)?.name || '—');
+        const startStr = new Date(lr.start_date).toLocaleDateString('ar-EG');
+        const endStr = new Date(lr.end_date).toLocaleDateString('ar-EG');
+        const days = eachDateInRange(lr.start_date, lr.end_date).length;
+        const createdStr = new Date(lr.created_at).toLocaleDateString('ar-EG');
+        const reason = lr.reason || '—';
+
+        const actions = canManage
+          ? `<div style="display:flex; gap:0.4rem; justify-content:center; flex-wrap:wrap;">
+              <button onclick="openApproveLeaveModal('${lr.id}')" class="btn btn-gradient-success btn-sm" style="border-radius:10px; gap:0.3rem;">✅ موافقة</button>
+              <button onclick="openRejectLeaveModal('${lr.id}')" class="btn btn-danger-outline btn-sm" style="border-radius:10px; gap:0.3rem;">❌ رفض</button>
+            </div>`
+          : `<span style="color:var(--text-muted); font-size:0.85rem;">بانتظار المدير</span>`;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td data-label="العامل"><div style="font-weight:800; color:var(--primary-dark);">${workerName}</div></td>
+          <td data-label="من">${startStr}</td>
+          <td data-label="إلى">${endStr}</td>
+          <td data-label="عدد الأيام"><span style="font-weight:700; background:rgba(139,92,246,0.1); color:#7c3aed; padding:2px 10px; border-radius:8px;">${days} يوم</span></td>
+          <td data-label="السبب" style="max-width:180px; overflow:hidden; text-overflow:ellipsis;">${reason}</td>
+          <td data-label="تاريخ الطلب">${createdStr}</td>
+          <td data-label="إجراء" style="text-align:center;">${actions}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openApproveLeaveModal(leaveId) {
+      if (!hasPermission('workers', 'full')) {
+        showAlert('ليس لديك صلاحية الموافقة على الإجازات', 'error');
+        return;
+      }
+
+      const leave = allLeaveRequests.find(lr => lr.id === leaveId);
+      if (!leave) return;
+
+      const workerName = allWorkers.find(w => w.id === leave.worker_id)?.name || 'العامل';
+      document.getElementById('approve-leave-id').value = leaveId;
+      document.getElementById('approve-leave-worker-name').textContent = workerName;
+      document.getElementById('approve-leave-start').textContent = new Date(leave.start_date).toLocaleDateString('ar-EG');
+      document.getElementById('approve-leave-end').textContent = new Date(leave.end_date).toLocaleDateString('ar-EG');
+
+      const reasonBox = document.getElementById('approve-leave-reason-box');
+      if (leave.reason) {
+        document.getElementById('approve-leave-reason').textContent = leave.reason;
+        reasonBox.classList.remove('hidden');
+      } else {
+        reasonBox.classList.add('hidden');
+      }
+
+      openModal('approve-leave-modal');
+    }
+
+    async function confirmApproveLeave() {
+      const leaveId = document.getElementById('approve-leave-id').value;
+      const leave = allLeaveRequests.find(lr => lr.id === leaveId);
+      if (!leave) return;
+
+      try {
+        showAlert('جاري الموافقة...', 'pending');
+        const sb = getSupabase();
+
+        const { error } = await sb.from('leave_requests').update({
+          status: 'approved',
+          reviewed_by: currentProfile.id,
+          reviewed_at: new Date().toISOString()
+        }).eq('id', leaveId);
+
+        if (error) throw error;
+
+        await removeAbsenceDeductionsForLeave(sb, leave);
+
+        const startStr = new Date(leave.start_date).toLocaleDateString('ar-EG');
+        const endStr = new Date(leave.end_date).toLocaleDateString('ar-EG');
+        await notifyWorkerProfile(
+          sb,
+          leave.worker_id,
+          `✅ تم قبول طلب إجازتك من ${startStr} إلى ${endStr}. الإجازة غير مدفوعة الأجر وبدون عواقب.`,
+          currentProfile.id
+        );
+
+        closeModal('approve-leave-modal');
+        showAlert('تمت الموافقة على الإجازة وتم إبلاغ العامل!', 'success');
+        await initWorkersPage();
+      } catch (e) {
+        showAlert('فشل الموافقة: ' + e.message, 'error');
+      }
+    }
+
+    function openRejectLeaveModal(leaveId) {
+      if (!hasPermission('workers', 'full')) {
+        showAlert('ليس لديك صلاحية رفض الإجازات', 'error');
+        return;
+      }
+      document.getElementById('reject-leave-id').value = leaveId;
+      document.getElementById('reject-leave-notes').value = '';
+      openModal('reject-leave-modal');
+    }
+
+    async function confirmRejectLeave() {
+      const leaveId = document.getElementById('reject-leave-id').value;
+      const notes = document.getElementById('reject-leave-notes').value.trim();
+      const leave = allLeaveRequests.find(lr => lr.id === leaveId);
+
+      try {
+        showAlert('جاري رفض الطلب...', 'pending');
+        const sb = getSupabase();
+
+        const { error } = await sb.from('leave_requests').update({
+          status: 'rejected',
+          reviewed_by: currentProfile.id,
+          reviewed_at: new Date().toISOString(),
+          manager_notes: notes || null
+        }).eq('id', leaveId);
+
+        if (error) throw error;
+
+        if (leave) {
+          const startStr = new Date(leave.start_date).toLocaleDateString('ar-EG');
+          const endStr = new Date(leave.end_date).toLocaleDateString('ar-EG');
+          let rejectMsg = `❌ تم رفض طلب إجازتك من ${startStr} إلى ${endStr}.`;
+          if (notes) rejectMsg += ` السبب: ${notes}.`;
+          rejectMsg += ' في حال الغياب سيُخصم يومان (20 ساعة) عن كل يوم.';
+          await notifyWorkerProfile(sb, leave.worker_id, rejectMsg, currentProfile.id);
+        }
+
+        closeModal('reject-leave-modal');
+        showAlert('تم رفض طلب الإجازة وتم إبلاغ العامل.', 'success');
+        await initWorkersPage();
+      } catch (e) {
+        showAlert('فشل الرفض: ' + e.message, 'error');
+      }
     }
 
     async function submitCreateWorker() {
@@ -841,11 +1220,15 @@
         const sb = getSupabase();
 
         // Ensure no active session
-        const { data: active } = await sb.from('attendance')
+        const { data: activeSessions, error: activeErr } = await sb.from('attendance')
           .select('*')
           .eq('worker_id', workerId)
           .is('check_out', null)
-          .maybeSingle();
+          .order('check_in', { ascending: false })
+          .limit(1);
+
+        if (activeErr) throw activeErr;
+        const active = activeSessions && activeSessions.length > 0 ? activeSessions[0] : null;
 
         if (active) {
           showAlert('العامل مسجل حضور بالفعل!', 'error');
@@ -896,11 +1279,15 @@
         const sb = getSupabase();
 
         // Get active session
-        const { data: active } = await sb.from('attendance')
+        const { data: activeSessions, error: activeErr } = await sb.from('attendance')
           .select('*')
           .eq('worker_id', workerId)
           .is('check_out', null)
-          .maybeSingle();
+          .order('check_in', { ascending: false })
+          .limit(1);
+
+        if (activeErr) throw activeErr;
+        const active = activeSessions && activeSessions.length > 0 ? activeSessions[0] : null;
 
         if (!active) {
           showAlert('لا يوجد تسجيل حضور نشط لهذا العامل!', 'error');
@@ -940,7 +1327,23 @@
 
         // Elapsed hours (decimal)
         const diffMs = checkOutTime - checkInTime;
-        const totalHours = Math.max(0.01, Number((diffMs / (1000 * 60 * 60)).toFixed(2))); // minimum 0.01 hours
+        let totalHours = Math.max(0.01, Number((diffMs / (1000 * 60 * 60)).toFixed(2))); // minimum 0.01 hours
+
+        // Auto end break if active on checkout
+        let breakDeduction = Number(active.break_deduction_hours || 0);
+        let breakStartVal = active.break_start;
+        if (breakStartVal) {
+          const breakStart = new Date(breakStartVal);
+          const breakEnd = new Date(isoDateTime); // Use checkout time as break end
+          const breakDiffMs = breakEnd - breakStart;
+          const breakDiffMins = breakDiffMs / (1000 * 60);
+          if (breakDiffMins > 30) {
+            breakDeduction += 1.0;
+          }
+        }
+
+        // Apply deduction
+        totalHours = Math.max(0.0, Number((totalHours - breakDeduction).toFixed(2)));
 
         // Overtime: first 15 hours at normal rate, anything above × 2
         const OVERTIME_THRESHOLD = 15;
@@ -948,7 +1351,7 @@
         if (totalHours <= OVERTIME_THRESHOLD) {
           earnings = Number((totalHours * hourlyRate).toFixed(2));
         } else {
-          const normalPay   = OVERTIME_THRESHOLD * hourlyRate;
+          const normalPay = OVERTIME_THRESHOLD * hourlyRate;
           const overtimePay = (totalHours - OVERTIME_THRESHOLD) * hourlyRate * 2;
           earnings = Number((normalPay + overtimePay).toFixed(2));
         }
@@ -956,6 +1359,8 @@
         const { error = null } = await sb.from('attendance')
           .update({
             check_out: checkOutTime.toISOString(),
+            break_start: null, // Reset active break
+            break_deduction_hours: breakDeduction,
             total_hours: totalHours,
             earnings: earnings
           })
@@ -1001,11 +1406,15 @@
 
         try {
           const sb = getSupabase();
-          const { data: active } = await sb.from('attendance')
+          const { data: activeSessions, error: activeErr } = await sb.from('attendance')
             .select('*')
             .eq('worker_id', workerId)
             .is('check_out', null)
-            .maybeSingle();
+            .order('check_in', { ascending: false })
+            .limit(1);
+
+          if (activeErr) throw activeErr;
+          const active = activeSessions && activeSessions.length > 0 ? activeSessions[0] : null;
 
           if (!active) {
             showAlert('لا يوجد تسجيل حضور نشط لهذا العامل!', 'error');
@@ -1067,9 +1476,13 @@
 
       const attBody = document.getElementById('history-attendance-body');
       const advBody = document.getElementById('history-advances-body');
+      const leaveBody = document.getElementById('history-leave-body');
+      const absenceBody = document.getElementById('history-absence-body');
 
       attBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem 0;">جاري التحميل...</td></tr>';
       advBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 2rem 0;">جاري التحميل...</td></tr>';
+      leaveBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 1.5rem 0;">جاري التحميل...</td></tr>';
+      absenceBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 1.5rem 0;">جاري التحميل...</td></tr>';
 
       openModal('worker-history-modal');
 
@@ -1082,6 +1495,7 @@
             <th>الحضور</th>
             <th>الانصراف</th>
             <th>المدة</th>
+            <th>الخصم (استراحة)</th>
             <th>المستحق</th>
             <th>صور التحقق</th>
             <th>إجراء</th>
@@ -1092,6 +1506,7 @@
             <th>الحضور</th>
             <th>الانصراف</th>
             <th>المدة</th>
+            <th>الخصم (استراحة)</th>
             <th>المستحق</th>
             <th>إجراء</th>
           `;
@@ -1102,10 +1517,12 @@
       try {
         const { data: att } = await sb.from('attendance').select('*').eq('worker_id', workerId).order('check_in', { ascending: false });
         const { data: adv } = await sb.from('advances').select('*').eq('worker_id', workerId).order('advance_date', { ascending: false });
+        const { data: leaves } = await sb.from('leave_requests').select('*').eq('worker_id', workerId).order('created_at', { ascending: false });
+        const { data: absences } = await sb.from('absence_deductions').select('*').eq('worker_id', workerId).order('work_date', { ascending: false });
 
         // Populate Attendance
         if (!att || att.length === 0) {
-          const colSpan = isGeneralManagerOrOwner ? 7 : 6;
+          const colSpan = isGeneralManagerOrOwner ? 8 : 7;
           attBody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">لا يوجد ورديات مسجلة</td></tr>`;
         } else {
           attBody.innerHTML = '';
@@ -1116,15 +1533,17 @@
               ? new Date(a.check_out).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
               : '<span style="color:var(--success-text); font-weight:700;">نشط حالياً</span>';
             const hoursStr = a.total_hours ? `${a.total_hours} ساعة` : '-';
+            const breakHoursStr = a.break_deduction_hours ? `${a.break_deduction_hours} ساعة` : '-';
             const earnStr = a.earnings ? `${a.earnings.toLocaleString()} ج.م` : '-';
 
             let photoHtml = '';
             if (isGeneralManagerOrOwner) {
               const inPhoto = a.photo ? `<img src="${a.photo}" class="attendance-thumbnail" style="width: 40px; height: 30px; object-fit: cover; border-radius: 4px; cursor: pointer;" onclick="viewFullPhoto('${a.photo}', 'صورة حضور - ${workerName}')" title="عرض صورة الحضور">` : '';
+              const breakEndPhoto = a.photo_break_end ? `<img src="${a.photo_break_end}" class="attendance-thumbnail" style="width: 40px; height: 30px; object-fit: cover; border-radius: 4px; cursor: pointer;" onclick="viewFullPhoto('${a.photo_break_end}', 'صورة العودة من الاستراحة - ${workerName}')" title="عرض صورة العودة من الاستراحة">` : '';
               const outPhoto = a.photo_out ? `<img src="${a.photo_out}" class="attendance-thumbnail" style="width: 40px; height: 30px; object-fit: cover; border-radius: 4px; cursor: pointer;" onclick="viewFullPhoto('${a.photo_out}', 'صورة انصراف - ${workerName}')" title="عرض صورة الانصراف">` : '';
-              
-              if (inPhoto || outPhoto) {
-                photoHtml = `<td><div style="display: flex; gap: 0.4rem; justify-content: center;">${inPhoto} ${outPhoto}</div></td>`;
+
+              if (inPhoto || breakEndPhoto || outPhoto) {
+                photoHtml = `<td><div style="display: flex; gap: 0.4rem; justify-content: center;">${inPhoto} ${breakEndPhoto} ${outPhoto}</div></td>`;
               } else {
                 photoHtml = `<td>-</td>`;
               }
@@ -1136,6 +1555,7 @@
               <td>${inTimeStr}</td>
               <td>${outTimeStr}</td>
               <td style="font-weight:600;">${hoursStr}</td>
+              <td style="font-weight:600; color:var(--error);">${breakHoursStr}</td>
               <td style="font-weight:700; color:var(--primary-dark);">${earnStr}</td>
               ${isGeneralManagerOrOwner ? photoHtml : ''}
               <td>
@@ -1172,6 +1592,41 @@
               </td>
             `;
             advBody.appendChild(tr);
+          });
+        }
+
+        const statusLabels = { pending: '⏳ معلّق', approved: '✅ مقبول', rejected: '❌ مرفوض' };
+        const reasonLabels = { no_leave_request: 'غياب بدون طلب', rejected_leave: 'إجازة مرفوضة' };
+
+        if (!leaves || leaves.length === 0) {
+          leaveBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:1.5rem 0;">لا توجد طلبات إجازة</td></tr>';
+        } else {
+          leaveBody.innerHTML = '';
+          leaves.forEach(lr => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${new Date(lr.start_date).toLocaleDateString('ar-EG')}</td>
+              <td>${new Date(lr.end_date).toLocaleDateString('ar-EG')}</td>
+              <td style="font-weight:700;">${statusLabels[lr.status] || lr.status}</td>
+              <td>${lr.reason || '—'}</td>
+            `;
+            leaveBody.appendChild(tr);
+          });
+        }
+
+        if (!absences || absences.length === 0) {
+          absenceBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:1.5rem 0;">لا توجد خصومات غياب</td></tr>';
+        } else {
+          absenceBody.innerHTML = '';
+          absences.forEach(ab => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${new Date(ab.work_date).toLocaleDateString('ar-EG')}</td>
+              <td style="font-weight:700; color:var(--error);">${ab.deduction_hours} ساعة</td>
+              <td style="font-weight:700; color:var(--error);">${parseFloat(ab.deduction_amount).toLocaleString('ar-EG')} ج.م</td>
+              <td>${reasonLabels[ab.reason] || ab.reason}</td>
+            `;
+            absenceBody.appendChild(tr);
           });
         }
 

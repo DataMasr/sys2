@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 
 <head>
-    <link rel="icon" type="image/jpeg" href="Logo.jpeg">
+  <link rel="icon" type="image/jpeg" href="Logo.jpeg">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>طلبيات العملاء - نظام الإدارة</title>
@@ -1060,7 +1060,7 @@
               else if (role === 'executive_director') roleText = 'المدير التنفيذي';
               else if (role === 'general_manager' || role === 'manager') roleText = 'المدير العام';
               else if (role === 'purchasing_manager') roleText = 'مدير المشتريات';
-              
+
               const displayName = order.order_display_name || order.client_name || 'أوردر';
               await sb.from('notifications').insert([{
                 order_id: orderId,

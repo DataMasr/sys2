@@ -1,8 +1,8 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
-    <link rel="icon" type="image/jpeg" href="Logo.jpeg">
+  <link rel="icon" type="image/jpeg" href="Logo.jpeg">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>المستخدمين - نظام الإدارة</title>
@@ -85,8 +85,10 @@
             </div>
 
             <div class="form-group" style="margin-bottom: 1.5rem;">
-              <label for="new-user-role" style="display:block; margin-bottom:0.8rem; font-weight:800; color:var(--primary);">الرتبة :</label>
-              <select id="new-user-role" required onchange="applyDefaultPermissions('new')" style="width:100%; padding:0.8rem; border-radius:var(--radius); border:1px solid var(--border);">
+              <label for="new-user-role"
+                style="display:block; margin-bottom:0.8rem; font-weight:800; color:var(--primary);">الرتبة :</label>
+              <select id="new-user-role" required onchange="applyDefaultPermissions('new')"
+                style="width:100%; padding:0.8rem; border-radius:var(--radius); border:1px solid var(--border);">
                 <option value="admin">المدير العام (المالك)</option>
                 <option value="executive_director">مدير تنفيذي</option>
                 <option value="designer">مصمم</option>
@@ -95,8 +97,10 @@
             </div>
 
             <div class="form-group" style="margin-bottom: 1.5rem;">
-              <label style="display:block; margin-bottom:0.8rem; font-weight:800; color:var(--primary);">صلاحيات الوصول للأقسام :</label>
-              <div id="new-permissions-grid" style="border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem; background: var(--bg-color); max-height: 250px; overflow-y: auto;">
+              <label style="display:block; margin-bottom:0.8rem; font-weight:800; color:var(--primary);">صلاحيات الوصول
+                للأقسام :</label>
+              <div id="new-permissions-grid"
+                style="border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem; background: var(--bg-color); max-height: 250px; overflow-y: auto;">
                 <!-- Will be populated dynamically -->
               </div>
             </div>
@@ -124,12 +128,17 @@
           <form id="edit-perms-form">
             <input type="hidden" id="edit-user-id">
             <div class="form-group" style="margin-bottom: 1.5rem;">
-              <label for="edit-user-name" style="display:block; margin-bottom:0.8rem; font-weight:800; color:var(--primary);">الاسم الكامل :</label>
-              <input type="text" id="edit-user-name" required placeholder="مثال: أحمد محمد" style="width:100%; padding:0.8rem; border-radius:var(--radius); border:1px solid var(--border); background: var(--bg-color); color: var(--text-main);">
+              <label for="edit-user-name"
+                style="display:block; margin-bottom:0.8rem; font-weight:800; color:var(--primary);">الاسم الكامل
+                :</label>
+              <input type="text" id="edit-user-name" required placeholder="مثال: أحمد محمد"
+                style="width:100%; padding:0.8rem; border-radius:var(--radius); border:1px solid var(--border); background: var(--bg-color); color: var(--text-main);">
             </div>
             <div class="form-group" style="margin-bottom: 1.5rem;">
-              <label for="edit-user-role" style="display:block; margin-bottom:0.8rem; font-weight:800; color:var(--primary);">الرتبة :</label>
-              <select id="edit-user-role" required onchange="applyDefaultPermissions('edit')" style="width:100%; padding:0.8rem; border-radius:var(--radius); border:1px solid var(--border);">
+              <label for="edit-user-role"
+                style="display:block; margin-bottom:0.8rem; font-weight:800; color:var(--primary);">الرتبة :</label>
+              <select id="edit-user-role" required onchange="applyDefaultPermissions('edit')"
+                style="width:100%; padding:0.8rem; border-radius:var(--radius); border:1px solid var(--border);">
                 <option value="admin">المدير العام (المالك)</option>
                 <option value="executive_director">مدير تنفيذي</option>
                 <option value="designer">مصمم</option>
@@ -138,8 +147,10 @@
             </div>
 
             <div class="form-group" style="margin-bottom: 1.5rem;">
-              <label style="display:block; margin-bottom:0.8rem; font-weight:800; color:var(--primary);">صلاحيات الوصول للأقسام :</label>
-              <div id="edit-permissions-grid" style="border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem; background: var(--bg-color); max-height: 250px; overflow-y: auto;">
+              <label style="display:block; margin-bottom:0.8rem; font-weight:800; color:var(--primary);">صلاحيات الوصول
+                للأقسام :</label>
+              <div id="edit-permissions-grid"
+                style="border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem; background: var(--bg-color); max-height: 250px; overflow-y: auto;">
                 <!-- Will be populated dynamically -->
               </div>
             </div>
@@ -256,7 +267,7 @@
           }
           const perms = data?.permissions || {};
           const role = data?.role || currentRole;
-          
+
           SECTIONS.forEach(s => {
             let val = perms[s.id];
             // If the permission is not explicitly set, show the effective default for their role
@@ -267,7 +278,7 @@
                 val = ROLE_DEFAULTS[role]?.[s.id] || 'none';
               }
             }
-            
+
             const radio = document.querySelector(`input[name="edit-perm-${s.id}"][value="${val}"]`);
             if (radio) radio.checked = true;
           });
@@ -283,7 +294,7 @@
         try {
           showAlert('جاري التحديث...', 'pending');
           const sb = getSupabase();
-          
+
           const { error } = await sb.from('profiles').update({ role, full_name: fullName, permissions }).eq('id', userId);
           if (error) throw error;
 

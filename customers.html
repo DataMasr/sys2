@@ -1,8 +1,8 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
-    <link rel="icon" type="image/jpeg" href="Logo.jpeg">
+  <link rel="icon" type="image/jpeg" href="Logo.jpeg">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>العملاء - نظام الإدارة</title>
@@ -96,13 +96,24 @@
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.4rem;">
                 <label class="cust-type-option">
                   <input type="radio" name="cust_type" value="regular" checked>
-                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 0.45rem;"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M12 2v3" opacity="0.6"/><path d="m9 3 3-1 3 1" opacity="0.6"/></svg>
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--primary)" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 0.45rem;">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                    <path d="M12 2v3" opacity="0.6" />
+                    <path d="m9 3 3-1 3 1" opacity="0.6" />
+                  </svg>
                   <span style="font-weight: 800; font-size: 0.82rem; color: var(--text-main);">عميل ثابت (مستمر)</span>
                 </label>
                 <label class="cust-type-option">
                   <input type="radio" name="cust_type" value="temporary">
-                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--error)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 0.45rem;"><path d="M5 2h14M5 22h14M19 2v4a7 7 0 0 1-7 7v0a7 7 0 0 1-7-7V2M5 22v-4a7 7 0 0 1 7-7v0a7 7 0 0 1 7 7v4"/></svg>
-                  <span style="font-weight: 800; font-size: 0.82rem; color: var(--text-main);">عميل مؤقت (أوردر واحد)</span>
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--error)" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 0.45rem;">
+                    <path
+                      d="M5 2h14M5 22h14M19 2v4a7 7 0 0 1-7 7v0a7 7 0 0 1-7-7V2M5 22v-4a7 7 0 0 1 7-7v0a7 7 0 0 1 7 7v4" />
+                  </svg>
+                  <span style="font-weight: 800; font-size: 0.82rem; color: var(--text-main);">عميل مؤقت (أوردر
+                    واحد)</span>
                 </label>
               </div>
             </div>
@@ -233,8 +244,8 @@
 
             const isTemp = cust.phone && cust.phone.includes('[مؤقت]');
             const cleanPhone = cust.phone ? cust.phone.replace(' [مؤقت]', '').replace('[مؤقت]', '') : '';
-            const typeBadge = isTemp 
-              ? `<span style="background:#fee2e2; color:#ef4444; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:700; margin-right:8px; display:inline-block;">مؤقت ⏳</span>` 
+            const typeBadge = isTemp
+              ? `<span style="background:#fee2e2; color:#ef4444; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:700; margin-right:8px; display:inline-block;">مؤقت ⏳</span>`
               : `<span style="background:#e0e7ff; color:#4f46e5; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:700; margin-right:8px; display:inline-block;">ثابت 📌</span>`;
 
             const tr = document.createElement('tr');

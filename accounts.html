@@ -1,8 +1,8 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
-    <link rel="icon" type="image/jpeg" href="Logo.jpeg">
+  <link rel="icon" type="image/jpeg" href="Logo.jpeg">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>الحسابات والماليات - نظام الإدارة</title>
@@ -15,13 +15,16 @@
     details summary::-webkit-details-marker {
       display: none;
     }
+
     details summary {
       outline: none;
       user-select: none;
     }
+
     details summary svg {
       transition: transform 0.2s ease;
     }
+
     details[open] summary svg {
       transform: rotate(180deg);
     }
@@ -143,388 +146,420 @@
             </tbody>
           </table>
         </div>
-    </div>
+      </div>
 
-    <!-- Settled Payables Archive -->
-    <div class="card" style="border-top:4px solid var(--success); margin-top: 1.5rem;">
-      <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
-        <div style="display:flex;align-items:center;gap:0.75rem;">
-          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--success)" stroke-width="1.8"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-            <polyline points="22 4 12 14.01 9 11.01" />
-          </svg>
-          <div>
-            <h2 style="color:var(--success); margin:0;">ديون الموردين المسدّدة بالكامل (الأرشيف)</h2>
-            <p style="font-size:0.8rem;color:var(--text-muted);margin:0;">سجل الموردين الذين تم سداد كامل مستحقاتهم بنجاح</p>
+      <!-- Settled Payables Archive -->
+      <div class="card" style="border-top:4px solid var(--success); margin-top: 1.5rem;">
+        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex;align-items:center;gap:0.75rem;">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--success)" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            <div>
+              <h2 style="color:var(--success); margin:0;">ديون الموردين المسدّدة بالكامل (الأرشيف)</h2>
+              <p style="font-size:0.8rem;color:var(--text-muted);margin:0;">سجل الموردين الذين تم سداد كامل مستحقاتهم
+                بنجاح</p>
+            </div>
+          </div>
+          <span id="settled-pay-badge" class="badge-stage stage-contract"
+            style="background:rgba(5,150,105,0.08); color: #047857; border: 1px solid rgba(5,150,105,0.15);">0 مورد
+            خالص</span>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>اسم المورد</th>
+                  <th>الإجمالي</th>
+                  <th>المدفوع بالكامل</th>
+                  <th>الحالة</th>
+                  <th>تاريخ الدفعة / ملاحظات</th>
+                  <th style="text-align:center;">إجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="settled-payable-table-body">
+                <tr>
+                  <td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);">لا يوجد موردين مسددين
+                    حالياً</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
-        <span id="settled-pay-badge" class="badge-stage stage-contract" style="background:rgba(5,150,105,0.08); color: #047857; border: 1px solid rgba(5,150,105,0.15);">0 مورد خالص</span>
       </div>
-      <div class="card-body" style="padding:0;">
-        <div class="table-container">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>اسم المورد</th>
-                <th>الإجمالي</th>
-                <th>المدفوع بالكامل</th>
-                <th>الحالة</th>
-                <th>تاريخ الدفعة / ملاحظات</th>
-                <th style="text-align:center;">إجراءات</th>
-              </tr>
-            </thead>
-            <tbody id="settled-payable-table-body">
-              <tr>
-                <td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);">لا يوجد موردين مسددين حالياً</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
 
-    <div id="create-acc-modal" class="modal-overlay hidden">
-      <div class="modal">
-        <div class="modal-header">
-          <h3 id="create-acc-title">إضافة حساب مورد (فلوس عليا)</h3>
-          <button class="btn btn-secondary btn-sm" onclick="closeModal('create-acc-modal')" style="padding:0.5rem">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div class="modal-body">
-          <form id="create-acc-form">
-            <input type="hidden" id="acc-type" value="payable">
+      <div id="create-acc-modal" class="modal-overlay hidden">
+        <div class="modal">
+          <div class="modal-header">
+            <h3 id="create-acc-title">إضافة حساب مورد (فلوس عليا)</h3>
+            <button class="btn btn-secondary btn-sm" onclick="closeModal('create-acc-modal')" style="padding:0.5rem">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="create-acc-form">
+              <input type="hidden" id="acc-type" value="payable">
 
-            <div class="form-group" style="margin-bottom: 1rem;">
-              <label for="acc-name">اسم الشركة أو المورد *</label>
-              <input type="text" id="acc-name" required placeholder="مثال: شركة التغليف">
-            </div>
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="acc-name">اسم الشركة أو المورد *</label>
+                <input type="text" id="acc-name" required placeholder="مثال: شركة التغليف">
+              </div>
 
-            <div class="form-group" style="margin-bottom: 1rem;">
-              <label for="acc-purchase-date">تاريخ الشراء / التعاقد *</label>
-              <input type="date" id="acc-purchase-date" required>
-            </div>
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="acc-purchase-date">تاريخ الشراء / التعاقد *</label>
+                <input type="date" id="acc-purchase-date" required>
+              </div>
 
-            <div class="form-group" style="margin-bottom: 1rem;">
-              <label for="acc-total">إجمالي المبلغ *</label>
-              <input type="number" id="acc-total" required min="0" placeholder="مثال: 10000">
-            </div>
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="acc-total">إجمالي المبلغ *</label>
+                <input type="number" id="acc-total" required min="0" placeholder="مثال: 10000">
+              </div>
 
-            <div class="form-group" style="margin-bottom: 1rem;">
-              <label for="acc-paid">المبلغ المدفوع (الواصل) *</label>
-              <input type="number" id="acc-paid" required min="0" placeholder="مثال: 5000">
-            </div>
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="acc-paid">المبلغ المدفوع (الواصل) *</label>
+                <input type="number" id="acc-paid" required min="0" placeholder="مثال: 5000">
+              </div>
 
-            <div class="form-group" style="margin-bottom: 1rem;">
-              <label for="acc-date">موعد الدفعة القادمة (اختياري للإشعارات)</label>
-              <input type="date" id="acc-date">
-            </div>
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="acc-date">موعد الدفعة القادمة (اختياري للإشعارات)</label>
+                <input type="date" id="acc-date">
+              </div>
 
-            <div class="form-group" style="margin-bottom: 1.5rem;">
-              <label for="acc-notes">ملاحظات (طبيعة البضاعة أو الدفعات)</label>
-              <input type="text" id="acc-notes" placeholder="دفعات على شهرين...">
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary" onclick="submitCreateAccount()">حفظ الحساب</button>
-          <button type="button" class="btn btn-secondary" onclick="closeModal('create-acc-modal')">إلغاء</button>
+              <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="acc-notes">ملاحظات (طبيعة البضاعة أو الدفعات)</label>
+                <input type="text" id="acc-notes" placeholder="دفعات على شهرين...">
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" onclick="submitCreateAccount()">حفظ الحساب</button>
+            <button type="button" class="btn btn-secondary" onclick="closeModal('create-acc-modal')">إلغاء</button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div id="update-payment-modal" class="modal-overlay hidden">
-      <div class="modal" style="max-width: 650px; width: 90%;">
-        <div class="modal-header">
-          <h3 id="upd-modal-title">تحديث المدفوعات والتواريخ</h3>
-          <button class="btn btn-secondary btn-sm" onclick="closeModal('update-payment-modal')" style="padding:0.5rem">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div class="modal-body" style="padding: 1.5rem; max-height: 80vh; overflow-y: auto;">
-          <form id="update-payment-form" onsubmit="event.preventDefault();">
-            <input type="hidden" id="upd-acc-id">
-            <input type="hidden" id="upd-acc-type">
+      <div id="update-payment-modal" class="modal-overlay hidden">
+        <div class="modal" style="max-width: 650px; width: 90%;">
+          <div class="modal-header">
+            <h3 id="upd-modal-title">تحديث المدفوعات والتواريخ</h3>
+            <button class="btn btn-secondary btn-sm" onclick="closeModal('update-payment-modal')"
+              style="padding:0.5rem">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body" style="padding: 1.5rem; max-height: 80vh; overflow-y: auto;">
+            <form id="update-payment-form" onsubmit="event.preventDefault();">
+              <input type="hidden" id="upd-acc-id">
+              <input type="hidden" id="upd-acc-type">
 
-            <!-- Summary Status card -->
-            <div style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.6rem;">
-              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-                <span style="font-weight: 800; color: var(--text-dark); font-size: 1.05rem;" id="upd-person-name">-</span>
-                <span id="upd-status-badge" style="font-size: 0.8rem; font-weight: 800; padding: 0.25rem 0.75rem; border-radius: 50px;">-</span>
-              </div>
-              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin-top: 0.4rem;">
-                <div style="text-align: center; background: #fff; padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border);">
-                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.2rem;">المبلغ الإجمالي</div>
-                  <strong style="font-size: 1.1rem; color: var(--text-dark);" id="upd-lbl-total">0</strong>
+              <!-- Summary Status card -->
+              <div
+                style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.6rem;">
+                <div
+                  style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                  <span style="font-weight: 800; color: var(--text-dark); font-size: 1.05rem;"
+                    id="upd-person-name">-</span>
+                  <span id="upd-status-badge"
+                    style="font-size: 0.8rem; font-weight: 800; padding: 0.25rem 0.75rem; border-radius: 50px;">-</span>
                 </div>
-                <div style="text-align: center; background: #fff; padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border);">
-                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.2rem;">إجمالي المدفوع</div>
-                  <strong style="font-size: 1.1rem; color: var(--success);" id="upd-lbl-paid">0</strong>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin-top: 0.4rem;">
+                  <div
+                    style="text-align: center; background: #fff; padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border);">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.2rem;">المبلغ الإجمالي
+                    </div>
+                    <strong style="font-size: 1.1rem; color: var(--text-dark);" id="upd-lbl-total">0</strong>
+                  </div>
+                  <div
+                    style="text-align: center; background: #fff; padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border);">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.2rem;">إجمالي المدفوع
+                    </div>
+                    <strong style="font-size: 1.1rem; color: var(--success);" id="upd-lbl-paid">0</strong>
+                  </div>
+                  <div
+                    style="text-align: center; background: #fff; padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border);">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.2rem;">المبلغ المتبقي
+                    </div>
+                    <strong style="font-size: 1.1rem; color: var(--error);" id="upd-lbl-remaining">0</strong>
+                  </div>
                 </div>
-                <div style="text-align: center; background: #fff; padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border);">
-                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.2rem;">المبلغ المتبقي</div>
-                  <strong style="font-size: 1.1rem; color: var(--error);" id="upd-lbl-remaining">0</strong>
+              </div>
+
+              <!-- Dates Inputs -->
+              <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                  <label for="upd-acc-purchase-date" style="font-weight: 700;">📅 تاريخ الشراء / التعاقد *</label>
+                  <input type="date" id="upd-acc-purchase-date" required style="width: 100%;">
+                </div>
+                <div class="form-group" id="date-group-wrapper">
+                  <label for="upd-acc-date" id="upd-date-label" style="font-weight: 700;">📅 تاريخ الاستحقاق / الدفعة
+                    القادمة</label>
+                  <input type="date" id="upd-acc-date" style="width: 100%;">
                 </div>
               </div>
-            </div>
 
-            <!-- Dates Inputs -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-              <div class="form-group">
-                <label for="upd-acc-purchase-date" style="font-weight: 700;">📅 تاريخ الشراء / التعاقد *</label>
-                <input type="date" id="upd-acc-purchase-date" required style="width: 100%;">
-              </div>
-              <div class="form-group" id="date-group-wrapper">
-                <label for="upd-acc-date" id="upd-date-label" style="font-weight: 700;">📅 تاريخ الاستحقاق / الدفعة القادمة</label>
-                <input type="date" id="upd-acc-date" style="width: 100%;">
-              </div>
-            </div>
-
-            <!-- History of Payments -->
-            <div style="margin-bottom: 1.5rem;">
-              <h4 style="margin: 0 0 0.6rem 0; display: flex; align-items: center; gap: 0.4rem; color: var(--text-dark); font-size: 0.95rem;">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
-                سجل الدفعات المسجلة تفصيلياً
-              </h4>
-              <div style="border: 1px solid var(--border); border-radius: 10px; max-height: 180px; overflow-y: auto; background: #fff;">
-                <table class="data-table" style="margin: 0; font-size: 0.85rem; width: 100%;">
-                  <thead>
-                    <tr style="background: var(--bg-light);">
-                      <th style="padding: 0.5rem 1rem;">التاريخ</th>
-                      <th style="padding: 0.5rem 1rem;">قيمة الدفعة</th>
-                      <th style="padding: 0.5rem 1rem; text-align: center; width: 80px;">إجراء</th>
-                    </tr>
-                  </thead>
-                  <tbody id="upd-history-table-body">
-                    <!-- Dynamic -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Add new payment block -->
-            <div style="background: linear-gradient(135deg, var(--bg-light) 0%, rgba(59, 130, 246, 0.05) 100%); border: 1.5px dashed var(--primary); border-radius: 12px; padding: 1.2rem;">
-              <h4 style="margin: 0 0 0.8rem 0; color: var(--primary); font-size: 0.9rem; font-weight: 800; display: flex; align-items: center; gap: 0.4rem;">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                تسجيل دفعة جديدة (واصل)
-              </h4>
-              <div style="display: flex; gap: 0.8rem; align-items: flex-end; flex-wrap: wrap;">
-                <div class="form-group" style="flex: 1; min-width: 140px; margin: 0;">
-                  <label for="new-payment-date" style="font-size: 0.75rem; margin-bottom: 0.25rem;">تاريخ الدفعة</label>
-                  <input type="date" id="new-payment-date" style="padding: 0.4rem; font-size: 0.85rem;">
+              <!-- History of Payments -->
+              <div style="margin-bottom: 1.5rem;">
+                <h4
+                  style="margin: 0 0 0.6rem 0; display: flex; align-items: center; gap: 0.4rem; color: var(--text-dark); font-size: 0.95rem;">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                    <path d="M16 2v4M8 2v4M3 10h18" />
+                  </svg>
+                  سجل الدفعات المسجلة تفصيلياً
+                </h4>
+                <div
+                  style="border: 1px solid var(--border); border-radius: 10px; max-height: 180px; overflow-y: auto; background: #fff;">
+                  <table class="data-table" style="margin: 0; font-size: 0.85rem; width: 100%;">
+                    <thead>
+                      <tr style="background: var(--bg-light);">
+                        <th style="padding: 0.5rem 1rem;">التاريخ</th>
+                        <th style="padding: 0.5rem 1rem;">قيمة الدفعة</th>
+                        <th style="padding: 0.5rem 1rem; text-align: center; width: 80px;">إجراء</th>
+                      </tr>
+                    </thead>
+                    <tbody id="upd-history-table-body">
+                      <!-- Dynamic -->
+                    </tbody>
+                  </table>
                 </div>
-                <div class="form-group" style="flex: 1; min-width: 140px; margin: 0;">
-                  <label for="new-payment-amount" style="font-size: 0.75rem; margin-bottom: 0.25rem;">المبلغ (ج.م) *</label>
-                  <input type="number" id="new-payment-amount" min="0.01" step="any" placeholder="مثال: 1500" style="padding: 0.4rem; font-size: 0.85rem;">
-                </div>
-                <button type="button" class="btn btn-primary" onclick="addPaymentToTempHistory()" style="padding: 0.45rem 1rem; font-size: 0.82rem; height: 36px; display: inline-flex; align-items: center; gap: 0.3rem;">
-                  إضافة الدفعة
-                </button>
               </div>
-            </div>
 
-          </form>
-        </div>
-        <div class="modal-footer" style="padding: 1rem 1.5rem; background: var(--bg-light); border-top: 1px solid var(--border);">
-          <button type="button" class="btn btn-primary" onclick="submitUpdatePayment()">حفظ التغيرات بالكامل</button>
-          <button type="button" class="btn btn-secondary" onclick="closeModal('update-payment-modal')">إلغاء</button>
+              <!-- Add new payment block -->
+              <div
+                style="background: linear-gradient(135deg, var(--bg-light) 0%, rgba(59, 130, 246, 0.05) 100%); border: 1.5px dashed var(--primary); border-radius: 12px; padding: 1.2rem;">
+                <h4
+                  style="margin: 0 0 0.8rem 0; color: var(--primary); font-size: 0.9rem; font-weight: 800; display: flex; align-items: center; gap: 0.4rem;">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  تسجيل دفعة جديدة (واصل)
+                </h4>
+                <div style="display: flex; gap: 0.8rem; align-items: flex-end; flex-wrap: wrap;">
+                  <div class="form-group" style="flex: 1; min-width: 140px; margin: 0;">
+                    <label for="new-payment-date" style="font-size: 0.75rem; margin-bottom: 0.25rem;">تاريخ
+                      الدفعة</label>
+                    <input type="date" id="new-payment-date" style="padding: 0.4rem; font-size: 0.85rem;">
+                  </div>
+                  <div class="form-group" style="flex: 1; min-width: 140px; margin: 0;">
+                    <label for="new-payment-amount" style="font-size: 0.75rem; margin-bottom: 0.25rem;">المبلغ (ج.م)
+                      *</label>
+                    <input type="number" id="new-payment-amount" min="0.01" step="any" placeholder="مثال: 1500"
+                      style="padding: 0.4rem; font-size: 0.85rem;">
+                  </div>
+                  <button type="button" class="btn btn-primary" onclick="addPaymentToTempHistory()"
+                    style="padding: 0.45rem 1rem; font-size: 0.82rem; height: 36px; display: inline-flex; align-items: center; gap: 0.3rem;">
+                    إضافة الدفعة
+                  </button>
+                </div>
+              </div>
+
+            </form>
+          </div>
+          <div class="modal-footer"
+            style="padding: 1rem 1.5rem; background: var(--bg-light); border-top: 1px solid var(--border);">
+            <button type="button" class="btn btn-primary" onclick="submitUpdatePayment()">حفظ التغيرات بالكامل</button>
+            <button type="button" class="btn btn-secondary" onclick="closeModal('update-payment-modal')">إلغاء</button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <script>
-      let alertItems = [];
-      let currentModalPayments = [];
-      let currentModalCleanText = "";
-      let currentModalTotalAmount = 0;
+      <script>
+        let alertItems = [];
+        let currentModalPayments = [];
+        let currentModalCleanText = "";
+        let currentModalTotalAmount = 0;
 
-      function openModal(id) {
-        document.getElementById(id).classList.remove('hidden');
-      }
+        function openModal(id) {
+          document.getElementById(id).classList.remove('hidden');
+        }
 
-      function closeModal(id) {
-        document.getElementById(id).classList.add('hidden');
-      }
+        function closeModal(id) {
+          document.getElementById(id).classList.add('hidden');
+        }
 
-      function parsePaymentHistory(text, defaultDate, defaultPaid) {
-        let purchaseDate = defaultDate ? defaultDate.substring(0, 10) : '';
-        let history = [];
-        let cleanText = text || '';
+        function parsePaymentHistory(text, defaultDate, defaultPaid) {
+          let purchaseDate = defaultDate ? defaultDate.substring(0, 10) : '';
+          let history = [];
+          let cleanText = text || '';
 
-        const purchaseMatch = cleanText.match(/<!--PURCHASEDATE:(\d{4}-\d{2}-\d{2})-->/);
+          const purchaseMatch = cleanText.match(/<!--PURCHASEDATE:(\d{4}-\d{2}-\d{2})-->/);
         if (purchaseMatch) {
-          purchaseDate = purchaseMatch[1];
-          cleanText = cleanText.replace(/<!--PURCHASEDATE:\d{4}-\d{2}-\d{2}-->/g, '');
-        }
-
-        const historyMatch = cleanText.match(/<!--PAYHISTORY:(.*?)-->/);
-        if (historyMatch) {
-          try {
-            history = JSON.parse(historyMatch[1]);
-          } catch (e) {
-            console.error("Failed to parse pay history", e);
+            purchaseDate = purchaseMatch[1];
+            cleanText = cleanText.replace(/<!--PURCHASEDATE:\d{4}-\d{2}-\d{2}-->/g, '');
           }
-          cleanText = cleanText.replace(/<!--PAYHISTORY:.*?-->/g, '');
-        } else {
-          let isRawInstallments = false;
-          try {
-            const rawPlan = JSON.parse(cleanText);
-            if (Array.isArray(rawPlan)) {
-              isRawInstallments = true;
-              let instSum = 0;
-              rawPlan.forEach(item => {
-                const amt = parseFloat(item.amount || 0);
-                const dt = item.date || purchaseDate || new Date().toISOString().substring(0, 10);
-                if (amt > 0) {
-                  history.push({ date: dt, amount: amt });
-                  instSum += amt;
-                }
-              });
 
-              const difference = defaultPaid - instSum;
-              if (difference > 0.01) {
-                history.push({
-                  date: purchaseDate || new Date().toISOString().substring(0, 10),
-                  amount: difference
-                });
-              }
-              cleanText = '';
+          const historyMatch = cleanText.match(/<!--PAYHISTORY:(.*?)-->/);
+          if (historyMatch) {
+            try {
+              history = JSON.parse(historyMatch[1]);
+            } catch (e) {
+              console.error("Failed to parse pay history", e);
             }
-          } catch (e) {}
+            cleanText = cleanText.replace(/<!--PAYHISTORY:.*?-->/g, '');
+          } else {
+            let isRawInstallments = false;
+            try {
+              const rawPlan = JSON.parse(cleanText);
+              if (Array.isArray(rawPlan)) {
+                isRawInstallments = true;
+                let instSum = 0;
+                rawPlan.forEach(item => {
+                  const amt = parseFloat(item.amount || 0);
+                  const dt = item.date || purchaseDate || new Date().toISOString().substring(0, 10);
+                  if (amt > 0) {
+                    history.push({ date: dt, amount: amt });
+                    instSum += amt;
+                  }
+                });
 
-          if (!isRawInstallments && defaultPaid > 0) {
-            history = [{
+                const difference = defaultPaid - instSum;
+                if (difference > 0.01) {
+                  history.push({
+                    date: purchaseDate || new Date().toISOString().substring(0, 10),
+                    amount: difference
+                  });
+                }
+                cleanText = '';
+              }
+            } catch (e) { }
+
+            if (!isRawInstallments && defaultPaid > 0) {
+              history = [{
+                date: purchaseDate || new Date().toISOString().substring(0, 10),
+                amount: defaultPaid
+              }];
+            }
+          }
+
+          history.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+          return {
+            purchaseDate: purchaseDate,
+            history: history,
+            cleanText: cleanText.trim()
+          };
+        }
+
+        function serializePaymentHistory(purchaseDate, history, cleanText) {
+          let result = (cleanText || '').trim();
+          if (purchaseDate) {
+            result += `<!--PURCHASEDATE:${purchaseDate}-->`;
+          }
+          if (history && history.length > 0) {
+            history.sort((a, b) => new Date(a.date) - new Date(b.date));
+            result += `<!--PAYHISTORY:${JSON.stringify(history)}-->`;
+          }
+          return result;
+        }
+
+        function openCreateAccountModal(type) {
+          document.getElementById('create-acc-form').reset();
+          document.getElementById('acc-type').value = type;
+          const today = new Date();
+          const year = today.getFullYear();
+          const month = String(today.getMonth() + 1).padStart(2, '0');
+          const day = String(today.getDate()).padStart(2, '0');
+          document.getElementById('acc-purchase-date').value = `${year}-${month}-${day}`;
+          openModal('create-acc-modal');
+        }
+
+        async function submitCreateAccount() {
+          const form = document.getElementById('create-acc-form');
+          if (!form.checkValidity()) { form.reportValidity(); return; }
+
+          const type = document.getElementById('acc-type').value;
+          const name = document.getElementById('acc-name').value;
+          const purchaseDate = document.getElementById('acc-purchase-date').value;
+          const total = parseFloat(document.getElementById('acc-total').value || 0);
+          const paid = parseFloat(document.getElementById('acc-paid').value || 0);
+          const date = document.getElementById('acc-date').value || null;
+          const notes = document.getElementById('acc-notes').value || '';
+
+          let history = [];
+          if (paid > 0) {
+            history.push({
               date: purchaseDate || new Date().toISOString().substring(0, 10),
-              amount: defaultPaid
-            }];
+              amount: paid
+            });
+          }
+
+          const serializedNotes = serializePaymentHistory(purchaseDate, history, notes);
+
+          try {
+            showAlert('جاري حفظ الحساب...', 'pending');
+            const sb = getSupabase();
+
+            const { error } = await sb.from('accounts').insert([{
+              person_name: name,
+              account_type: type,
+              total_amount: total,
+              paid_amount: paid,
+              due_date: date,
+              notes: serializedNotes
+            }]);
+
+            if (error) throw error;
+
+            showAlert('تم إضافة الحساب بنجاح!', 'success');
+            closeModal('create-acc-modal');
+            await initAccountsPage();
+          } catch (e) {
+            showAlert('فشل الإضافة: ' + e.message, 'error');
           }
         }
 
-        history.sort((a, b) => new Date(a.date) - new Date(b.date));
+        function addPaymentToTempHistory() {
+          const dateInput = document.getElementById('new-payment-date');
+          const amountInput = document.getElementById('new-payment-amount');
 
-        return {
-          purchaseDate: purchaseDate,
-          history: history,
-          cleanText: cleanText.trim()
-        };
-      }
+          const date = dateInput.value;
+          const amount = parseFloat(amountInput.value);
 
-      function serializePaymentHistory(purchaseDate, history, cleanText) {
-        let result = (cleanText || '').trim();
-        if (purchaseDate) {
-          result += `<!--PURCHASEDATE:${purchaseDate}-->`;
-        }
-        if (history && history.length > 0) {
-          history.sort((a, b) => new Date(a.date) - new Date(b.date));
-          result += `<!--PAYHISTORY:${JSON.stringify(history)}-->`;
-        }
-        return result;
-      }
+          if (!date) {
+            alert('الرجاء اختيار تاريخ الدفعة.');
+            return;
+          }
+          if (isNaN(amount) || amount <= 0) {
+            alert('الرجاء إدخال مبلغ صحيح أكبر من صفر.');
+            return;
+          }
 
-      function openCreateAccountModal(type) {
-        document.getElementById('create-acc-form').reset();
-        document.getElementById('acc-type').value = type;
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        document.getElementById('acc-purchase-date').value = `${year}-${month}-${day}`;
-        openModal('create-acc-modal');
-      }
-
-      async function submitCreateAccount() {
-        const form = document.getElementById('create-acc-form');
-        if (!form.checkValidity()) { form.reportValidity(); return; }
-
-        const type = document.getElementById('acc-type').value;
-        const name = document.getElementById('acc-name').value;
-        const purchaseDate = document.getElementById('acc-purchase-date').value;
-        const total = parseFloat(document.getElementById('acc-total').value || 0);
-        const paid = parseFloat(document.getElementById('acc-paid').value || 0);
-        const date = document.getElementById('acc-date').value || null;
-        const notes = document.getElementById('acc-notes').value || '';
-
-        let history = [];
-        if (paid > 0) {
-          history.push({
-            date: purchaseDate || new Date().toISOString().substring(0, 10),
-            amount: paid
-          });
+          currentModalPayments.push({ date, amount });
+          amountInput.value = '';
+          renderTempHistoryTable();
+          updateTempSummaryCard();
         }
 
-        const serializedNotes = serializePaymentHistory(purchaseDate, history, notes);
-
-        try {
-          showAlert('جاري حفظ الحساب...', 'pending');
-          const sb = getSupabase();
-
-          const { error } = await sb.from('accounts').insert([{
-            person_name: name,
-            account_type: type,
-            total_amount: total,
-            paid_amount: paid,
-            due_date: date,
-            notes: serializedNotes
-          }]);
-
-          if (error) throw error;
-
-          showAlert('تم إضافة الحساب بنجاح!', 'success');
-          closeModal('create-acc-modal');
-          await initAccountsPage();
-        } catch (e) {
-          showAlert('فشل الإضافة: ' + e.message, 'error');
-        }
-      }
-
-      function addPaymentToTempHistory() {
-        const dateInput = document.getElementById('new-payment-date');
-        const amountInput = document.getElementById('new-payment-amount');
-
-        const date = dateInput.value;
-        const amount = parseFloat(amountInput.value);
-
-        if (!date) {
-          alert('الرجاء اختيار تاريخ الدفعة.');
-          return;
-        }
-        if (isNaN(amount) || amount <= 0) {
-          alert('الرجاء إدخال مبلغ صحيح أكبر من صفر.');
-          return;
+        function deletePaymentFromTempHistory(index) {
+          currentModalPayments.splice(index, 1);
+          renderTempHistoryTable();
+          updateTempSummaryCard();
         }
 
-        currentModalPayments.push({ date, amount });
-        amountInput.value = '';
-        renderTempHistoryTable();
-        updateTempSummaryCard();
-      }
+        function renderTempHistoryTable() {
+          const tbody = document.getElementById('upd-history-table-body');
+          tbody.innerHTML = '';
 
-      function deletePaymentFromTempHistory(index) {
-        currentModalPayments.splice(index, 1);
-        renderTempHistoryTable();
-        updateTempSummaryCard();
-      }
+          if (currentModalPayments.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:1rem;">لا يوجد دفعات مسجلة بعد.</td></tr>`;
+            return;
+          }
 
-      function renderTempHistoryTable() {
-        const tbody = document.getElementById('upd-history-table-body');
-        tbody.innerHTML = '';
+          currentModalPayments.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        if (currentModalPayments.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:1rem;">لا يوجد دفعات مسجلة بعد.</td></tr>`;
-          return;
-        }
-
-        currentModalPayments.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-        currentModalPayments.forEach((p, idx) => {
-          const tr = document.createElement('tr');
-          const dateFormatted = new Date(p.date).toLocaleDateString('ar-EG');
-          tr.innerHTML = `
+          currentModalPayments.forEach((p, idx) => {
+            const tr = document.createElement('tr');
+            const dateFormatted = new Date(p.date).toLocaleDateString('ar-EG');
+            tr.innerHTML = `
             <td style="padding: 0.5rem 1rem;">${dateFormatted}</td>
             <td style="padding: 0.5rem 1rem; font-weight:700; color:var(--success);">${p.amount.toLocaleString('ar-EG')} ج.م</td>
             <td style="padding: 0.5rem 1rem; text-align:center;">
@@ -533,264 +568,264 @@
               </button>
             </td>
           `;
-          tbody.appendChild(tr);
-        });
-      }
-
-      function updateTempSummaryCard() {
-        const totalPaid = currentModalPayments.reduce((sum, p) => sum + p.amount, 0);
-        const remaining = Math.max(0, currentModalTotalAmount - totalPaid);
-
-        document.getElementById('upd-lbl-paid').textContent = totalPaid.toLocaleString('en-US') + ' ج.م';
-        document.getElementById('upd-lbl-remaining').textContent = remaining.toLocaleString('en-US') + ' ج.م';
-
-        const badge = document.getElementById('upd-status-badge');
-        if (remaining <= 0) {
-          badge.textContent = 'خالص';
-          badge.style.background = '#dcfce7';
-          badge.style.color = '#15803d';
-        } else {
-          badge.textContent = 'نشط (متبقي)';
-          badge.style.background = '#fee2e2';
-          badge.style.color = '#b91c1c';
+            tbody.appendChild(tr);
+          });
         }
-      }
 
-      async function openUpdatePaymentModal(id, type) {
-        document.getElementById('upd-acc-id').value = id;
-        document.getElementById('upd-acc-type').value = type;
+        function updateTempSummaryCard() {
+          const totalPaid = currentModalPayments.reduce((sum, p) => sum + p.amount, 0);
+          const remaining = Math.max(0, currentModalTotalAmount - totalPaid);
 
-        const today = new Date();
-        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-        document.getElementById('new-payment-date').value = todayStr;
-        document.getElementById('new-payment-amount').value = '';
+          document.getElementById('upd-lbl-paid').textContent = totalPaid.toLocaleString('en-US') + ' ج.م';
+          document.getElementById('upd-lbl-remaining').textContent = remaining.toLocaleString('en-US') + ' ج.م';
 
-        try {
-          const sb = getSupabase();
-          let data, error;
-
-          if (type === 'receivable') {
-            const res = await sb.from('client_orders').select('*').eq('id', id).single();
-            data = res.data;
-            error = res.error;
-
-            if (error) throw error;
-
-            document.getElementById('upd-modal-title').textContent = 'تحديث دفعات وتواريخ العميل';
-            document.getElementById('upd-person-name').textContent = data.client_name;
-            document.getElementById('upd-date-label').textContent = '📅 تاريخ الاستحقاق / التسليم المتوقع';
-            document.getElementById('upd-acc-date').value = data.delivery_date || '';
-
-            currentModalTotalAmount = data.total_price || 0;
-            document.getElementById('upd-lbl-total').textContent = currentModalTotalAmount.toLocaleString('en-US') + ' ج.م';
-
-            const parsed = parsePaymentHistory(data.payment_plan, data.created_at, data.paid_amount || 0);
-            currentModalPayments = parsed.history;
-            currentModalCleanText = parsed.cleanText;
-            document.getElementById('upd-acc-purchase-date').value = parsed.purchaseDate || todayStr;
+          const badge = document.getElementById('upd-status-badge');
+          if (remaining <= 0) {
+            badge.textContent = 'خالص';
+            badge.style.background = '#dcfce7';
+            badge.style.color = '#15803d';
           } else {
-            const res = await sb.from('accounts').select('*').eq('id', id).single();
-            data = res.data;
-            error = res.error;
-
-            if (error) throw error;
-
-            document.getElementById('upd-modal-title').textContent = 'تحديث دفعات وتواريخ المورد';
-            document.getElementById('upd-person-name').textContent = data.person_name;
-            document.getElementById('upd-date-label').textContent = '📅 تاريخ الاستحقاق / الدفعة القادمة';
-            document.getElementById('upd-acc-date').value = data.due_date || '';
-
-            currentModalTotalAmount = data.total_amount || 0;
-            document.getElementById('upd-lbl-total').textContent = currentModalTotalAmount.toLocaleString('en-US') + ' ج.م';
-
-            const parsed = parsePaymentHistory(data.notes, data.created_at, data.paid_amount || 0);
-            currentModalPayments = parsed.history;
-            currentModalCleanText = parsed.cleanText;
-            document.getElementById('upd-acc-purchase-date').value = parsed.purchaseDate || todayStr;
+            badge.textContent = 'نشط (متبقي)';
+            badge.style.background = '#fee2e2';
+            badge.style.color = '#b91c1c';
           }
-
-          renderTempHistoryTable();
-          updateTempSummaryCard();
-          openModal('update-payment-modal');
-        } catch (e) {
-          alert('خطأ أثناء تحميل بيانات السجل: ' + e.message);
-        }
-      }
-
-      async function submitUpdatePayment() {
-        const id = document.getElementById('upd-acc-id').value;
-        const type = document.getElementById('upd-acc-type').value;
-        const purchaseDate = document.getElementById('upd-acc-purchase-date').value;
-        const date = document.getElementById('upd-acc-date').value || null;
-
-        if (!purchaseDate) {
-          alert('الرجاء تحديد تاريخ الشراء / التعاقد.');
-          return;
         }
 
-        const totalPaid = currentModalPayments.reduce((sum, p) => sum + p.amount, 0);
-        const serialized = serializePaymentHistory(purchaseDate, currentModalPayments, currentModalCleanText);
-
-        try {
-          showAlert('جاري التحديث...', 'pending');
-          const sb = getSupabase();
-          let error;
-
-          if (type === 'receivable') {
-            const res = await sb.from('client_orders').update({
-              paid_amount: totalPaid,
-              delivery_date: date,
-              payment_plan: serialized
-            }).eq('id', id);
-            error = res.error;
-
-            if (!error) {
-              const clientName = document.getElementById('upd-person-name').textContent;
-              await checkAndDeleteTemporaryCustomer(clientName);
-            }
-          } else {
-            const res = await sb.from('accounts').update({
-              paid_amount: totalPaid,
-              due_date: date,
-              notes: serialized
-            }).eq('id', id);
-            error = res.error;
-          }
-
-          if (error) throw error;
-
-          showAlert('تم التحديث بنجاح!', 'success');
-          closeModal('update-payment-modal');
-          await initAccountsPage();
-        } catch (e) {
-          showAlert('فشل التحديث: ' + e.message, 'error');
-        }
-      }
-
-      async function deleteAccount(id) {
-        if (!(await customConfirm('هل أنت متأكد من حذف هذا الحساب (المورد) نهائياً؟'))) return;
-        try {
-          const sb = getSupabase();
-          const { error } = await sb.from('accounts').delete().eq('id', id);
-          if (error) throw error;
-          showAlert('تم الحذف بنجاح', 'success');
-          await initAccountsPage();
-        } catch (e) {
-          showAlert('فشل الحذف: ' + e.message, 'error');
-        }
-      }
-
-      async function markAsPaid(id, type, totalAmount) {
-        if (!(await customConfirm('هل أنت متأكد من سداد المبلغ بالكامل لهذا الحساب؟'))) return;
-        try {
-          showAlert('جاري التحديث...', 'pending');
-          const sb = getSupabase();
-          let error;
-          let clientNameToCheck = null;
+        async function openUpdatePaymentModal(id, type) {
+          document.getElementById('upd-acc-id').value = id;
+          document.getElementById('upd-acc-type').value = type;
 
           const today = new Date();
           const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+          document.getElementById('new-payment-date').value = todayStr;
+          document.getElementById('new-payment-amount').value = '';
 
-          if (type === 'receivable') {
-            const { data, error: fError } = await sb.from('client_orders').select('*').eq('id', id).single();
-            if (fError) throw fError;
+          try {
+            const sb = getSupabase();
+            let data, error;
 
-            clientNameToCheck = data.client_name;
+            if (type === 'receivable') {
+              const res = await sb.from('client_orders').select('*').eq('id', id).single();
+              data = res.data;
+              error = res.error;
 
-            const remaining = totalAmount - (data.paid_amount || 0);
-            if (remaining > 0) {
+              if (error) throw error;
+
+              document.getElementById('upd-modal-title').textContent = 'تحديث دفعات وتواريخ العميل';
+              document.getElementById('upd-person-name').textContent = data.client_name;
+              document.getElementById('upd-date-label').textContent = '📅 تاريخ الاستحقاق / التسليم المتوقع';
+              document.getElementById('upd-acc-date').value = data.delivery_date || '';
+
+              currentModalTotalAmount = data.total_price || 0;
+              document.getElementById('upd-lbl-total').textContent = currentModalTotalAmount.toLocaleString('en-US') + ' ج.م';
+
               const parsed = parsePaymentHistory(data.payment_plan, data.created_at, data.paid_amount || 0);
-              parsed.history.push({ date: todayStr, amount: remaining });
-              const serialized = serializePaymentHistory(parsed.purchaseDate || todayStr, parsed.history, parsed.cleanText);
+              currentModalPayments = parsed.history;
+              currentModalCleanText = parsed.cleanText;
+              document.getElementById('upd-acc-purchase-date').value = parsed.purchaseDate || todayStr;
+            } else {
+              const res = await sb.from('accounts').select('*').eq('id', id).single();
+              data = res.data;
+              error = res.error;
 
+              if (error) throw error;
+
+              document.getElementById('upd-modal-title').textContent = 'تحديث دفعات وتواريخ المورد';
+              document.getElementById('upd-person-name').textContent = data.person_name;
+              document.getElementById('upd-date-label').textContent = '📅 تاريخ الاستحقاق / الدفعة القادمة';
+              document.getElementById('upd-acc-date').value = data.due_date || '';
+
+              currentModalTotalAmount = data.total_amount || 0;
+              document.getElementById('upd-lbl-total').textContent = currentModalTotalAmount.toLocaleString('en-US') + ' ج.م';
+
+              const parsed = parsePaymentHistory(data.notes, data.created_at, data.paid_amount || 0);
+              currentModalPayments = parsed.history;
+              currentModalCleanText = parsed.cleanText;
+              document.getElementById('upd-acc-purchase-date').value = parsed.purchaseDate || todayStr;
+            }
+
+            renderTempHistoryTable();
+            updateTempSummaryCard();
+            openModal('update-payment-modal');
+          } catch (e) {
+            alert('خطأ أثناء تحميل بيانات السجل: ' + e.message);
+          }
+        }
+
+        async function submitUpdatePayment() {
+          const id = document.getElementById('upd-acc-id').value;
+          const type = document.getElementById('upd-acc-type').value;
+          const purchaseDate = document.getElementById('upd-acc-purchase-date').value;
+          const date = document.getElementById('upd-acc-date').value || null;
+
+          if (!purchaseDate) {
+            alert('الرجاء تحديد تاريخ الشراء / التعاقد.');
+            return;
+          }
+
+          const totalPaid = currentModalPayments.reduce((sum, p) => sum + p.amount, 0);
+          const serialized = serializePaymentHistory(purchaseDate, currentModalPayments, currentModalCleanText);
+
+          try {
+            showAlert('جاري التحديث...', 'pending');
+            const sb = getSupabase();
+            let error;
+
+            if (type === 'receivable') {
               const res = await sb.from('client_orders').update({
-                paid_amount: totalAmount,
+                paid_amount: totalPaid,
+                delivery_date: date,
                 payment_plan: serialized
               }).eq('id', id);
               error = res.error;
+
+              if (!error) {
+                const clientName = document.getElementById('upd-person-name').textContent;
+                await checkAndDeleteTemporaryCustomer(clientName);
+              }
             } else {
-              const res = await sb.from('client_orders').update({
-                paid_amount: totalAmount
-              }).eq('id', id);
-              error = res.error;
-            }
-          } else {
-            const { data, error: fError } = await sb.from('accounts').select('*').eq('id', id).single();
-            if (fError) throw fError;
-
-            const remaining = totalAmount - (data.paid_amount || 0);
-            if (remaining > 0) {
-              const parsed = parsePaymentHistory(data.notes, data.created_at, data.paid_amount || 0);
-              parsed.history.push({ date: todayStr, amount: remaining });
-              const serialized = serializePaymentHistory(parsed.purchaseDate || todayStr, parsed.history, parsed.cleanText);
-
               const res = await sb.from('accounts').update({
-                paid_amount: totalAmount,
+                paid_amount: totalPaid,
+                due_date: date,
                 notes: serialized
               }).eq('id', id);
               error = res.error;
-            } else {
-              const res = await sb.from('accounts').update({
-                paid_amount: totalAmount
-              }).eq('id', id);
-              error = res.error;
             }
+
+            if (error) throw error;
+
+            showAlert('تم التحديث بنجاح!', 'success');
+            closeModal('update-payment-modal');
+            await initAccountsPage();
+          } catch (e) {
+            showAlert('فشل التحديث: ' + e.message, 'error');
           }
-
-          if (error) throw error;
-
-          if (clientNameToCheck) {
-            await checkAndDeleteTemporaryCustomer(clientNameToCheck);
-          }
-
-          showAlert('تم السداد بالكامل بنجاح!', 'success');
-          await initAccountsPage();
-        } catch (e) {
-          showAlert('فشل التحديث: ' + e.message, 'error');
         }
-      }
 
-      async function initAccountsPage() {
-        await initAuth();
-        const sb = getSupabase();
+        async function deleteAccount(id) {
+          if (!(await customConfirm('هل أنت متأكد من حذف هذا الحساب (المورد) نهائياً؟'))) return;
+          try {
+            const sb = getSupabase();
+            const { error } = await sb.from('accounts').delete().eq('id', id);
+            if (error) throw error;
+            showAlert('تم الحذف بنجاح', 'success');
+            await initAccountsPage();
+          } catch (e) {
+            showAlert('فشل الحذف: ' + e.message, 'error');
+          }
+        }
 
-        try {
-          const { data: payables, error: pError } = await sb.from('accounts').select('*').eq('account_type', 'payable').order('created_at', { ascending: false });
-          if (pError) throw pError;
+        async function markAsPaid(id, type, totalAmount) {
+          if (!(await customConfirm('هل أنت متأكد من سداد المبلغ بالكامل لهذا الحساب؟'))) return;
+          try {
+            showAlert('جاري التحديث...', 'pending');
+            const sb = getSupabase();
+            let error;
+            let clientNameToCheck = null;
 
-          const { data: clients, error: cError } = await sb.from('client_orders').select('*').order('created_at', { ascending: false });
-          if (cError) throw cError;
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-          const recBody = document.getElementById('receivable-table-body');
-          const payBody = document.getElementById('payable-table-body');
+            if (type === 'receivable') {
+              const { data, error: fError } = await sb.from('client_orders').select('*').eq('id', id).single();
+              if (fError) throw fError;
 
-          recBody.innerHTML = '';
-          payBody.innerHTML = '';
+              clientNameToCheck = data.client_name;
 
-          let hasRec = false;
-          let hasPay = false;
+              const remaining = totalAmount - (data.paid_amount || 0);
+              if (remaining > 0) {
+                const parsed = parsePaymentHistory(data.payment_plan, data.created_at, data.paid_amount || 0);
+                parsed.history.push({ date: todayStr, amount: remaining });
+                const serialized = serializePaymentHistory(parsed.purchaseDate || todayStr, parsed.history, parsed.cleanText);
 
-          let recTotalSum = 0;
-          let recPaidSum = 0;
+                const res = await sb.from('client_orders').update({
+                  paid_amount: totalAmount,
+                  payment_plan: serialized
+                }).eq('id', id);
+                error = res.error;
+              } else {
+                const res = await sb.from('client_orders').update({
+                  paid_amount: totalAmount
+                }).eq('id', id);
+                error = res.error;
+              }
+            } else {
+              const { data, error: fError } = await sb.from('accounts').select('*').eq('id', id).single();
+              if (fError) throw fError;
 
-          let payTotalSum = 0;
-          let payPaidSum = 0;
+              const remaining = totalAmount - (data.paid_amount || 0);
+              if (remaining > 0) {
+                const parsed = parsePaymentHistory(data.notes, data.created_at, data.paid_amount || 0);
+                parsed.history.push({ date: todayStr, amount: remaining });
+                const serialized = serializePaymentHistory(parsed.purchaseDate || todayStr, parsed.history, parsed.cleanText);
 
-          (clients || []).forEach(order => {
-            const remaining = order.total_price - order.paid_amount;
-            if (remaining <= 0) return;
+                const res = await sb.from('accounts').update({
+                  paid_amount: totalAmount,
+                  notes: serialized
+                }).eq('id', id);
+                error = res.error;
+              } else {
+                const res = await sb.from('accounts').update({
+                  paid_amount: totalAmount
+                }).eq('id', id);
+                error = res.error;
+              }
+            }
 
-            const isFullyPaid = remaining <= 0;
-            const dateStr = order.delivery_date ? new Date(order.delivery_date).toLocaleDateString('ar-EG') : '-';
+            if (error) throw error;
 
-            recTotalSum += (order.total_price || 0);
-            recPaidSum += (order.paid_amount || 0);
+            if (clientNameToCheck) {
+              await checkAndDeleteTemporaryCustomer(clientNameToCheck);
+            }
 
-            const parsedHistory = parsePaymentHistory(order.payment_plan, order.created_at, order.paid_amount || 0);
-            const purchaseDateFormatted = parsedHistory.purchaseDate ? new Date(parsedHistory.purchaseDate).toLocaleDateString('ar-EG') : '-';
+            showAlert('تم السداد بالكامل بنجاح!', 'success');
+            await initAccountsPage();
+          } catch (e) {
+            showAlert('فشل التحديث: ' + e.message, 'error');
+          }
+        }
 
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
+        async function initAccountsPage() {
+          await initAuth();
+          const sb = getSupabase();
+
+          try {
+            const { data: payables, error: pError } = await sb.from('accounts').select('*').eq('account_type', 'payable').order('created_at', { ascending: false });
+            if (pError) throw pError;
+
+            const { data: clients, error: cError } = await sb.from('client_orders').select('*').order('created_at', { ascending: false });
+            if (cError) throw cError;
+
+            const recBody = document.getElementById('receivable-table-body');
+            const payBody = document.getElementById('payable-table-body');
+
+            recBody.innerHTML = '';
+            payBody.innerHTML = '';
+
+            let hasRec = false;
+            let hasPay = false;
+
+            let recTotalSum = 0;
+            let recPaidSum = 0;
+
+            let payTotalSum = 0;
+            let payPaidSum = 0;
+
+            (clients || []).forEach(order => {
+              const remaining = order.total_price - order.paid_amount;
+              if (remaining <= 0) return;
+
+              const isFullyPaid = remaining <= 0;
+              const dateStr = order.delivery_date ? new Date(order.delivery_date).toLocaleDateString('ar-EG') : '-';
+
+              recTotalSum += (order.total_price || 0);
+              recPaidSum += (order.paid_amount || 0);
+
+              const parsedHistory = parsePaymentHistory(order.payment_plan, order.created_at, order.paid_amount || 0);
+              const purchaseDateFormatted = parsedHistory.purchaseDate ? new Date(parsedHistory.purchaseDate).toLocaleDateString('ar-EG') : '-';
+
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
               <td>
                 <div style="font-weight: 800; color: var(--text-dark);">${order.client_name}</div>
                 <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem; display:flex; flex-direction:column; gap:0.25rem;">
@@ -805,7 +840,7 @@
                       <div style="background:#fff; border:1px solid var(--border); border-radius:8px; padding:0.5rem; margin-top:0.25rem; display:flex; flex-direction:column; gap:0.3rem; max-height:120px; overflow-y:auto; direction:rtl; box-shadow:inset 0 1px 3px rgba(0,0,0,0.02);">
                         ${parsedHistory.history.map((p, i) => `
                           <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:var(--text-dark); border-bottom:1px dashed #f1f5f9; padding-bottom:0.15rem;">
-                            <span>دفعة ${i+1}: ${new Date(p.date).toLocaleDateString('ar-EG')}</span>
+                            <span>دفعة ${i + 1}: ${new Date(p.date).toLocaleDateString('ar-EG')}</span>
                             <strong style="color:var(--success)">${p.amount.toLocaleString('ar-EG')} ج.م</strong>
                           </div>
                         `).join('')}
@@ -837,26 +872,26 @@
                 </div>
               </td>
             `;
-            recBody.appendChild(tr);
-            hasRec = true;
-          });
+              recBody.appendChild(tr);
+              hasRec = true;
+            });
 
-          const settledPayBody = document.getElementById('settled-payable-table-body');
-          settledPayBody.innerHTML = '';
-          let settledPayCount = 0;
+            const settledPayBody = document.getElementById('settled-payable-table-body');
+            settledPayBody.innerHTML = '';
+            let settledPayCount = 0;
 
-          (payables || []).forEach(acc => {
-            const remaining = acc.total_amount - acc.paid_amount;
-            const isFullyPaid = remaining <= 0;
-            const dateStr = acc.due_date ? new Date(acc.due_date).toLocaleDateString('ar-EG') : '-';
+            (payables || []).forEach(acc => {
+              const remaining = acc.total_amount - acc.paid_amount;
+              const isFullyPaid = remaining <= 0;
+              const dateStr = acc.due_date ? new Date(acc.due_date).toLocaleDateString('ar-EG') : '-';
 
-            const parsedHistory = parsePaymentHistory(acc.notes, acc.created_at, acc.paid_amount || 0);
-            const purchaseDateFormatted = parsedHistory.purchaseDate ? new Date(parsedHistory.purchaseDate).toLocaleDateString('ar-EG') : '-';
+              const parsedHistory = parsePaymentHistory(acc.notes, acc.created_at, acc.paid_amount || 0);
+              const purchaseDateFormatted = parsedHistory.purchaseDate ? new Date(parsedHistory.purchaseDate).toLocaleDateString('ar-EG') : '-';
 
-            const tr = document.createElement('tr');
-            if (isFullyPaid) {
-              settledPayCount++;
-              tr.innerHTML = `
+              const tr = document.createElement('tr');
+              if (isFullyPaid) {
+                settledPayCount++;
+                tr.innerHTML = `
                 <td>
                   <div style="font-weight: 800; color: var(--text-dark);">${acc.person_name}</div>
                   <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem; display:flex; flex-direction:column; gap:0.25rem;">
@@ -870,7 +905,7 @@
                         <div style="background:#fff; border:1px solid var(--border); border-radius:8px; padding:0.5rem; margin-top:0.25rem; display:flex; flex-direction:column; gap:0.3rem; max-height:120px; overflow-y:auto; direction:rtl; box-shadow:inset 0 1px 3px rgba(0,0,0,0.02);">
                           ${parsedHistory.history.map((p, i) => `
                             <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:var(--text-dark); border-bottom:1px dashed #f1f5f9; padding-bottom:0.15rem;">
-                              <span>دفعة ${i+1}: ${new Date(p.date).toLocaleDateString('ar-EG')}</span>
+                              <span>دفعة ${i + 1}: ${new Date(p.date).toLocaleDateString('ar-EG')}</span>
                               <strong style="color:var(--success)">${p.amount.toLocaleString('ar-EG')} ج.م</strong>
                             </div>
                           `).join('')}
@@ -902,12 +937,12 @@
                   </div>
                 </td>
               `;
-              settledPayBody.appendChild(tr);
-            } else {
-              payTotalSum += (acc.total_amount || 0);
-              payPaidSum += (acc.paid_amount || 0);
+                settledPayBody.appendChild(tr);
+              } else {
+                payTotalSum += (acc.total_amount || 0);
+                payPaidSum += (acc.paid_amount || 0);
 
-              tr.innerHTML = `
+                tr.innerHTML = `
                 <td>
                   <div style="font-weight: 800; color: var(--text-dark);">${acc.person_name}</div>
                   <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem; display:flex; flex-direction:column; gap:0.25rem;">
@@ -921,7 +956,7 @@
                         <div style="background:#fff; border:1px solid var(--border); border-radius:8px; padding:0.5rem; margin-top:0.25rem; display:flex; flex-direction:column; gap:0.3rem; max-height:120px; overflow-y:auto; direction:rtl; box-shadow:inset 0 1px 3px rgba(0,0,0,0.02);">
                           ${parsedHistory.history.map((p, i) => `
                             <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:var(--text-dark); border-bottom:1px dashed #f1f5f9; padding-bottom:0.15rem;">
-                              <span>دفعة ${i+1}: ${new Date(p.date).toLocaleDateString('ar-EG')}</span>
+                              <span>دفعة ${i + 1}: ${new Date(p.date).toLocaleDateString('ar-EG')}</span>
                               <strong style="color:var(--success)">${p.amount.toLocaleString('ar-EG')} ج.م</strong>
                             </div>
                           `).join('')}
@@ -958,49 +993,50 @@
                   </div>
                 </td>
               `;
-              payBody.appendChild(tr);
-              hasPay = true;
+                payBody.appendChild(tr);
+                hasPay = true;
+              }
+            });
+
+            if (settledPayCount === 0) {
+              settledPayBody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">لا يوجد موردين خالصين حالياً</td></tr>`;
             }
-          });
+            document.getElementById('settled-pay-badge').textContent = `${settledPayCount} مورد خالص`;
 
-          if (settledPayCount === 0) {
-            settledPayBody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">لا يوجد موردين خالصين حالياً</td></tr>`;
+            if (!hasRec) recBody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">لا يوجد حسابات حالياً</td></tr>`;
+            if (!hasPay) payBody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">لا يوجد حسابات حالياً</td></tr>`;
+
+            document.getElementById('stat-rec-remaining').textContent = Math.max(0, recTotalSum - recPaidSum).toLocaleString('en-US');
+            document.getElementById('stat-pay-remaining').textContent = Math.max(0, payTotalSum - payPaidSum).toLocaleString('en-US');
+
+          } catch (e) {
+            console.error(e);
+            const errHTML = `<tr><td colspan="6" style="text-align:center;color:var(--error)">تأكد من إنشاء الجداول بشكل صحيح: ${e.message}</td></tr>`;
+            document.getElementById('receivable-table-body').innerHTML = errHTML;
+            document.getElementById('payable-table-body').innerHTML = errHTML;
           }
-          document.getElementById('settled-pay-badge').textContent = `${settledPayCount} مورد خالص`;
-
-          if (!hasRec) recBody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">لا يوجد حسابات حالياً</td></tr>`;
-          if (!hasPay) payBody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">لا يوجد حسابات حالياً</td></tr>`;
-
-          document.getElementById('stat-rec-remaining').textContent = Math.max(0, recTotalSum - recPaidSum).toLocaleString('en-US');
-          document.getElementById('stat-pay-remaining').textContent = Math.max(0, payTotalSum - payPaidSum).toLocaleString('en-US');
-
-        } catch (e) {
-          console.error(e);
-          const errHTML = `<tr><td colspan="6" style="text-align:center;color:var(--error)">تأكد من إنشاء الجداول بشكل صحيح: ${e.message}</td></tr>`;
-          document.getElementById('receivable-table-body').innerHTML = errHTML;
-          document.getElementById('payable-table-body').innerHTML = errHTML;
         }
-      }
 
-      document.addEventListener('DOMContentLoaded', async () => {
-        await initAccountsPage();
+        document.addEventListener('DOMContentLoaded', async () => {
+          await initAccountsPage();
 
-        const sb = getSupabase();
+          const sb = getSupabase();
 
-        sb.channel('accounts-realtime')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'accounts' }, () => {
-            initAccountsPage();
-          })
-          .subscribe();
+          sb.channel('accounts-realtime')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'accounts' }, () => {
+              initAccountsPage();
+            })
+            .subscribe();
 
-        sb.channel('orders-for-accounts')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'client_orders' }, () => {
-            initAccountsPage();
-          })
-          .subscribe();
+          sb.channel('orders-for-accounts')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'client_orders' }, () => {
+              initAccountsPage();
+            })
+            .subscribe();
 
-        setInterval(initAccountsPage, 5000);
-      });
-    </script>
+          setInterval(initAccountsPage, 5000);
+        });
+      </script>
 </body>
+
 </html>

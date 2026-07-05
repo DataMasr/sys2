@@ -1,8 +1,8 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
-    <link rel="icon" type="image/jpeg" href="Logo.jpeg">
+  <link rel="icon" type="image/jpeg" href="Logo.jpeg">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>قائمة المهام - نظام الإدارة</title>
@@ -534,24 +534,33 @@
               <div style="font-size:0.7rem;color:var(--text-light);margin-top:0.2rem;">إجمالي الإنجاز</div>
             </div>
           </div>
-          
+
           <!-- Order Info Grid -->
           <div class="order-info-grid">
             <!-- Order Details Box -->
-            <div id="order-details-box" style="background:var(--bg-light); border:1.5px solid var(--border); border-radius:12px; padding:1.25rem; margin-bottom:0;">
-              <h4 style="margin:0 0 0.6rem 0; color:var(--primary); font-weight:800; font-size:0.9rem; display:flex; align-items:center; gap:0.4rem;">
+            <div id="order-details-box"
+              style="background:var(--bg-light); border:1.5px solid var(--border); border-radius:12px; padding:1.25rem; margin-bottom:0;">
+              <h4
+                style="margin:0 0 0.6rem 0; color:var(--primary); font-weight:800; font-size:0.9rem; display:flex; align-items:center; gap:0.4rem;">
                 📝 تفاصيل ومواصفات الأوردر:
               </h4>
-              <div id="order-details-text" style="font-size:0.85rem; color:var(--text-main); white-space:pre-wrap; line-height:1.6; font-weight:500;">-</div>
+              <div id="order-details-text"
+                style="font-size:0.85rem; color:var(--text-main); white-space:pre-wrap; line-height:1.6; font-weight:500;">
+                -</div>
             </div>
 
             <!-- Order Expenses Box -->
-            <div id="order-expenses-box" style="background:var(--bg-light); border:1.5px solid var(--border); border-radius:12px; padding:1.25rem; margin-bottom:0; display:flex; flex-direction:column; min-height:120px;">
-              <h4 style="margin:0 0 0.6rem 0; color:#d97706; font-weight:800; font-size:0.9rem; display:flex; align-items:center; justify-content:space-between; gap:0.4rem; border-bottom:1px solid var(--border); padding-bottom:0.4rem;">
+            <div id="order-expenses-box"
+              style="background:var(--bg-light); border:1.5px solid var(--border); border-radius:12px; padding:1.25rem; margin-bottom:0; display:flex; flex-direction:column; min-height:120px;">
+              <h4
+                style="margin:0 0 0.6rem 0; color:#d97706; font-weight:800; font-size:0.9rem; display:flex; align-items:center; justify-content:space-between; gap:0.4rem; border-bottom:1px solid var(--border); padding-bottom:0.4rem;">
                 <span style="display:flex; align-items:center; gap:0.25rem;">💵 المصاريف الإضافية للأوردر:</span>
-                <span id="order-expenses-total" style="font-size: 0.8rem; background: rgba(217, 119, 6, 0.15); color: #d97706; padding: 2px 8px; border-radius: 6px; font-weight: bold; white-space:nowrap;">0 ج.م</span>
+                <span id="order-expenses-total"
+                  style="font-size: 0.8rem; background: rgba(217, 119, 6, 0.15); color: #d97706; padding: 2px 8px; border-radius: 6px; font-weight: bold; white-space:nowrap;">0
+                  ج.م</span>
               </h4>
-              <div id="order-expenses-list" style="font-size:0.82rem; color:var(--text-main); max-height:180px; overflow-y:auto; line-height:1.6; font-weight:500; flex:1;">
+              <div id="order-expenses-list"
+                style="font-size:0.82rem; color:var(--text-main); max-height:180px; overflow-y:auto; line-height:1.6; font-weight:500; flex:1;">
                 جاري تحميل المصاريف...
               </div>
             </div>
@@ -570,8 +579,8 @@
     // ─── Constants ───
     const LANES = [
       { key: 'executive_director', label: 'مدير تنفيذي', emoji: '⚡', cssClass: 'lane-purchasing' },
-      { key: 'designer',           label: 'مصمم',         emoji: '🎨', cssClass: 'lane-production' },
-      { key: 'general_manager',    label: 'مدير عام',     emoji: '📋', cssClass: 'lane-inventory'  }
+      { key: 'designer', label: 'مصمم', emoji: '🎨', cssClass: 'lane-production' },
+      { key: 'general_manager', label: 'مدير عام', emoji: '📋', cssClass: 'lane-inventory' }
     ];
 
     let activeOrders = [];
@@ -585,19 +594,19 @@
     function parseAllTasks(order) {
       if (!order || !order.pending_materials) return {};
       const pm = order.pending_materials;
-      
+
       // Migrate array structure to new roles structure
       if (Array.isArray(pm)) {
         return { designer: pm, general_manager: [], executive_director: [] };
       }
-      
+
       // Migrate old keys to new keys if they exist
       const result = {
         general_manager: pm.general_manager || pm.inventory_manager || [],
         designer: pm.designer || pm.production_engineer || [],
         executive_director: pm.executive_director || pm.purchasing_manager || []
       };
-      
+
       return result;
     }
 
@@ -719,7 +728,7 @@
       // Render Order Details
       const rawNotes = selectedOrder.material_notes || '';
       const cleanNotes = rawNotes.replace(/<!--.*?-->/g, '').trim() || 'لا توجد تفاصيل ومواصفات مسجلة.';
-      document.getElementById('order-details-text').innerHTML = cleanNotes.replace(/\n/g, '<br>');
+        document.getElementById('order-details-text').innerHTML = cleanNotes.replace(/\n/g, '<br>');
 
       // Load expenses dynamically
       loadOrderExpenses(selectedOrder.id);
@@ -897,8 +906,8 @@
       // Each lane independently pushes to its own target stage
       const laneTargets = [
         { laneKey: 'executive_director', targetStage: 'التصميم' },
-        { laneKey: 'designer',           targetStage: 'التجهيز' },
-        { laneKey: 'general_manager',    targetStage: 'جاهز للتسليم' },
+        { laneKey: 'designer', targetStage: 'التجهيز' },
+        { laneKey: 'general_manager', targetStage: 'جاهز للتسليم' },
       ];
 
       let bestTarget = null;
@@ -948,12 +957,12 @@
       try {
         const sb = getSupabase();
         await saveAllTasks(selectedOrder.id, tasksObj);
-        
+
         // Notify Designer or Executive Director if assigned
         if (laneKey === 'designer' || laneKey === 'executive_director') {
           const roleLabel = laneKey === 'designer' ? 'المصمم' : 'المدير التنفيذي';
           const displayName = selectedOrder.order_display_name || selectedOrder.client_name || 'أوردر';
-          
+
           await sb.from('notifications').insert([{
             order_id: selectedOrder.id,
             order_display_name: displayName,
@@ -1068,10 +1077,10 @@
 
       try {
         showAlert('جاري حفظ الملاحظة...', 'pending');
-        
+
         // 1. Delete associated old expenses first
         await deleteAssociatedExpenses(task);
-        
+
         // 2. Parse and add new expenses if any
         if (task.note) {
           await parseAndAddExpense(task, selectedOrder);
@@ -1095,23 +1104,23 @@
       const displayName = order.order_display_name || order.client_name || 'أوردر';
 
       if (!noteText) return;
-      
+
       // Parse and sum all numbers in the note
       const matches = noteText.match(/(\d+(?:\.\d+)?)/g);
       if (!matches) return;
-      
+
       const amount = matches.reduce((sum, val) => sum + parseFloat(val), 0);
       if (amount <= 0) return;
-      
+
       let description = noteText.trim();
       const rawNumOnly = /^\d+(?:\.\d+)?$/.test(description.replace(/[\+\s]/g, ''));
       if (rawNumOnly) {
         description = `مصاريف إضافية لمهمة: ${taskText}`;
       }
-      
+
       try {
         const sb = getSupabase();
-        
+
         // 1. Insert into order_expenses table and retrieve inserted ID
         const { data: ordData, error: ordError } = await sb.from('order_expenses').insert([{
           order_id: orderId,
@@ -1119,7 +1128,7 @@
           amount: amount,
           created_by: currentUser ? currentUser.id : null
         }]).select();
-        
+
         if (ordError) throw ordError;
         if (ordData && ordData[0]) {
           task.order_expense_id = ordData[0].id;
@@ -1137,10 +1146,10 @@
         if (genData && genData[0]) {
           task.general_expense_id = genData[0].id;
         }
-        
+
         // Show inline feedback on the page instead of global showAlert
         showInlineExpenseFeedback(amount, description);
-        
+
         // Reload expenses list to reflect the new expense immediately
         loadOrderExpenses(orderId);
       } catch (err) {
@@ -1173,7 +1182,7 @@
         }
 
         container.innerHTML = expenses.map(exp => {
-          const dateStr = exp.created_at ? new Date(exp.created_at).toLocaleDateString('ar-EG', {month: 'short', day: 'numeric'}) : '';
+          const dateStr = exp.created_at ? new Date(exp.created_at).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' }) : '';
           return `
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(0,0,0,0.05); padding: 0.45rem 0; gap:0.5rem;">
               <div style="display:flex; flex-direction:column; gap:0.1rem; min-width:0;">

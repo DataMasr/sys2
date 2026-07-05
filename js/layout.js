@@ -87,7 +87,15 @@ function renderLayout() {
         </div>
         <button id="sidebar-attendance-btn" class="btn btn-success btn-block btn-sm" style="margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: var(--success-gradient) !important; border: none; font-weight: 700;" onclick="openAttendanceSelfServiceModal()">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          <span>حضور وانصراف</span>
+          <span id="sidebar-attendance-text">حضور وانصراف</span>
+        </button>
+        <button id="sidebar-break-btn" class="btn btn-secondary btn-block btn-sm hidden" style="margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-weight: 700; transition: all 0.3s ease;" onclick="toggleBreakSelf()">
+          <svg id="break-btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 9 15 12 10 15 10 9"/></svg>
+          <span id="sidebar-break-text">استراحة</span>
+        </button>
+        <button id="sidebar-leave-btn" class="btn btn-secondary btn-block btn-sm" style="margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-weight: 700; background: rgba(139, 92, 246, 0.12); border: 1px solid rgba(139, 92, 246, 0.25); color: #7c3aed;" onclick="openLeaveRequestModal()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>طلب إجازة</span>
         </button>
         <button class="btn btn-secondary btn-block btn-sm" onclick="logout()">تسجيل الخروج</button>
       </div>
@@ -200,6 +208,47 @@ function renderLayout() {
         </div>
       </div>
     </div>
+
+    <!-- Leave Request Modal -->
+    <div id="leave-request-modal" class="modal-overlay hidden" style="z-index: 10006;">
+      <div class="modal" style="max-width: 480px;">
+        <div class="modal-header">
+          <h3 style="display:flex; align-items:center; gap:0.5rem; font-weight:800;">طلب إجازة 📅</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeLeaveRequestModal()" style="padding:0.5rem; border-radius:50%;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body" style="padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1rem;">
+          <div style="background: rgba(139, 92, 246, 0.06); padding: 0.85rem 1rem; border-radius: 10px; border: 1px dashed rgba(139, 92, 246, 0.2); font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+            <strong style="color:#7c3aed;">ملاحظة:</strong> دوام العمل 10 صباحاً → 10 مساءً (توقيت مصر). يُحسب الغياب بعد 10 مساءً. الإجازة المعتمدة بدون خصم. الغياب بدون طلب أو بعد الرفض يُخصم <strong>يومين</strong> (20 ساعة).
+          </div>
+          <form id="leave-request-form">
+            <div class="form-group">
+              <label for="leave-start-date" style="font-weight:700;">من تاريخ *</label>
+              <input type="date" id="leave-start-date" required style="border-radius:10px; padding:0.75rem 1rem; width:100%;">
+            </div>
+            <div class="form-group">
+              <label for="leave-end-date" style="font-weight:700;">إلى تاريخ *</label>
+              <input type="date" id="leave-end-date" required style="border-radius:10px; padding:0.75rem 1rem; width:100%;">
+            </div>
+            <div class="form-group">
+              <label for="leave-reason" style="font-weight:700;">سبب الإجازة</label>
+              <textarea id="leave-reason" rows="2" placeholder="اكتب سبب طلب الإجازة (اختياري)..." style="border-radius:10px; padding:0.75rem 1rem; width:100%; resize:none;"></textarea>
+            </div>
+          </form>
+          <div id="leave-my-requests" style="display:none;">
+            <h4 style="font-size:0.9rem; font-weight:800; color:var(--primary); margin-bottom:0.5rem;">طلباتي السابقة</h4>
+            <div id="leave-my-requests-list" style="max-height:150px; overflow-y:auto; font-size:0.85rem;"></div>
+          </div>
+        </div>
+        <div class="modal-footer" style="padding: 1rem 2rem; display: flex; gap: 1rem;">
+          <button id="btn-submit-leave" class="btn btn-primary" style="flex:1; border-radius:10px;" onclick="submitLeaveRequest()">إرسال الطلب للمدير</button>
+          <button class="btn btn-secondary" onclick="closeLeaveRequestModal()" style="border-radius:10px; flex:1;">إلغاء</button>
+        </div>
+      </div>
+    </div>
   `;
 
   document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
@@ -255,12 +304,19 @@ async function checkGlobalAlerts() {
 
     let lateItems = [];
 
-     // ── Admin edit notifications (visible to all staff) ──
+    // ── Admin edit notifications (visible to all staff) ──
     if (notifRes.data && currentProfile) {
       const myId = currentProfile.id;
       notifRes.data.forEach(notif => {
         const readBy = notif.read_by || [];
         if (!readBy.includes(myId)) {
+          const targetId = typeof getNotificationTargetId === 'function' ? getNotificationTargetId(notif.message) : null;
+          if (targetId && targetId !== myId) return;
+
+          const displayMessage = typeof getNotificationDisplayText === 'function'
+            ? getNotificationDisplayText(notif.message)
+            : notif.message;
+
           // If this notification is associated with an order, verify if the order is active and not yet delivered
           if (notif.order_id) {
             const relatedOrder = ordRes.data ? ordRes.data.find(o => o.id === notif.order_id) : null;
@@ -270,22 +326,30 @@ async function checkGlobalAlerts() {
             }
           }
 
+          // إشعار طلب إجازة جديد — للمدير العام فقط
+          if (displayMessage.includes('طلب إجازة جديد')) {
+            if (typeof canReceiveLeaveRequestNotifications !== 'function' ||
+                !canReceiveLeaveRequestNotifications(currentProfile.role)) {
+              return;
+            }
+          }
+
           // Restrict shortage approval notifications strictly to purchasing_manager, admin, and manager
-          if (notif.message.includes("تم اعتماد نواقص") || notif.message.includes("جاهزة للشراء")) {
+          if (displayMessage.includes("تم اعتماد نواقص") || displayMessage.includes("جاهزة للشراء")) {
             if (!hasRole(['purchasing_manager', 'admin', 'manager']) && !hasPermission('purchasing')) {
               return;
             }
           }
 
           // Restrict task notifications strictly to the assigned role and admins
-          if (notif.message.includes("مهمة جديدة للـ")) {
-            const isDesignerText = notif.message.includes("المصمم");
-            const isExecText = notif.message.includes("المدير التنفيذي");
-            
+          if (displayMessage.includes("مهمة جديدة للـ")) {
+            const isDesignerText = displayMessage.includes("المصمم");
+            const isExecText = displayMessage.includes("المدير التنفيذي");
+
             const isDesigner = currentProfile.role === 'designer';
             const isExec = currentProfile.role === 'executive_director';
             const isAdminOrMgr = ['admin', 'manager', 'general_manager', 'executive_director'].includes(currentProfile.role);
-            
+
             if (isDesignerText && !isDesigner && !isAdminOrMgr) {
               return;
             }
@@ -294,13 +358,15 @@ async function checkGlobalAlerts() {
             }
           }
 
+          const notifLabel = displayMessage.includes('إجاز') ? 'طلب إجازة' : (notif.order_display_name || 'أوردر');
+
           lateItems.push({
             id: notif.id,
-            name: notif.order_display_name || 'أوردر',
+            name: notifLabel,
             amount: 0,
             date: notif.created_at ? new Date(notif.created_at) : null,
             type: 'admin_edit',
-            source: notif.message,
+            source: displayMessage,
             notifId: notif.id,
             orderId: notif.order_id
           });
@@ -670,7 +736,7 @@ function renderNotificationsList() {
         const isDesigner = item.source.includes("المصمم");
         const isExec = item.source.includes("المدير التنفيذي");
         const myRole = currentProfile ? currentProfile.role : 'user';
-        
+
         if (isDesigner && myRole === 'designer') {
           notifTitle = "📌 مهمة جديدة مسندة إليك";
         } else if (isExec && myRole === 'executive_director') {
@@ -967,7 +1033,7 @@ async function checkAndDeleteTemporaryCustomer(clientName) {
   console.log(`[checkAndDeleteTemporaryCustomer] البدء في التحقق من العميل: "${trimmedName}"`);
   try {
     const sb = getSupabase();
-    
+
     // 1. Fetch customer by name to check if they are temporary (phone contains '[مؤقت]')
     let { data: custData, error: custErr } = await sb
       .from('customers')
@@ -1097,13 +1163,14 @@ async function openAttendanceSelfServiceModal() {
   const sb = getSupabase();
   try {
     // 1. Get or create worker record linked to this profile
-    let { data: worker, error: workerErr } = await sb
+    let { data: workers, error: workerErr } = await sb
       .from('workers')
       .select('*')
       .eq('profile_id', currentProfile.id)
-      .maybeSingle();
+      .limit(1);
 
     if (workerErr) throw workerErr;
+    let worker = workers && workers.length > 0 ? workers[0] : null;
 
     if (!worker) {
       // Look up by name
@@ -1142,23 +1209,41 @@ async function openAttendanceSelfServiceModal() {
     window.selfServiceWorker = worker;
 
     // 2. Check today's active attendance session
-    const { data: activeSession, error: sessionErr } = await sb
+    const { data: activeSessions, error: sessionErr } = await sb
       .from('attendance')
       .select('*')
       .eq('worker_id', worker.id)
       .is('check_out', null)
-      .maybeSingle();
+      .order('check_in', { ascending: false })
+      .limit(1);
 
     if (sessionErr) throw sessionErr;
+    const activeSession = activeSessions && activeSessions.length > 0 ? activeSessions[0] : null;
+
+    // Block check-in if on approved leave (unless already checked in)
+    const onApprovedLeave = await hasApprovedLeaveToday(sb, worker.id);
+    if (onApprovedLeave && !activeSession) {
+      statusText.textContent = `مرحباً ${currentProfile.full_name}`;
+      subText.textContent = 'أنت في إجازة معتمدة اليوم. لا يلزم تسجيل حضور.';
+      submitBtn.disabled = true;
+      cameraSection.classList.add('hidden');
+      return;
+    }
 
     window.selfServiceActiveSession = activeSession;
     retakeAttendancePhoto(); // Reset camera view elements
 
     if (activeSession) {
-      const inTime = new Date(activeSession.check_in).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-      statusText.textContent = `مرحباً ${currentProfile.full_name}`;
-      subText.innerHTML = `تم تسجيل حضورك اليوم الساعة <span style="color:var(--success-text); font-weight:bold;">${inTime}</span>. يرجى التقاط صورة لتسجيل الانصراف.`;
-      submitBtn.textContent = 'تسجيل انصراف';
+      if (activeSession.break_start) {
+        statusText.textContent = `مرحباً ${currentProfile.full_name}`;
+        subText.innerHTML = `أنت في فترة استراحة حالياً. يرجى التقاط صورة لتسجيل العودة إلى العمل.`;
+        submitBtn.textContent = 'إنهاء الاستراحة والعودة للعمل';
+      } else {
+        const inTime = new Date(activeSession.check_in).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+        statusText.textContent = `مرحباً ${currentProfile.full_name}`;
+        subText.innerHTML = `تم تسجيل حضورك اليوم الساعة <span style="color:var(--success-text); font-weight:bold;">${inTime}</span>. يرجى التقاط صورة لتسجيل الانصراف.`;
+        submitBtn.textContent = 'تسجيل انصراف';
+      }
     } else {
       statusText.textContent = `مرحباً ${currentProfile.full_name}`;
       subText.textContent = 'يرجى التقاط صورة لتسجيل حضورك اليوم.';
@@ -1279,37 +1364,95 @@ async function submitAttendanceSelf() {
 
   try {
     if (window.selfServiceActiveSession) {
-      // Clock Out
+      // Clock Out or End Break
       const active = window.selfServiceActiveSession;
-      const checkInTime = new Date(active.check_in);
-      const checkOutTime = new Date();
 
-      if (checkOutTime <= checkInTime) {
-        throw new Error('خطأ: وقت الانصراف يجب أن يكون بعد وقت الحضور!');
-      }
+      if (active.break_start) {
+        // Mode: End Break
+        const breakStart = new Date(active.break_start);
+        const breakEnd = new Date();
+        const diffMs = breakEnd - breakStart;
+        const diffMins = diffMs / (1000 * 60);
 
-      const diffMs = checkOutTime - checkInTime;
-      const totalHours = Math.max(0.01, Number((diffMs / (1000 * 60 * 60)).toFixed(2)));
-      const earnings = Number((totalHours * (window.selfServiceWorker.hourly_rate || 0)).toFixed(2));
+        let newDeductions = Number(active.break_deduction_hours || 0);
+        let alertMsg = 'تم إنهاء الاستراحة والعودة للعمل بنجاح.';
+        let alertType = 'success';
 
-      const { error } = await sb.from('attendance')
-        .update({
-          check_out: checkOutTime.toISOString(),
-          total_hours: totalHours,
-          earnings: earnings,
-          photo_out: window.selfServicePhotoData
-        })
-        .eq('id', active.id);
+        if (diffMins > 30) {
+          newDeductions += 1.0;
+          alertType = 'warning';
+          const minsText = Math.floor(diffMins);
+          const secsText = Math.floor((diffMins % 1) * 60);
+          alertMsg = `تم إنهاء الاستراحة والعودة للعمل. تم خصم 1 ساعة لتجاوز الاستراحة 30 دقيقة (المدة: ${minsText} دقيقة و ${secsText} ثانية).`;
+        } else {
+          const minsText = Math.floor(diffMins);
+          const secsText = Math.floor((diffMins % 1) * 60);
+          alertMsg = `تم إنهاء الاستراحة والعودة للعمل بنجاح (المدة: ${minsText} دقيقة و ${secsText} ثانية).`;
+        }
 
-      if (error) throw error;
+        const { error } = await sb.from('attendance')
+          .update({
+            break_start: null,
+            break_deduction_hours: newDeductions,
+            photo_break_end: window.selfServicePhotoData
+          })
+          .eq('id', active.id);
 
-      // Wage distribution update
-      if (typeof distributeWagesForDate === 'function' && active.work_date) {
-        await distributeWagesForDate(active.work_date);
-      }
+        if (error) throw error;
 
-      if (typeof showAlert === 'function') {
-        showAlert(`تم تسجيل الانصراف بنجاح (المدة: ${totalHours} ساعة)`, 'success');
+        if (typeof showAlert === 'function') {
+          showAlert(alertMsg, alertType);
+        }
+      } else {
+        // Clock Out
+        const checkInTime = new Date(active.check_in);
+        const checkOutTime = new Date();
+
+        if (checkOutTime <= checkInTime) {
+          throw new Error('خطأ: وقت الانصراف يجب أن يكون بعد وقت الحضور!');
+        }
+
+        const diffMs = checkOutTime - checkInTime;
+        let totalHours = Math.max(0.01, Number((diffMs / (1000 * 60 * 60)).toFixed(2)));
+
+        // Auto end break if active on checkout
+        let breakDeduction = Number(active.break_deduction_hours || 0);
+        let breakStartVal = active.break_start;
+        if (breakStartVal) {
+          const breakStart = new Date(breakStartVal);
+          const breakEnd = new Date();
+          const breakDiffMs = breakEnd - breakStart;
+          const breakDiffMins = breakDiffMs / (1000 * 60);
+          if (breakDiffMins > 30) {
+            breakDeduction += 1.0;
+          }
+        }
+
+        // Apply deduction
+        totalHours = Math.max(0.0, Number((totalHours - breakDeduction).toFixed(2)));
+        const earnings = Number((totalHours * (window.selfServiceWorker.hourly_rate || 0)).toFixed(2));
+
+        const { error } = await sb.from('attendance')
+          .update({
+            check_out: checkOutTime.toISOString(),
+            break_start: null, // Reset active break
+            break_deduction_hours: breakDeduction,
+            total_hours: totalHours,
+            earnings: earnings,
+            photo_out: window.selfServicePhotoData
+          })
+          .eq('id', active.id);
+
+        if (error) throw error;
+
+        // Wage distribution update
+        if (typeof distributeWagesForDate === 'function' && active.work_date) {
+          await distributeWagesForDate(active.work_date);
+        }
+
+        if (typeof showAlert === 'function') {
+          showAlert(`تم تسجيل الانصراف بنجاح (المدة: ${totalHours} ساعة)`, 'success');
+        }
       }
     } else {
       // Clock In
@@ -1330,6 +1473,9 @@ async function submitAttendanceSelf() {
 
     closeAttendanceSelfServiceModal();
 
+    // Update break button state after self service checkin/checkout
+    await updateSidebarBreakButton();
+
     // If current page is workers.html, refresh it to update lists immediately
     if (window.location.pathname.includes('workers.html') && typeof initWorkersPage === 'function') {
       await initWorkersPage();
@@ -1342,5 +1488,345 @@ async function submitAttendanceSelf() {
     btnSubmit.disabled = false;
     btnSubmit.textContent = originalText;
   }
+}
+
+/* --- WORKER BREAK SELF-SERVICE FUNCTIONS --- */
+
+async function updateSidebarBreakButton() {
+  const btn = document.getElementById('sidebar-break-btn');
+  const btnText = document.getElementById('sidebar-break-text');
+  const btnIcon = document.getElementById('break-btn-icon');
+
+  if (!btn) return;
+
+  if (isWorkerSelfServiceExcludedRole(currentProfile?.role)) {
+    btn.classList.add('hidden');
+    return;
+  }
+
+  if (typeof currentProfile === 'undefined' || !currentProfile) {
+    btn.classList.add('hidden');
+    return;
+  }
+
+  const sb = getSupabase();
+  try {
+    // 1. Get worker
+    const { data: workers } = await sb
+      .from('workers')
+      .select('id')
+      .eq('profile_id', currentProfile.id)
+      .limit(1);
+
+    const worker = workers && workers.length > 0 ? workers[0] : null;
+    if (!worker) {
+      btn.classList.add('hidden');
+      return;
+    }
+
+    // 2. Check today's active session
+    const { data: activeSessions } = await sb
+      .from('attendance')
+      .select('*')
+      .eq('worker_id', worker.id)
+      .is('check_out', null)
+      .order('check_in', { ascending: false })
+      .limit(1);
+
+    const activeSession = activeSessions && activeSessions.length > 0 ? activeSessions[0] : null;
+
+    btn.classList.remove('hidden');
+
+    if (!activeSession) {
+      // Not checked in, disable break button
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      btn.style.cursor = 'not-allowed';
+      btnText.textContent = 'استراحة';
+      btnIcon.innerHTML = `<circle cx="12" cy="12" r="10"/><polygon points="10 9 15 12 10 15 10 9"/>`;
+      btn.className = 'btn btn-secondary btn-block btn-sm';
+      btn.style.background = 'var(--secondary)';
+      btn.style.color = 'var(--text-muted)';
+      btn.removeAttribute('title');
+      return;
+    }
+
+    // Checked in!
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+
+    if (activeSession.break_start) {
+      // On break!
+      btnText.textContent = 'إنهاء الاستراحة';
+      btnIcon.innerHTML = `<circle cx="12" cy="12" r="10"/><rect x="9" y="9" width="6" height="6"/>`; // Stop icon
+      btn.className = 'btn btn-danger btn-block btn-sm break-active-pulse';
+      btn.style.background = 'var(--error)';
+      btn.style.color = 'white';
+      btn.setAttribute('title', 'اضغط لإنهاء الاستراحة والعودة للعمل (يتطلب التقاط صورة)');
+    } else {
+      // Working, not on break
+      btnText.textContent = 'بدء استراحة';
+      btnIcon.innerHTML = `<circle cx="12" cy="12" r="10"/><polygon points="10 9 15 12 10 15 10 9"/>`; // Play/Start icon
+      btn.className = 'btn btn-warning btn-block btn-sm';
+      btn.style.background = 'var(--warning)';
+      btn.style.color = 'white';
+      btn.setAttribute('title', 'اضغط لبدء استراحة');
+    }
+  } catch (err) {
+    console.error('Error updating break button:', err);
+    btn.classList.add('hidden');
+  }
+}
+
+async function toggleBreakSelf() {
+  if (typeof currentProfile === 'undefined' || !currentProfile) {
+    if (typeof showAlert === 'function') showAlert('لم يتم العثور على حساب نشط.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('sidebar-break-btn');
+  const btnText = document.getElementById('sidebar-break-text');
+  if (!btn) return;
+
+  const originalText = btnText.textContent;
+  btn.disabled = true;
+  btnText.textContent = 'جاري الحفظ...';
+
+  const sb = getSupabase();
+  try {
+    // 1. Get worker
+    let { data: workers, error: workerErr } = await sb
+      .from('workers')
+      .select('*')
+      .eq('profile_id', currentProfile.id)
+      .limit(1);
+
+    if (workerErr) throw workerErr;
+    let worker = workers && workers.length > 0 ? workers[0] : null;
+
+    if (!worker) {
+      // Look up by name
+      let { data: matchedWorker } = await sb
+        .from('workers')
+        .select('*')
+        .eq('name', currentProfile.full_name)
+        .maybeSingle();
+
+      if (matchedWorker) {
+        const { data: updatedWorker, error: linkErr } = await sb
+          .from('workers')
+          .update({ profile_id: currentProfile.id })
+          .eq('id', matchedWorker.id)
+          .select().single();
+        if (linkErr) throw linkErr;
+        worker = updatedWorker;
+      } else {
+        throw new Error('لم يتم تسجيلك كعامل في النظام بعد. يرجى تسجيل حضورك أولاً.');
+      }
+    }
+
+    // 2. Get active attendance session
+    const { data: activeSessions, error: sessionErr } = await sb
+      .from('attendance')
+      .select('*')
+      .eq('worker_id', worker.id)
+      .is('check_out', null)
+      .order('check_in', { ascending: false })
+      .limit(1);
+
+    if (sessionErr) throw sessionErr;
+    const activeSession = activeSessions && activeSessions.length > 0 ? activeSessions[0] : null;
+
+    if (!activeSession) {
+      throw new Error('يجب تسجيل الحضور أولاً لبدء الاستراحة!');
+    }
+
+    if (activeSession.break_start) {
+      // End break: open self-service modal to take verification photo
+      openAttendanceSelfServiceModal();
+      return;
+    } else {
+      // Start break
+      const { error: updateErr } = await sb
+        .from('attendance')
+        .update({
+          break_start: new Date().toISOString()
+        })
+        .eq('id', activeSession.id);
+
+      if (updateErr) throw updateErr;
+
+      if (typeof showAlert === 'function') showAlert('تم بدء الاستراحة بنجاح. طاب يومك! ☕', 'success');
+    }
+
+    // Refresh UI
+    await updateSidebarBreakButton();
+
+    // If current page is workers.html, refresh it to update lists immediately
+    if (window.location.pathname.includes('workers.html') && typeof initWorkersPage === 'function') {
+      await initWorkersPage();
+    }
+  } catch (err) {
+    console.error('Break toggle error:', err);
+    if (typeof showAlert === 'function') showAlert(err.message || 'حدث خطأ أثناء معالجة الاستراحة', 'error');
+  } finally {
+    btn.disabled = false;
+    btnText.textContent = originalText;
+  }
+}
+
+function closeLeaveRequestModal() {
+  const modal = document.getElementById('leave-request-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function updateSidebarLeaveButton() {
+  const btn = document.getElementById('sidebar-leave-btn');
+  if (!btn || !currentProfile) return;
+
+  btn.classList.toggle('hidden', isWorkerSelfServiceExcludedRole(currentProfile.role));
+}
+
+async function openLeaveRequestModal() {
+  const modal = document.getElementById('leave-request-modal');
+  if (!modal) return;
+
+  if (typeof currentProfile === 'undefined' || !currentProfile) {
+    if (typeof showAlert === 'function') showAlert('يرجى تسجيل الدخول أولاً', 'error');
+    return;
+  }
+
+  modal.classList.remove('hidden');
+  document.getElementById('leave-request-form').reset();
+
+  const today = formatDateStr(new Date());
+  const tomorrowDate = new Date();
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrow = formatDateStr(tomorrowDate);
+
+  const startInput = document.getElementById('leave-start-date');
+  const endInput = document.getElementById('leave-end-date');
+  startInput.min = today;
+  endInput.min = today;
+  startInput.value = today;
+  endInput.value = tomorrow;
+
+  if (!startInput.dataset.bound) {
+    startInput.dataset.bound = '1';
+    startInput.addEventListener('change', () => {
+      endInput.min = startInput.value || today;
+      if (endInput.value && endInput.value < endInput.min) {
+        endInput.value = endInput.min;
+      }
+    });
+  }
+
+  const sb = getSupabase();
+  try {
+    const worker = await getOrCreateWorkerForProfile(sb, currentProfile);
+    const { data: myLeaves } = await sb
+      .from('leave_requests')
+      .select('*')
+      .eq('worker_id', worker.id)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    const listEl = document.getElementById('leave-my-requests-list');
+    const sectionEl = document.getElementById('leave-my-requests');
+
+    if (myLeaves && myLeaves.length > 0) {
+      sectionEl.style.display = 'block';
+      const statusLabels = { pending: '⏳ معلّق', approved: '✅ مقبول', rejected: '❌ مرفوض' };
+      const statusColors = { pending: '#d97706', approved: '#059669', rejected: '#dc2626' };
+      listEl.innerHTML = myLeaves.map(lr => `
+        <div style="padding:0.5rem 0.75rem; border:1px solid var(--border); border-radius:8px; margin-bottom:0.4rem; display:flex; justify-content:space-between; align-items:center; gap:0.5rem;">
+          <span>${new Date(lr.start_date).toLocaleDateString('ar-EG')} — ${new Date(lr.end_date).toLocaleDateString('ar-EG')}</span>
+          <span style="font-weight:700; color:${statusColors[lr.status] || '#64748b'};">${statusLabels[lr.status] || lr.status}</span>
+        </div>
+      `).join('');
+    } else {
+      sectionEl.style.display = 'none';
+    }
+  } catch (err) {
+    console.error('Leave modal load error:', err);
+  }
+}
+
+async function submitLeaveRequest() {
+  const form = document.getElementById('leave-request-form');
+  if (!form.checkValidity()) { form.reportValidity(); return; }
+
+  const startDate = document.getElementById('leave-start-date').value;
+  const endDate = document.getElementById('leave-end-date').value;
+  const reason = document.getElementById('leave-reason').value.trim();
+
+  if (endDate < startDate) {
+    if (typeof showAlert === 'function') showAlert('تاريخ النهاية يجب أن يكون بعد تاريخ البداية', 'error');
+    return;
+  }
+
+  const sb = getSupabase();
+  const btn = document.getElementById('btn-submit-leave');
+  btn.disabled = true;
+
+  try {
+    const worker = await getOrCreateWorkerForProfile(sb, currentProfile);
+
+    const { data: overlapping, error: overlapErr } = await sb
+      .from('leave_requests')
+      .select('id')
+      .eq('worker_id', worker.id)
+      .in('status', ['pending', 'approved'])
+      .lte('start_date', endDate)
+      .gte('end_date', startDate);
+
+    if (overlapErr) throw overlapErr;
+
+    if (overlapping && overlapping.length > 0) {
+      throw new Error('يوجد طلب إجازة متداخل أو معلّق في نفس الفترة');
+    }
+
+    const { error: insertErr } = await sb.from('leave_requests').insert([{
+      worker_id: worker.id,
+      start_date: startDate,
+      end_date: endDate,
+      reason: reason || null,
+      status: 'pending'
+    }]);
+
+    if (insertErr) throw insertErr;
+
+    const dateRangeText = `${new Date(startDate).toLocaleDateString('ar-EG')} — ${new Date(endDate).toLocaleDateString('ar-EG')}`;
+    await notifyLeaveManagers(
+      sb,
+      `📋 طلب إجازة جديد من ${currentProfile.full_name} (${dateRangeText})`,
+      currentProfile.id
+    );
+
+    if (typeof showAlert === 'function') showAlert('تم إرسال طلب الإجازة للمدير بنجاح!', 'success');
+    closeLeaveRequestModal();
+  } catch (err) {
+    console.error('Leave submit error:', err);
+    const msg = typeof getDbErrorMessage === 'function'
+      ? getDbErrorMessage(err, 'فشل إرسال طلب الإجازة')
+      : (err.message || 'فشل إرسال طلب الإجازة');
+    if (typeof showAlert === 'function') showAlert(msg, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function hasApprovedLeaveToday(sb, workerId) {
+  const todayStr = formatDateStr(new Date());
+  const { data: leaves } = await sb
+    .from('leave_requests')
+    .select('id')
+    .eq('worker_id', workerId)
+    .eq('status', 'approved')
+    .lte('start_date', todayStr)
+    .gte('end_date', todayStr)
+    .limit(1);
+  return leaves && leaves.length > 0;
 }
 

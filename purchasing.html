@@ -1,8 +1,8 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
-    <link rel="icon" type="image/jpeg" href="Logo.jpeg">
+  <link rel="icon" type="image/jpeg" href="Logo.jpeg">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>قسم الشراء - نظام الإدارة</title>
@@ -219,21 +219,27 @@
       .supplier-split-row {
         grid-template-columns: 1fr 1fr;
       }
-      .supplier-split-row > button {
+
+      .supplier-split-row>button {
         grid-column: span 2;
       }
+
       .summary-grid {
         grid-template-columns: 1fr 1fr;
       }
     }
 
     @media (max-width: 600px) {
-      .supplier-split-row, .extra-expense-row {
+
+      .supplier-split-row,
+      .extra-expense-row {
         grid-template-columns: 1fr;
       }
-      .supplier-split-row > button {
+
+      .supplier-split-row>button {
         grid-column: span 1;
       }
+
       .summary-grid {
         grid-template-columns: 1fr;
       }
@@ -349,10 +355,12 @@
         </button>
       </div>
       <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.25rem;">حدد الخامات التي اشتريتها وأدخل بيانات الموردين والمبالغ ليتم قيدها بالماليات:</p>
-        
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.25rem;">حدد الخامات التي اشتريتها وأدخل
+          بيانات الموردين والمبالغ ليتم قيدها بالماليات:</p>
+
         <!-- Checklist items -->
-        <div id="checklist-items-container" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1.5rem;">
+        <div id="checklist-items-container"
+          style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1.5rem;">
           <!-- Rendered dynamically -->
         </div>
 
@@ -360,15 +368,22 @@
 
         <!-- Additional Expenses Section -->
         <div>
-          <h4 style="font-size:0.95rem; font-weight:800; color:#b45309; display:flex; align-items:center; gap:0.4rem; margin-bottom:0.75rem;">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          <h4
+            style="font-size:0.95rem; font-weight:800; color:#b45309; display:flex; align-items:center; gap:0.4rem; margin-bottom:0.75rem;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="1" x2="12" y2="23" />
+              <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+            </svg>
             مصاريف إضافية على الأوردر (مثال: مواصلات، شحن، عمالة...)
           </h4>
           <div id="additional-expenses-container" style="margin-bottom:0.75rem;">
             <!-- Rendered dynamically -->
           </div>
-          <button type="button" class="btn btn-secondary btn-sm" onclick="addExtraExpenseRow()" style="gap:0.4rem; background:#fffbf7; border:1px dashed #fed7aa; color:#b45309;">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="addExtraExpenseRow()"
+            style="gap:0.4rem; background:#fffbf7; border:1px dashed #fed7aa; color:#b45309;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
             إضافة مصروف إضافي
           </button>
         </div>
@@ -559,7 +574,7 @@
       if (!notes) return [];
       const tracked = [];
       const regex = /<!--TRACK:([a-zA-Z0-9\-]+):([0-9.]+)(?::([a-zA-Z0-9_]+):([a-zA-Z]+):([0-9.]+))?-->/g;
-      let match;
+        let match;
       while ((match = regex.exec(notes)) !== null) {
         tracked.push({
           itemId: match[1],
@@ -577,7 +592,7 @@
         const sb = getSupabase();
         const { data: accountsData } = await sb.from('accounts').select('person_name').eq('account_type', 'payable');
         const supplierNames = [...new Set((accountsData || []).map(a => a.person_name).filter(Boolean))];
-        
+
         let datalist = document.getElementById('suppliers-datalist');
         if (!datalist) {
           datalist = document.createElement('datalist');
@@ -648,7 +663,7 @@
               </div>
             `;
             container.appendChild(card);
-            
+
             // Add initial supplier row for this deficit item (prefilled with target qty)
             addSplitSupplierRow(idx, qty);
           }
@@ -1034,19 +1049,19 @@
         try {
           const { data: invItems } = await sb.from('inventory').select('id, item_name');
           const { data: pricesList } = await sb.from('prices').select('item_name, piece_price');
-          
+
           if (invItems && pricesList) {
             const trackedMats = parseTrackedMaterials(order.material_notes);
             for (const t of trackedMats) {
               const item = invItems.find(i => i.id === t.itemId);
               if (!item) continue;
-              
+
               const priceItem = pricesList.find(p => p.item_name === item.item_name);
               const piecePrice = priceItem ? (priceItem.piece_price || 0) : 0;
-              
+
               // 1. Stock consumption cost
               newManufacturingCost += t.deductedQty * piecePrice;
-              
+
               // 2. Shortage cost (actual purchase price if bought now, otherwise estimated old price)
               const pData = purchasesData.find(p => p.material_name === item.item_name);
               if (pData) {
