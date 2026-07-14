@@ -672,10 +672,11 @@
                     <th>ساعات الخصم</th>
                     <th>المبلغ</th>
                     <th>السبب</th>
+                    <th>إجراء</th>
                   </tr>
                 </thead>
                 <tbody id="history-absence-body">
-                  <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:1.5rem 0;">لا توجد خصومات غياب</td></tr>
+                  <tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:1.5rem 0;">لا توجد خصومات غياب</td></tr>
                 </tbody>
               </table>
             </div>
@@ -876,7 +877,9 @@
       const totalAdvances = allAdvances.reduce((sum, a) => sum + (parseFloat(a.amount) || 0), 0);
 
       // Total absence deductions
-      const totalAbsenceDeductions = allAbsenceDeductions.reduce((sum, d) => sum + (parseFloat(d.deduction_amount) || 0), 0);
+      const totalAbsenceDeductions = allAbsenceDeductions
+        .filter(d => !d.reason.endsWith('_deleted'))
+        .reduce((sum, d) => sum + (parseFloat(d.deduction_amount) || 0), 0);
 
       // Net balance
       const netBalance = totalEarnings - totalAdvances - totalAbsenceDeductions;
@@ -917,7 +920,7 @@
         const wAdv = allAdvances.filter(a => a.worker_id === w.id);
         const totalAdvances = wAdv.reduce((sum, a) => sum + (parseFloat(a.amount) || 0), 0);
 
-        const wAbsDed = allAbsenceDeductions.filter(d => d.worker_id === w.id);
+        const wAbsDed = allAbsenceDeductions.filter(d => d.worker_id === w.id && !d.reason.endsWith('_deleted'));
         const totalAbsDed = wAbsDed.reduce((sum, d) => sum + (parseFloat(d.deduction_amount) || 0), 0);
 
         const netBalance = totalEarnings - totalAdvances - totalAbsDed;
@@ -1614,17 +1617,24 @@
           });
         }
 
-        if (!absences || absences.length === 0) {
-          absenceBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:1.5rem 0;">لا توجد خصومات غياب</td></tr>';
+        const activeAbsences = (absences || []).filter(ab => ab.deduction_hours > 0 && !ab.reason.endsWith('_deleted'));
+        if (activeAbsences.length === 0) {
+          absenceBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:1.5rem 0;">لا توجد خصومات غياب</td></tr>';
         } else {
           absenceBody.innerHTML = '';
-          absences.forEach(ab => {
+          activeAbsences.forEach(ab => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
               <td>${new Date(ab.work_date).toLocaleDateString('ar-EG')}</td>
               <td style="font-weight:700; color:var(--error);">${ab.deduction_hours} ساعة</td>
               <td style="font-weight:700; color:var(--error);">${parseFloat(ab.deduction_amount).toLocaleString('ar-EG')} ج.م</td>
               <td>${reasonLabels[ab.reason] || ab.reason}</td>
+              <td>
+                <button onclick="deleteAbsenceDeduction('${ab.id}', '${workerId}', '${workerName}')" class="btn btn-secondary btn-sm" style="color:var(--error); padding: 0.2rem 0.5rem; background:transparent; border:none; font-weight:700; display:inline-flex; align-items:center; gap:0.25rem;">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  حذف
+                </button>
+              </td>
             `;
             absenceBody.appendChild(tr);
           });
@@ -1671,6 +1681,37 @@
         await viewWorkerHistory(workerId, workerName);
       } catch (e) {
         showAlert('فشل الحذف: ' + e.message, 'error');
+      }
+    }
+
+    async function deleteAbsenceDeduction(id, workerId, workerName) {
+      if (!(await customConfirm('هل أنت متأكد من حذف خصم الغياب هذا؟'))) return;
+      try {
+        showAlert('جاري حذف خصم الغياب...', 'pending');
+        const sb = getSupabase();
+        
+        // Fetch the absence record to get the current reason
+        const { data: record, error: fetchErr } = await sb.from('absence_deductions').select('*').eq('id', id).maybeSingle();
+        if (fetchErr) throw fetchErr;
+        if (!record) throw new Error('خصم الغياب غير موجود');
+
+        // Append _deleted to reason if not already appended, set deduction_hours and deduction_amount to 0
+        const newReason = record.reason.endsWith('_deleted') ? record.reason : record.reason + '_deleted';
+        const { error } = await sb.from('absence_deductions')
+          .update({
+            deduction_hours: 0,
+            deduction_amount: 0,
+            reason: newReason
+          })
+          .eq('id', id);
+
+        if (error) throw error;
+
+        showAlert('تم حذف خصم الغياب بنجاح', 'success');
+        await initWorkersPage();
+        await viewWorkerHistory(workerId, workerName);
+      } catch (e) {
+        showAlert('فشل حذف خصم الغياب: ' + e.message, 'error');
       }
     }
 
