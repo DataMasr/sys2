@@ -470,6 +470,22 @@
               <input type="number" id="worker-rate" min="0" required placeholder="مثال: 50"
                 style="border-radius:12px; padding: 0.85rem 1rem;">
             </div>
+            <div class="form-group">
+              <label style="font-weight:700;">وقت الشيفت</label>
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <div style="flex:1; position:relative;">
+                  <input type="number" id="worker-shift-start" min="0" max="23" placeholder="مثال: 10"
+                    style="border-radius:12px; padding: 0.85rem 1rem; width:100%;" value="10">
+                  <span id="worker-shift-start-label" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:0.7rem;color:var(--text-muted);pointer-events:none;">10 ص</span>
+                </div>
+                <span style="font-weight:700;">→</span>
+                <div style="flex:1; position:relative;">
+                  <input type="number" id="worker-shift-end" min="0" max="23" placeholder="مثال: 22"
+                    style="border-radius:12px; padding: 0.85rem 1rem; width:100%;" value="22">
+                  <span id="worker-shift-end-label" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:0.7rem;color:var(--text-muted);pointer-events:none;">10 م</span>
+                </div>
+              </div>
+            </div>
           </form>
         </div>
         <div class="modal-footer" style="padding: 1.25rem 2rem;">
@@ -505,6 +521,22 @@
               <label for="edit-worker-rate" style="font-weight:700;">سعر الساعة (جنيه) *</label>
               <input type="number" id="edit-worker-rate" min="0" step="0.01" required placeholder="أدخل سعر الساعة"
                 style="border-radius:12px; padding: 0.85rem 1rem;">
+            </div>
+            <div class="form-group">
+              <label style="font-weight:700;">وقت الشيفت</label>
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <div style="flex:1; position:relative;">
+                  <input type="number" id="edit-worker-shift-start" min="0" max="23" placeholder="مثال: 10"
+                    style="border-radius:12px; padding: 0.85rem 1rem; width:100%;">
+                  <span id="edit-worker-shift-start-label" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:0.7rem;color:var(--text-muted);pointer-events:none;"></span>
+                </div>
+                <span style="font-weight:700;">→</span>
+                <div style="flex:1; position:relative;">
+                  <input type="number" id="edit-worker-shift-end" min="0" max="23" placeholder="مثال: 22"
+                    style="border-radius:12px; padding: 0.85rem 1rem; width:100%;">
+                  <span id="edit-worker-shift-end-label" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:0.7rem;color:var(--text-muted);pointer-events:none;"></span>
+                </div>
+              </div>
             </div>
           </form>
         </div>
@@ -553,6 +585,47 @@
           <button type="button" class="btn btn-primary" onclick="submitAddAdvance()"
             style="border-radius:12px; padding: 0.7rem 1.4rem;">تسجيل السلفة</button>
           <button type="button" class="btn btn-secondary" onclick="closeModal('add-advance-modal')"
+            style="border-radius:12px; padding: 0.7rem 1.4rem;">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bonus Modal -->
+    <div id="add-bonus-modal" class="modal-overlay modal-overlay-premium hidden">
+      <div class="modal modal-premium">
+        <div class="modal-header">
+          <h3 style="font-weight:900;">إضافة بونص لعامل</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('add-bonus-modal')"
+            style="padding:0.5rem; border-radius:50%;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body" style="padding: 2rem;">
+          <form id="add-bonus-form">
+            <input type="hidden" id="bonus-worker-id">
+            <div class="form-group">
+              <label style="font-weight:700;">اسم العامل</label>
+              <div id="bonus-worker-name"
+                style="font-weight: 900; font-size: 1.3rem; color: var(--primary); padding: 0.5rem 0;">-</div>
+            </div>
+            <div class="form-group">
+              <label for="bonus-amount" style="font-weight:700;">مبلغ البونص (جنيه) *</label>
+              <input type="number" id="bonus-amount" min="0" step="0.01" required placeholder="مثال: 200"
+                style="border-radius:12px; padding: 0.85rem 1rem;">
+            </div>
+            <div class="form-group">
+              <label for="bonus-notes" style="font-weight:700;">ملاحظات</label>
+              <textarea id="bonus-notes" placeholder="سبب البونص..." rows="2"
+                style="border-radius:12px; padding: 0.85rem 1rem; resize: none;"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer" style="padding: 1.25rem 2rem;">
+          <button type="button" class="btn btn-primary" onclick="submitBonus()"
+            style="border-radius:12px; padding: 0.7rem 1.4rem;">تسجيل البونص</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('add-bonus-modal')"
             style="border-radius:12px; padding: 0.7rem 1.4rem;">إلغاء</button>
         </div>
       </div>
@@ -631,6 +704,32 @@
                     <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">لا يوجد سلف
                       مسجلة</td>
                   </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div style="margin-top: 2rem;">
+            <h4
+              style="color:#92400e; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; font-weight:800; font-size:1rem;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+              سجل البونصات
+            </h4>
+            <div class="table-container"
+              style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px;">
+              <table class="data-table data-table-premium" style="min-width: 100%;">
+                <thead>
+                  <tr>
+                    <th>التاريخ</th>
+                    <th>المبلغ</th>
+                    <th>ملاحظات</th>
+                    <th>إجراء</th>
+                  </tr>
+                </thead>
+                <tbody id="history-bonus-body">
+                  <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:1.5rem 0;">لا توجد بونصات</td></tr>
                 </tbody>
               </table>
             </div>
@@ -801,6 +900,7 @@
     let allAdvances = [];
     let allLeaveRequests = [];
     let allAbsenceDeductions = [];
+    let allBonuses = [];
 
     function openModal(id) {
       document.getElementById(id).classList.remove('hidden');
@@ -827,6 +927,17 @@
         const { data: advances, error: advErr } = await sb.from('advances').select('*').order('advance_date', { ascending: false });
         if (advErr) throw advErr;
         allAdvances = advances || [];
+
+        const { data: bonuses, error: bErr } = await sb.from('worker_bonuses').select('*').order('bonus_date', { ascending: false });
+        if (bErr) {
+          if (isMissingTableError(bErr)) {
+            allBonuses = [];
+          } else {
+            throw bErr;
+          }
+        } else {
+          allBonuses = bonuses || [];
+        }
 
         const { data: leaveReqs, error: lrErr } = await sb.from('leave_requests').select('*').order('created_at', { ascending: false });
         if (lrErr) {
@@ -881,8 +992,11 @@
         .filter(d => !d.reason.endsWith('_deleted'))
         .reduce((sum, d) => sum + (parseFloat(d.deduction_amount) || 0), 0);
 
+      // Total bonuses
+      const totalBonuses = allBonuses.reduce((sum, b) => sum + (parseFloat(b.amount) || 0), 0);
+
       // Net balance
-      const netBalance = totalEarnings - totalAdvances - totalAbsenceDeductions;
+      const netBalance = totalEarnings + totalBonuses - totalAdvances - totalAbsenceDeductions;
 
       document.getElementById('stat-total-workers').textContent = totalWorkers;
       document.getElementById('stat-active-workers').textContent = activeWorkers;
@@ -899,6 +1013,14 @@
       }
     }
 
+    function fmtShiftHour(h) {
+      if (h == null) h = 10;
+      const n = parseInt(h, 10);
+      if (n === 0) return '12 ص';
+      if (n === 12) return '12 م';
+      return n < 12 ? `${n} ص` : `${n - 12} م`;
+    }
+
     function renderWorkersList(workers = allWorkers) {
       const tbody = document.getElementById('workers-table-body');
 
@@ -911,7 +1033,7 @@
       workers.forEach(w => {
         // Filter attendance for this worker
         const wAtt = allAttendance.filter(a => a.worker_id === w.id);
-        const activeAtt = wAtt.find(a => a.check_out === null); // session where check_out is null
+        const activeAtt = wAtt.find(a => a.check_out === null);
 
         const totalHours = wAtt.reduce((sum, a) => sum + (parseFloat(a.total_hours) || 0), 0);
         const totalEarnings = wAtt.reduce((sum, a) => sum + (parseFloat(a.earnings) || 0), 0);
@@ -923,7 +1045,10 @@
         const wAbsDed = allAbsenceDeductions.filter(d => d.worker_id === w.id && !d.reason.endsWith('_deleted'));
         const totalAbsDed = wAbsDed.reduce((sum, d) => sum + (parseFloat(d.deduction_amount) || 0), 0);
 
-        const netBalance = totalEarnings - totalAdvances - totalAbsDed;
+        const wBonus = allBonuses.filter(b => b.worker_id === w.id);
+        const totalBonuses = wBonus.reduce((sum, b) => sum + (parseFloat(b.amount) || 0), 0);
+
+        const netBalance = totalEarnings + totalBonuses - totalAdvances - totalAbsDed;
 
         const isCheckedIn = !!activeAtt;
         const statusBadge = isCheckedIn
@@ -947,6 +1072,7 @@
         tr.innerHTML = `
           <td data-label="اسم العامل">
             <div style="font-weight: 800; color: var(--primary-dark); font-size:0.95rem;">${w.name}</div>
+            <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">${fmtShiftHour(w.shift_start)} → ${fmtShiftHour(w.shift_end)}</div>
           </td>
           <td data-label="سعر الساعة">
             <span style="font-weight: 700; background:rgba(99,102,241,0.06); color:var(--primary); padding:3px 10px; border-radius:8px; font-size:0.8rem;">
@@ -962,10 +1088,20 @@
           </td>
           <td data-label="إجراءات الوردية والمالية">
             <div style="display:flex; gap:0.4rem; justify-content:center; flex-wrap:wrap;">
+              ${(totalEarnings > 0 || totalAdvances > 0 || totalAbsDed > 0 || totalBonuses > 0) ? `
+              <button onclick="payWorkerSalary('${w.id}', '${w.name}')" style="background:#dcfce7;color:#166534;border:none;border-radius:10px;padding:0.35rem 0.7rem;font-size:0.7rem;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:0.25rem;">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                صرف
+              </button>
+              ` : ''}
               ${attBtn}
               <button onclick="openAdvanceModal('${w.id}', '${w.name}')" class="btn btn-gradient-primary btn-sm" style="border-radius:10px; gap:0.3rem;">
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="12" y1="6" x2="12" y2="18"/></svg>
                 سُلفة
+              </button>
+              <button onclick="openBonusModal('${w.id}', '${w.name}')" style="background:#fef3c7;color:#92400e;border:none;border-radius:10px;padding:0.35rem 0.7rem;font-size:0.7rem;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:0.25rem;">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                بونص
               </button>
               <button onclick="openEditWorkerModal('${w.id}')" class="btn btn-secondary btn-sm" style="border-radius:10px; border-color:#d1d5db; font-weight:700; gap:0.3rem;">
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
@@ -1151,6 +1287,8 @@
 
       const name = document.getElementById('worker-name').value.trim();
       const rate = parseFloat(document.getElementById('worker-rate').value || 0);
+      const shiftStart = parseInt(document.getElementById('worker-shift-start').value, 10) || 10;
+      const shiftEnd = parseInt(document.getElementById('worker-shift-end').value, 10) || 22;
 
       try {
         showAlert('جاري حفظ العامل...', 'pending');
@@ -1158,7 +1296,9 @@
 
         const { error } = await sb.from('workers').insert([{
           name: name,
-          hourly_rate: rate
+          hourly_rate: rate,
+          shift_start: shiftStart,
+          shift_end: shiftEnd
         }]);
 
         if (error) throw error;
@@ -1179,6 +1319,12 @@
       document.getElementById('edit-worker-id').value = worker.id;
       document.getElementById('edit-worker-name').value = worker.name;
       document.getElementById('edit-worker-rate').value = worker.hourly_rate;
+      document.getElementById('edit-worker-shift-start').value = worker.shift_start || 10;
+      document.getElementById('edit-worker-shift-end').value = worker.shift_end || 22;
+      ['edit-worker-shift-start','edit-worker-shift-end'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.dispatchEvent(new Event('input'));
+      });
 
       openModal('edit-worker-modal');
     }
@@ -1190,6 +1336,8 @@
       const id = document.getElementById('edit-worker-id').value;
       const name = document.getElementById('edit-worker-name').value.trim();
       const rate = parseFloat(document.getElementById('edit-worker-rate').value || 0);
+      const shiftStart = parseInt(document.getElementById('edit-worker-shift-start').value, 10) || 10;
+      const shiftEnd = parseInt(document.getElementById('edit-worker-shift-end').value, 10) || 22;
 
       try {
         showAlert('جاري حفظ التغييرات...', 'pending');
@@ -1198,7 +1346,9 @@
         const { error } = await sb.from('workers')
           .update({
             name: name,
-            hourly_rate: rate
+            hourly_rate: rate,
+            shift_start: shiftStart,
+            shift_end: shiftEnd
           })
           .eq('id', id);
 
@@ -1337,15 +1487,14 @@
         let breakStartVal = active.break_start;
         if (breakStartVal) {
           const breakStart = new Date(breakStartVal);
-          const breakEnd = new Date(isoDateTime); // Use checkout time as break end
+          const breakEnd = new Date(isoDateTime);
           const breakDiffMs = breakEnd - breakStart;
           const breakDiffMins = breakDiffMs / (1000 * 60);
           if (breakDiffMins > 30) {
-            breakDeduction += 1.0;
+            breakDeduction += Math.ceil((breakDiffMins - 30) / 30);
           }
         }
 
-        // Apply deduction
         totalHours = Math.max(0.0, Number((totalHours - breakDeduction).toFixed(2)));
 
         // Overtime: first 15 hours at normal rate, anything above × 2
@@ -1474,6 +1623,64 @@
       }
     }
 
+    function openBonusModal(workerId, workerName) {
+      document.getElementById('bonus-worker-id').value = workerId;
+      document.getElementById('bonus-worker-name').textContent = workerName;
+      document.getElementById('bonus-amount').value = '';
+      document.getElementById('bonus-notes').value = '';
+      openModal('add-bonus-modal');
+    }
+
+    async function submitBonus() {
+      const form = document.getElementById('add-bonus-form');
+      if (!form.checkValidity()) { form.reportValidity(); return; }
+
+      const workerId = document.getElementById('bonus-worker-id').value;
+      const amount = parseFloat(document.getElementById('bonus-amount').value) || 0;
+      const notes = document.getElementById('bonus-notes').value.trim();
+
+      if (amount <= 0) {
+        showAlert('أدخل مبلغ البونص', 'error');
+        return;
+      }
+
+      try {
+        showAlert('جاري تسجيل البونص...', 'pending');
+        const sb = getSupabase();
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        const { error } = await sb.from('worker_bonuses').insert([{
+          worker_id: workerId,
+          amount: amount,
+          notes: notes,
+          bonus_date: todayStr
+        }]);
+
+        if (error) throw error;
+
+        showAlert('تم تسجيل البونص بنجاح!', 'success');
+        closeModal('add-bonus-modal');
+        form.reset();
+        await initWorkersPage();
+      } catch (e) {
+        showAlert('فشل تسجيل البونص: ' + e.message, 'error');
+      }
+    }
+
+    async function deleteBonus(id) {
+      if (!(await customConfirm('هل أنت متأكد من حذف البونص هذا؟'))) return;
+      try {
+        showAlert('جاري حذف البونص...', 'pending');
+        const sb = getSupabase();
+        const { error } = await sb.from('worker_bonuses').delete().eq('id', id);
+        if (error) throw error;
+        showAlert('تم حذف البونص بنجاح', 'success');
+        await initWorkersPage();
+      } catch (e) {
+        showAlert('فشل حذف البونص: ' + e.message, 'error');
+      }
+    }
+
     async function viewWorkerHistory(workerId, workerName) {
       document.getElementById('history-title').textContent = `سجل العامل: ${workerName}`;
 
@@ -1518,10 +1725,10 @@
 
       const sb = getSupabase();
       try {
-        const { data: att } = await sb.from('attendance').select('*').eq('worker_id', workerId).order('check_in', { ascending: false });
-        const { data: adv } = await sb.from('advances').select('*').eq('worker_id', workerId).order('advance_date', { ascending: false });
+        const att = (allAttendance || []).filter(a => a.worker_id === workerId).sort((a, b) => new Date(b.check_in) - new Date(a.check_in));
+        const adv = (allAdvances || []).filter(a => a.worker_id === workerId).sort((a, b) => new Date(b.advance_date) - new Date(a.advance_date));
         const { data: leaves } = await sb.from('leave_requests').select('*').eq('worker_id', workerId).order('created_at', { ascending: false });
-        const { data: absences } = await sb.from('absence_deductions').select('*').eq('worker_id', workerId).order('work_date', { ascending: false });
+        const absences = (allAbsenceDeductions || []).filter(d => d.worker_id === workerId).sort((a, b) => new Date(b.work_date) - new Date(a.work_date));
 
         // Populate Attendance
         if (!att || att.length === 0) {
@@ -1562,6 +1769,12 @@
               <td style="font-weight:700; color:var(--primary-dark);">${earnStr}</td>
               ${isGeneralManagerOrOwner ? photoHtml : ''}
               <td>
+                ${parseFloat(a.break_deduction_hours || 0) > 0
+                  ? `<button onclick="clearBreakDeduction('${a.id}', '${workerId}', '${workerName}')" class="btn btn-secondary btn-sm" style="color:var(--warning-text); padding: 0.2rem 0.5rem; background:transparent; border:none; font-weight:700; display:inline-flex; align-items:center; gap:0.25rem;">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+                      إلغاء الخصم
+                     </button>`
+                  : ''}
                 <button onclick="deleteAttendanceRecord('${a.id}', '${workerId}', '${workerName}')" class="btn btn-secondary btn-sm" style="color:var(--error); padding: 0.2rem 0.5rem; background:transparent; border:none; font-weight:700; display:inline-flex; align-items:center; gap:0.25rem;">
                   <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                   حذف
@@ -1595,6 +1808,27 @@
               </td>
             `;
             advBody.appendChild(tr);
+          });
+        }
+
+        // Populate Bonuses
+        const bonusBody = document.getElementById('history-bonus-body');
+        const bonuses = (allBonuses || []).filter(b => b.worker_id === workerId).sort((a, b) => new Date(b.bonus_date) - new Date(a.bonus_date));
+        if (!bonuses || bonuses.length === 0) {
+          bonusBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:1.5rem 0;">لا توجد بونصات</td></tr>`;
+        } else {
+          bonusBody.innerHTML = '';
+          bonuses.forEach(b => {
+            const dateStr = new Date(b.bonus_date).toLocaleDateString('ar-EG');
+            const amt = parseFloat(b.amount) || 0;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${dateStr}</td>
+              <td style="font-weight:700;color:var(--success-text);">${amt > 0 ? amt.toLocaleString('ar-EG') + ' ج.م' : '—'}</td>
+              <td>${b.notes || '—'}</td>
+              <td><button onclick="deleteBonus('${b.id}')" class="btn btn-danger-outline btn-sm" style="padding:0.2rem 0.5rem;font-size:0.7rem;">حذف</button></td>
+            `;
+            bonusBody.appendChild(tr);
           });
         }
 
@@ -1670,6 +1904,53 @@
       }
     }
 
+    async function clearBreakDeduction(attId, workerId, workerName) {
+      if (!(await customConfirm('هل أنت متأكد من إلغاء خصم الاستراحة لهذه الوردية؟ سيتم إعادة حساب المستحقات.'))) return;
+      try {
+        showAlert('جاري إلغاء الخصم...', 'pending');
+        const sb = getSupabase();
+        const { data: record } = await sb.from('attendance').select('*').eq('id', attId).maybeSingle();
+        if (!record) throw new Error('الوردية غير موجودة');
+
+        const currentDeduction = parseFloat(record.break_deduction_hours) || 0;
+        if (currentDeduction === 0) { showAlert('لا يوجد خصم استراحة لإلغائه', 'error'); return; }
+
+        const worker = allWorkers.find(w => w.id === workerId);
+        const hourlyRate = worker ? parseFloat(worker.hourly_rate) || 0 : 0;
+
+        let restoredHours = Number((parseFloat(record.total_hours || 0) + currentDeduction).toFixed(2));
+
+        const OVERTIME_THRESHOLD = 15;
+        let newEarnings;
+        if (restoredHours <= OVERTIME_THRESHOLD) {
+          newEarnings = Number((restoredHours * hourlyRate).toFixed(2));
+        } else {
+          const normalPay = OVERTIME_THRESHOLD * hourlyRate;
+          const overtimePay = (restoredHours - OVERTIME_THRESHOLD) * hourlyRate * 2;
+          newEarnings = Number((normalPay + overtimePay).toFixed(2));
+        }
+
+        const { error } = await sb.from('attendance')
+          .update({
+            break_deduction_hours: 0,
+            break_start: null,
+            total_hours: restoredHours,
+            earnings: newEarnings
+          })
+          .eq('id', attId);
+
+        if (error) throw error;
+
+        if (record.work_date) await distributeWagesForDate(record.work_date);
+
+        showAlert(`تم إلغاء خصم الاستراحة. المستحقات الجديدة: ${newEarnings} ج.م`, 'success');
+        await initWorkersPage();
+        await viewWorkerHistory(workerId, workerName);
+      } catch (e) {
+        showAlert('فشل إلغاء الخصم: ' + e.message, 'error');
+      }
+    }
+
     async function deleteAdvanceRecord(id, workerId, workerName) {
       if (!(await customConfirm('هل أنت متأكد من حذف هذه السلفة؟ سيتم إرجاع المبلغ لصافي حساب العامل.'))) return;
       try {
@@ -1715,6 +1996,51 @@
       }
     }
 
+    async function payWorkerSalary(workerId, workerName) {
+      const wAtt = allAttendance.filter(a => a.worker_id === workerId && a.check_out !== null);
+      const totalEarnings = wAtt.reduce((sum, a) => sum + (parseFloat(a.earnings) || 0), 0);
+      const wAdv = allAdvances.filter(a => a.worker_id === workerId);
+      const totalAdvances = wAdv.reduce((sum, a) => sum + (parseFloat(a.amount) || 0), 0);
+      const wAbsDed = allAbsenceDeductions.filter(d => d.worker_id === workerId && !d.reason.endsWith('_deleted'));
+      const totalAbsDed = wAbsDed.reduce((sum, d) => sum + (parseFloat(d.deduction_amount) || 0), 0);
+      const wBonus = allBonuses.filter(b => b.worker_id === workerId);
+      const totalBonuses = wBonus.reduce((sum, b) => sum + (parseFloat(b.amount) || 0), 0);
+      const netBalance = totalEarnings + totalBonuses - totalAdvances - totalAbsDed;
+      if (!(await customConfirm(`صرف مرتب "${workerName}"؟\nالمستحقات: ${totalEarnings.toLocaleString('ar-EG')} ج.م\nالسلف: ${totalAdvances.toLocaleString('ar-EG')} ج.م\nخصومات: ${totalAbsDed.toLocaleString('ar-EG')} ج.م\nبونص: ${totalBonuses.toLocaleString('ar-EG')} ج.م\nالصافي: ${netBalance.toLocaleString('ar-EG')} ج.م`))) return;
+      try {
+        showAlert('جاري صرف المرتب...', 'pending');
+        const sb = getSupabase();
+        const today = new Date().toISOString().split('T')[0];
+        await sb.from('expenses').insert([{ expense_date: today, category: 'مرتبات عمال', amount: netBalance, notes: `صرف مرتب ${workerName}` }]);
+        const { error: attErr } = await sb.from('attendance').delete().eq('worker_id', workerId).not('check_out', 'is', null);
+        if (attErr) throw attErr;
+        const { error: advErr } = await sb.from('advances').delete().eq('worker_id', workerId);
+        if (advErr) throw advErr;
+        const { error: absErr } = await sb.from('absence_deductions').delete().eq('worker_id', workerId);
+        if (absErr) throw absErr;
+        const { error: bonusErr } = await sb.from('worker_bonuses').delete().eq('worker_id', workerId);
+        if (bonusErr) throw bonusErr;
+        // حط تاريخ الصرف كبداية للغياب عشان ميحسبش أيام قديمة
+        const { error: dateErr } = await sb.from('workers').update({ created_at: new Date().toISOString() }).eq('id', workerId);
+        if (dateErr) throw dateErr;
+        const [attRes, advRes, absRes, bonusRes] = await Promise.all([
+          sb.from('attendance').select('*').order('check_in', { ascending: false }),
+          sb.from('advances').select('*').order('advance_date', { ascending: false }),
+          sb.from('absence_deductions').select('*'),
+          sb.from('worker_bonuses').select('*').order('bonus_date', { ascending: false })
+        ]);
+        allAttendance = attRes.data || [];
+        allAdvances = advRes.data || [];
+        allAbsenceDeductions = absRes.data || [];
+        allBonuses = bonusRes.data || [];
+        showAlert(`تم صرف مرتب "${workerName}" بنجاح!`, 'success');
+        renderStats();
+        renderWorkersList();
+      } catch (e) {
+        showAlert('فشل صرف المرتب: ' + e.message, 'error');
+      }
+    }
+
     async function deleteWorker(id, name) {
       if (!(await customConfirm(`هل أنت متأكد تماماً من حذف العامل "${name}" نهائياً؟ سيتم حذف كامل سجلات الحضور والسلف الخاصة به.`))) return;
       try {
@@ -1757,7 +2083,29 @@
       lightbox.classList.remove('hidden');
     }
 
-    document.addEventListener('DOMContentLoaded', initWorkersPage);
+    function setupShiftLabels() {
+      ['worker-shift-start','worker-shift-end','edit-worker-shift-start','edit-worker-shift-end'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', () => {
+            const prefix = id.startsWith('edit-') ? 'edit-worker-shift-' : 'worker-shift-';
+            const pair = id.includes('start') ? 'start' : 'end';
+            const input = document.getElementById(prefix + pair);
+            const label = document.getElementById(prefix + pair + '-label');
+            if (input && label) {
+              const h = parseInt(input.value, 10);
+              label.textContent = isNaN(h) ? '' : fmtShiftHour(h);
+            }
+          });
+          el.dispatchEvent(new Event('input'));
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initWorkersPage();
+      setupShiftLabels();
+    });
   </script>
 </body>
 

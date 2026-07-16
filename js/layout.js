@@ -1378,12 +1378,13 @@ async function submitAttendanceSelf() {
         let alertMsg = 'تم إنهاء الاستراحة والعودة للعمل بنجاح.';
         let alertType = 'success';
 
-        if (diffMins > 30) {
-          newDeductions += 1.0;
+        const deductionHours = diffMins > 30 ? Math.ceil((diffMins - 30) / 30) : 0;
+        if (deductionHours > 0) {
+          newDeductions += deductionHours;
           alertType = 'warning';
           const minsText = Math.floor(diffMins);
           const secsText = Math.floor((diffMins % 1) * 60);
-          alertMsg = `تم إنهاء الاستراحة والعودة للعمل. تم خصم 1 ساعة لتجاوز الاستراحة 30 دقيقة (المدة: ${minsText} دقيقة و ${secsText} ثانية).`;
+          alertMsg = `تم إنهاء الاستراحة والعودة للعمل. تم خصم ${deductionHours} ساعة لتجاوز الاستراحة 30 دقيقة (المدة: ${minsText} دقيقة و ${secsText} ثانية).`;
         } else {
           const minsText = Math.floor(diffMins);
           const secsText = Math.floor((diffMins % 1) * 60);
@@ -1424,13 +1425,22 @@ async function submitAttendanceSelf() {
           const breakDiffMs = breakEnd - breakStart;
           const breakDiffMins = breakDiffMs / (1000 * 60);
           if (breakDiffMins > 30) {
-            breakDeduction += 1.0;
+            breakDeduction += Math.ceil((breakDiffMins - 30) / 30);
           }
         }
 
-        // Apply deduction
         totalHours = Math.max(0.0, Number((totalHours - breakDeduction).toFixed(2)));
-        const earnings = Number((totalHours * (window.selfServiceWorker.hourly_rate || 0)).toFixed(2));
+
+        const hourlyRate = window.selfServiceWorker.hourly_rate || 0;
+        const OVERTIME_THRESHOLD = 15;
+        let earnings;
+        if (totalHours <= OVERTIME_THRESHOLD) {
+          earnings = Number((totalHours * hourlyRate).toFixed(2));
+        } else {
+          const normalPay = OVERTIME_THRESHOLD * hourlyRate;
+          const overtimePay = (totalHours - OVERTIME_THRESHOLD) * hourlyRate * 2;
+          earnings = Number((normalPay + overtimePay).toFixed(2));
+        }
 
         const { error } = await sb.from('attendance')
           .update({

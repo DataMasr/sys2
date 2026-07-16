@@ -272,6 +272,7 @@ function hideUnauthorizedElements() {
       // Keep cancel/close buttons, global sidebar self-service buttons, and modal actions visible
       if (btn.id === 'sidebar-attendance-btn') return;
       if (btn.id === 'sidebar-leave-btn') return;
+      if (btn.id === 'sidebar-break-btn') return;
       if (btn.closest('#attendance-self-modal')) return;
       if (btn.closest('#leave-request-modal')) return;
       if (btn.textContent.includes('إلغاء') || btn.textContent.includes('إغلاق')) return;

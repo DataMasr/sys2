@@ -52,17 +52,17 @@ function getEgyptNowParts(date = new Date()) {
 }
 
 /** هل انتهى يوم العمل؟ (بعد 10 مساءً بتوقيت مصر) */
-function hasWorkDayEnded(dateStr) {
+function hasWorkDayEnded(dateStr, shiftEndHour = WORK_SHIFT_END_HOUR) {
   const { dateStr: egyptToday, hour } = getEgyptNowParts();
   if (dateStr < egyptToday) return true;
   if (dateStr > egyptToday) return false;
-  return hour >= WORK_SHIFT_END_HOUR;
+  return hour >= shiftEndHour;
 }
 
 /** هل يُسمح باحتساب الغياب/الخصم لهذا اليوم؟ */
-function isAbsenceDateProcessable(dateStr) {
+function isAbsenceDateProcessable(dateStr, shiftEndHour = WORK_SHIFT_END_HOUR) {
   if (dateStr < ABSENCE_TRACKING_START_DATE) return false;
-  return hasWorkDayEnded(dateStr);
+  return hasWorkDayEnded(dateStr, shiftEndHour);
 }
 
 function eachDateInRange(startDateStr, endDateStr) {
@@ -160,6 +160,8 @@ async function processAbsenceDeductions(sb, workers, attendance, leaveRequests, 
   const toDelete = [];
 
   for (const worker of workers || []) {
+    const workerShiftEnd = worker.shift_end || WORK_SHIFT_END_HOUR;
+    const shiftEndHour = parseInt(workerShiftEnd, 10) || WORK_SHIFT_END_HOUR;
     const workerAttDates = new Set(
       (attendance || []).filter(a => a.worker_id === worker.id).map(a => a.work_date)
     );
@@ -169,7 +171,7 @@ async function processAbsenceDeductions(sb, workers, attendance, leaveRequests, 
     for (const leave of workerLeaves) {
       if (leave.status !== 'approved') continue;
       for (const dateStr of eachDateInRange(leave.start_date, leave.end_date)) {
-        if (!isAbsenceDateProcessable(dateStr)) continue;
+        if (!isAbsenceDateProcessable(dateStr, shiftEndHour)) continue;
         if (existingKeys.has(`${worker.id}_${dateStr}`)) {
           toDelete.push({ worker_id: worker.id, work_date: dateStr });
         }
@@ -179,22 +181,24 @@ async function processAbsenceDeductions(sb, workers, attendance, leaveRequests, 
     const datesToCheck = new Set();
     workerLeaves.forEach(leave => {
       eachDateInRange(leave.start_date, leave.end_date).forEach(d => {
-        if (isAbsenceDateProcessable(d)) datesToCheck.add(d);
+        if (isAbsenceDateProcessable(d, shiftEndHour)) datesToCheck.add(d);
       });
     });
 
-    const cur = new Date(ABSENCE_TRACKING_START_DATE + 'T12:00:00');
+    const workerStartStr = worker.created_at ? formatDateStr(worker.created_at) : ABSENCE_TRACKING_START_DATE;
+    const effectiveStart = workerStartStr > ABSENCE_TRACKING_START_DATE ? workerStartStr : ABSENCE_TRACKING_START_DATE;
+    const cur = new Date(effectiveStart + 'T12:00:00');
     const end = new Date(egyptTodayStr + 'T12:00:00');
     while (cur <= end) {
       const ds = formatDateStr(cur);
-      if (isAbsenceDateProcessable(ds) && isWorkDay(ds, workDaysSet) && !workerAttDates.has(ds)) {
+      if (isAbsenceDateProcessable(ds, shiftEndHour) && isWorkDay(ds, workDaysSet) && !workerAttDates.has(ds)) {
         datesToCheck.add(ds);
       }
       cur.setDate(cur.getDate() + 1);
     }
 
     for (const dateStr of datesToCheck) {
-      if (!isAbsenceDateProcessable(dateStr)) continue;
+      if (!isAbsenceDateProcessable(dateStr, shiftEndHour)) continue;
       if (workerAttDates.has(dateStr)) continue;
       if (!isWorkDay(dateStr, workDaysSet)) continue;
 

@@ -2138,8 +2138,28 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       كشف الحساب التفصيلي
     </button>
+    <button class="card-btn" onclick="deleteOrder('${order.id}')" style="margin-top:6px; border-color:#fecaca; color:#dc2626;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      حذف الطلبية
+    </button>
   `;
       return div;
+    }
+
+    async function deleteOrder(id) {
+      if (!(await customConfirm('هل أنت متأكد من حذف هذه الطلبية نهائياً؟ سيتم حذف كل ما يتعلق بها من مصاريف وديون.'))) return;
+      try {
+        const sb = getSupabase();
+        await Promise.all([
+          sb.from('order_expenses').delete().eq('order_id', id),
+          sb.from('accounts').delete().eq('order_id', id),
+          sb.from('client_orders').delete().eq('id', id)
+        ]);
+        showAlert('تم حذف الطلبية وكل ما يتعلق بها', 'success');
+        await loadData();
+      } catch (e) {
+        showAlert('فشل الحذف: ' + e.message, 'error');
+      }
     }
 
     /* ════════════════════════════
