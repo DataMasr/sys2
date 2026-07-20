@@ -103,6 +103,9 @@ function updateSidebarUser() {
     const name = currentProfile.full_name || currentProfile.email;
     avatarEl.textContent = name.charAt(0).toUpperCase();
   }
+  if (typeof updateSidebarWorkerStats === 'function') {
+    updateSidebarWorkerStats();
+  }
 }
 
 function getRoleLabel(role) {

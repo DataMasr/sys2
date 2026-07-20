@@ -27,7 +27,17 @@ function getSupabase() {
 }
 
 function formatDateStr(date) {
+  if (!date) return '';
+  if (typeof date === 'string') {
+    if (date.includes('T')) {
+      return date.split('T')[0];
+    }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return date;
+    }
+  }
   const d = new Date(date);
+  if (isNaN(d.getTime())) return '';
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
@@ -169,7 +179,7 @@ async function processAbsenceDeductions(sb, workers, attendance, leaveRequests, 
     const workerLeaves = (leaveRequests || []).filter(lr => lr.worker_id === worker.id);
 
     for (const leave of workerLeaves) {
-      if (leave.status !== 'approved') continue;
+      if (leave.status !== 'approved' && leave.status !== 'pending') continue;
       for (const dateStr of eachDateInRange(leave.start_date, leave.end_date)) {
         if (!isAbsenceDateProcessable(dateStr, shiftEndHour)) continue;
         if (existingKeys.has(`${worker.id}_${dateStr}`)) {
@@ -187,6 +197,14 @@ async function processAbsenceDeductions(sb, workers, attendance, leaveRequests, 
 
     const workerStartStr = worker.created_at ? formatDateStr(worker.created_at) : ABSENCE_TRACKING_START_DATE;
     const effectiveStart = workerStartStr > ABSENCE_TRACKING_START_DATE ? workerStartStr : ABSENCE_TRACKING_START_DATE;
+
+    // Clean up any incorrect historical absence deductions that are before the worker's effective start date
+    (existingDeductions || [])
+      .filter(d => d.worker_id === worker.id && d.work_date < effectiveStart)
+      .forEach(d => {
+        toDelete.push({ worker_id: worker.id, work_date: d.work_date });
+      });
+
     const cur = new Date(effectiveStart + 'T12:00:00');
     const end = new Date(egyptTodayStr + 'T12:00:00');
     while (cur <= end) {

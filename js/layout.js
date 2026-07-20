@@ -78,11 +78,29 @@ function renderLayout() {
         ${navHTML}
       </nav>
       <div class="sidebar-footer">
-        <div class="user-info">
+        <div class="user-info" style="margin-bottom: 0.75rem;">
           <div class="user-avatar" id="user-avatar">-</div>
           <div>
             <div id="user-name" style="font-weight:600;font-size:0.875rem">-</div>
             <div id="user-role" style="font-size:0.75rem;color:var(--text-muted)">-</div>
+          </div>
+        </div>
+        <div id="worker-stats-container" class="hidden" style="margin-bottom: 0.75rem; padding: 0.75rem; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); font-size: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; direction: rtl; text-align: right;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="color:var(--text-muted)">ساعات العمل:</span>
+            <span id="sidebar-worker-hours" style="font-weight:700; color:var(--sidebar-text)">0.00 ساعة</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="color:var(--text-muted)">إجمالي السلف:</span>
+            <span id="sidebar-worker-advances" style="font-weight:700; color:#ef4444">0.00 ج.م</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="color:var(--text-muted)">الخصومات (الغياب):</span>
+            <span id="sidebar-worker-deductions" style="font-weight:700; color:#f59e0b">0.00 ج.م</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.1); padding-top:0.4rem; margin-top:0.1rem;">
+            <span style="color:var(--text-muted); font-weight:600;">صافي الحساب:</span>
+            <span id="sidebar-worker-net" style="font-weight:800; color:#10b981">0.00 ج.م</span>
           </div>
         </div>
         <button id="sidebar-attendance-btn" class="btn btn-success btn-block btn-sm" style="margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: var(--success-gradient) !important; border: none; font-weight: 700;" onclick="openAttendanceSelfServiceModal()">
@@ -252,6 +270,7 @@ function renderLayout() {
   `;
 
   document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
+  updateSidebarWorkerStats();
   checkGlobalAlerts();
 
   setInterval(checkGlobalAlerts, 15000);
@@ -329,7 +348,7 @@ async function checkGlobalAlerts() {
           // إشعار طلب إجازة جديد — للمدير العام فقط
           if (displayMessage.includes('طلب إجازة جديد')) {
             if (typeof canReceiveLeaveRequestNotifications !== 'function' ||
-                !canReceiveLeaveRequestNotifications(currentProfile.role)) {
+              !canReceiveLeaveRequestNotifications(currentProfile.role)) {
               return;
             }
           }
@@ -1431,15 +1450,32 @@ async function submitAttendanceSelf() {
 
         totalHours = Math.max(0.0, Number((totalHours - breakDeduction).toFixed(2)));
 
-        const hourlyRate = window.selfServiceWorker.hourly_rate || 0;
-        const OVERTIME_THRESHOLD = 15;
+        const hourlyRate = parseFloat(window.selfServiceWorker ? window.selfServiceWorker.hourly_rate : 0) || 0;
+        
+        // Calculate worker's shift duration as the overtime threshold
+        let shiftDuration = 12;
+        if (window.selfServiceWorker) {
+          const start = window.selfServiceWorker.shift_start != null ? parseInt(window.selfServiceWorker.shift_start, 10) : 10;
+          const end = window.selfServiceWorker.shift_end != null ? parseInt(window.selfServiceWorker.shift_end, 10) : 22;
+          if (end >= start) {
+            shiftDuration = end - start;
+          } else {
+            shiftDuration = (24 - start) + end;
+          }
+          if (shiftDuration <= 0) shiftDuration = 12;
+        }
+
         let earnings;
-        if (totalHours <= OVERTIME_THRESHOLD) {
+        if (totalHours <= shiftDuration) {
           earnings = Number((totalHours * hourlyRate).toFixed(2));
         } else {
-          const normalPay = OVERTIME_THRESHOLD * hourlyRate;
-          const overtimePay = (totalHours - OVERTIME_THRESHOLD) * hourlyRate * 2;
+          const normalPay = shiftDuration * hourlyRate;
+          const overtimePay = (totalHours - shiftDuration) * hourlyRate * 2;
           earnings = Number((normalPay + overtimePay).toFixed(2));
+        }
+
+        if (isNaN(earnings)) {
+          earnings = 0;
         }
 
         const { error } = await sb.from('attendance')
@@ -1485,6 +1521,7 @@ async function submitAttendanceSelf() {
 
     // Update break button state after self service checkin/checkout
     await updateSidebarBreakButton();
+    updateSidebarWorkerStats();
 
     // If current page is workers.html, refresh it to update lists immediately
     if (window.location.pathname.includes('workers.html') && typeof initWorkersPage === 'function') {
@@ -1672,6 +1709,7 @@ async function toggleBreakSelf() {
 
     // Refresh UI
     await updateSidebarBreakButton();
+    updateSidebarWorkerStats();
 
     // If current page is workers.html, refresh it to update lists immediately
     if (window.location.pathname.includes('workers.html') && typeof initWorkersPage === 'function') {
@@ -1838,5 +1876,71 @@ async function hasApprovedLeaveToday(sb, workerId) {
     .gte('end_date', todayStr)
     .limit(1);
   return leaves && leaves.length > 0;
+}
+
+// --- WORKER SIDEBAR STATS FUNCTIONS ---
+
+async function updateSidebarWorkerStats() {
+  const container = document.getElementById('worker-stats-container');
+  if (!container) return;
+
+  if (typeof currentProfile === 'undefined' || !currentProfile) {
+    container.classList.add('hidden');
+    return;
+  }
+
+  // Check if role is excluded from worker services (Admin, Manager, General Manager)
+  if (isWorkerSelfServiceExcludedRole(currentProfile.role)) {
+    container.classList.add('hidden');
+    return;
+  }
+
+  try {
+    const sb = getSupabase();
+    // Get worker record associated with this profile
+    const worker = await getOrCreateWorkerForProfile(sb, currentProfile);
+    if (!worker) {
+      container.classList.add('hidden');
+      return;
+    }
+
+    container.classList.remove('hidden');
+
+    // Fetch details
+    const [attRes, advRes, absRes, bnsRes] = await Promise.all([
+      sb.from('attendance').select('total_hours,earnings').eq('worker_id', worker.id).not('check_out', 'is', null),
+      sb.from('advances').select('amount').eq('worker_id', worker.id),
+      sb.from('absence_deductions').select('deduction_amount').eq('worker_id', worker.id).not('reason', 'like', '%_deleted'),
+      sb.from('worker_bonuses').select('amount').eq('worker_id', worker.id)
+    ]);
+
+    const totalHours = (attRes.data || []).reduce((sum, item) => sum + (parseFloat(item.total_hours) || 0), 0);
+    const totalEarnings = (attRes.data || []).reduce((sum, item) => sum + (parseFloat(item.earnings) || 0), 0);
+    const totalAdvances = (advRes.data || []).reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+    const totalDeductions = (absRes.data || []).reduce((sum, item) => sum + (parseFloat(item.deduction_amount) || 0), 0);
+    const totalBonuses = (bnsRes.data || []).reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+
+    const netBalance = totalEarnings + totalBonuses - totalAdvances - totalDeductions;
+
+    // Populate UI elements
+    const hoursEl = document.getElementById('sidebar-worker-hours');
+    const advEl = document.getElementById('sidebar-worker-advances');
+    const dedEl = document.getElementById('sidebar-worker-deductions');
+    const netEl = document.getElementById('sidebar-worker-net');
+
+    if (hoursEl) hoursEl.textContent = `${totalHours.toFixed(2)} ساعة`;
+    if (advEl) advEl.textContent = `${totalAdvances.toFixed(2)} ج.م`;
+    if (dedEl) dedEl.textContent = `${totalDeductions.toFixed(2)} ج.م`;
+    if (netEl) {
+      netEl.textContent = `${netBalance.toFixed(2)} ج.م`;
+      if (netBalance >= 0) {
+        netEl.style.color = '#10b981'; // Green
+      } else {
+        netEl.style.color = '#ef4444'; // Red
+      }
+    }
+  } catch (err) {
+    console.error('Error loading sidebar worker stats:', err);
+  }
 }
 
